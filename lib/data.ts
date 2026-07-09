@@ -400,7 +400,7 @@ int dequeue(Queue *q) {
         time: "O(1) average",
         space: "O(n)",
         inputKind: "array",
-        code: `#define BUCKETS 16
+        code: `#define BUCKETS 8
 
 typedef struct Entry {
     int key;

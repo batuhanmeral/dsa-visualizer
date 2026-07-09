@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 import type { Algorithm, Category } from "@/lib/data";
 import { getSimulation, type StepKind } from "@/lib/simulations";
+import DataStructureViz, {
+  hasDataStructureViz,
+} from "./data-structure-viz";
 
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const MAX_VALUES = 16;
@@ -74,6 +77,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const [stepIndex, setStepIndex] = useState(0);
   const [demoLine, setDemoLine] = useState(0);
+  const [dsLine, setDsLine] = useState(0);
   const [inputText, setInputText] = useState(DEFAULT_INPUT);
   const [values, setValues] = useState(() => parseValues(DEFAULT_INPUT));
   const [targetText, setTargetText] = useState(DEFAULT_TARGET);
@@ -166,8 +170,9 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const renderValues = step ? step.array : displayValues;
   const maxValue = Math.max(...renderValues, 1);
   const asBoxes = category.slug === "data-structures";
+  const useDsViz = asBoxes && hasDataStructureViz(algorithm.slug);
   const fileExtension = algorithm.language ?? "c";
-  const activeLine = step ? step.codeLine : demoLine;
+  const activeLine = useDsViz ? dsLine : step ? step.codeLine : demoLine;
 
   const barColor = (i: number): string => {
     if (step) {
@@ -218,29 +223,31 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
 
           {/* Controls */}
           <div className="flex flex-wrap items-center gap-2">
-            <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-              <ControlButton label="Reset" onClick={reset}>
-                <RotateCcw className="size-4" />
-              </ControlButton>
-              <ControlButton label="Step back" onClick={() => stepBy(-1)}>
-                <StepBack className="size-4" />
-              </ControlButton>
-              <button
-                type="button"
-                onClick={togglePlay}
-                aria-label={playing ? "Pause" : "Play"}
-                className="flex size-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500"
-              >
-                {playing ? (
-                  <Pause className="size-4" fill="currentColor" />
-                ) : (
-                  <Play className="size-4 translate-x-px" fill="currentColor" />
-                )}
-              </button>
-              <ControlButton label="Step forward" onClick={() => stepBy(1)}>
-                <StepForward className="size-4" />
-              </ControlButton>
-            </div>
+            {!useDsViz && (
+              <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
+                <ControlButton label="Reset" onClick={reset}>
+                  <RotateCcw className="size-4" />
+                </ControlButton>
+                <ControlButton label="Step back" onClick={() => stepBy(-1)}>
+                  <StepBack className="size-4" />
+                </ControlButton>
+                <button
+                  type="button"
+                  onClick={togglePlay}
+                  aria-label={playing ? "Pause" : "Play"}
+                  className="flex size-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500"
+                >
+                  {playing ? (
+                    <Pause className="size-4" fill="currentColor" />
+                  ) : (
+                    <Play className="size-4 translate-x-px" fill="currentColor" />
+                  )}
+                </button>
+                <ControlButton label="Step forward" onClick={() => stepBy(1)}>
+                  <StepForward className="size-4" />
+                </ControlButton>
+              </div>
+            )}
 
             <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
               <Gauge className="ml-1.5 size-4 text-zinc-400" />
@@ -263,7 +270,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
         </div>
 
         {/* Custom input */}
-        {hasInput && (
+        {hasInput && !useDsViz && (
           <form
             onSubmit={applyInput}
             className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800"
@@ -329,30 +336,39 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           />
 
           {/* Status chip */}
-          <span
-            className={`absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium ${
-              playing || (steps && atEnd)
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
-            }`}
-          >
+          {!useDsViz && (
             <span
-              className={`size-1.5 rounded-full ${
-                playing
-                  ? "animate-pulse bg-emerald-500"
-                  : steps && atEnd
-                    ? "bg-emerald-500"
-                    : "bg-zinc-400"
+              className={`absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium ${
+                playing || (steps && atEnd)
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
               }`}
-            />
-            {playing
-              ? `Running · ${speed}x`
-              : steps && atEnd
-                ? "Done"
-                : "Idle"}
-          </span>
+            >
+              <span
+                className={`size-1.5 rounded-full ${
+                  playing
+                    ? "animate-pulse bg-emerald-500"
+                    : steps && atEnd
+                      ? "bg-emerald-500"
+                      : "bg-zinc-400"
+                }`}
+              />
+              {playing
+                ? `Running · ${speed}x`
+                : steps && atEnd
+                  ? "Done"
+                  : "Idle"}
+            </span>
+          )}
 
-          {hasInput ? (
+          {useDsViz ? (
+            <DataStructureViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : hasInput ? (
             asBoxes ? (
               /* Data structure preview: boxes */
               <div className="relative flex w-full flex-col items-center gap-6 px-6 py-10">
