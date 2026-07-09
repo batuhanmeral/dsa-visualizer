@@ -19,11 +19,29 @@ import {
   TerminalSquare,
 } from "lucide-react";
 import type { Algorithm, Category } from "@/lib/data";
+import { getSimulation, type StepKind } from "@/lib/simulations";
 
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const MAX_VALUES = 16;
 const DEFAULT_INPUT = "23, 7, 41, 15, 3, 34, 9, 28";
 const DEFAULT_TARGET = "15";
+
+const KIND_STYLES: Record<StepKind, { bar: string; dot: string }> = {
+  compare: { bar: "bg-amber-400", dot: "bg-amber-400" },
+  swap: { bar: "bg-rose-500", dot: "bg-rose-500" },
+  shift: { bar: "bg-violet-500", dot: "bg-violet-500" },
+  select: { bar: "bg-sky-500", dot: "bg-sky-500" },
+  info: { bar: "bg-zinc-400", dot: "bg-zinc-400" },
+  done: { bar: "bg-emerald-500", dot: "bg-emerald-500" },
+};
+
+const LEGEND: { label: string; dot: string }[] = [
+  { label: "compare", dot: "bg-amber-400" },
+  { label: "swap", dot: "bg-rose-500" },
+  { label: "shift", dot: "bg-violet-500" },
+  { label: "select", dot: "bg-sky-500" },
+  { label: "sorted", dot: "bg-emerald-500" },
+];
 
 function parseValues(text: string): number[] {
   return text
@@ -42,10 +60,12 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const codeLines = useMemo(() => algorithm.code.split("\n"), [algorithm.code]);
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
+  const generator = getSimulation(algorithm.slug);
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
-  const [activeLine, setActiveLine] = useState(0);
+  const [stepIndex, setStepIndex] = useState(0);
+  const [demoLine, setDemoLine] = useState(0);
   const [inputText, setInputText] = useState(DEFAULT_INPUT);
   const [values, setValues] = useState(() => parseValues(DEFAULT_INPUT));
   const [targetText, setTargetText] = useState(DEFAULT_TARGET);
@@ -53,25 +73,56 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
     Number.parseInt(DEFAULT_TARGET, 10)
   );
 
-  // Placeholder playback: walk the code highlight until real steppers land.
-  useEffect(() => {
-    if (!isPlaying) return;
-    const id = setInterval(() => {
-      setActiveLine((line) => (line + 1) % codeLines.length);
-    }, 600 / speed);
-    return () => clearInterval(id);
-  }, [isPlaying, speed, codeLines.length]);
+  const steps = useMemo(
+    () => (generator && values.length > 0 ? generator(values) : undefined),
+    [generator, values]
+  );
+  const step = steps ? steps[Math.min(stepIndex, steps.length - 1)] : undefined;
+  const atEnd = steps !== undefined && stepIndex >= steps.length - 1;
+  // Derived: playback halts by itself once the simulation reaches its last step.
+  const playing = isPlaying && !atEnd;
 
-  const step = (delta: number) => {
-    setIsPlaying(false);
-    setActiveLine(
-      (line) => (line + delta + codeLines.length) % codeLines.length
+  // Playback: advance real simulation steps, or (fallback for algorithms
+  // without an engine yet) cycle the code highlight as a demo.
+  useEffect(() => {
+    if (!playing) return;
+    const id = setInterval(
+      () => {
+        if (steps) {
+          setStepIndex((s) => Math.min(s + 1, steps.length - 1));
+        } else {
+          setDemoLine((line) => (line + 1) % codeLines.length);
+        }
+      },
+      (steps ? 900 : 600) / speed
     );
-  };
+    return () => clearInterval(id);
+  }, [playing, speed, steps, codeLines.length]);
 
   const reset = () => {
     setIsPlaying(false);
-    setActiveLine(0);
+    setStepIndex(0);
+    setDemoLine(0);
+  };
+
+  const stepBy = (delta: number) => {
+    setIsPlaying(false);
+    if (steps) {
+      setStepIndex((s) => Math.min(Math.max(s + delta, 0), steps.length - 1));
+    } else {
+      setDemoLine(
+        (line) => (line + delta + codeLines.length) % codeLines.length
+      );
+    }
+  };
+
+  const togglePlay = () => {
+    if (atEnd) {
+      setStepIndex(0);
+      setIsPlaying(true);
+      return;
+    }
+    setIsPlaying((p) => !p);
   };
 
   const applyInput = (e: React.FormEvent) => {
@@ -104,9 +155,28 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
       algorithm.sortedInput ? [...values].sort((a, b) => a - b) : values,
     [values, algorithm.sortedInput]
   );
-  const maxValue = Math.max(...displayValues, 1);
+  const renderValues = step ? step.array : displayValues;
+  const maxValue = Math.max(...renderValues, 1);
   const asBoxes = category.slug === "data-structures";
   const fileExtension = algorithm.language ?? "c";
+  const activeLine = step ? step.codeLine : demoLine;
+
+  const barColor = (i: number): string => {
+    if (step) {
+      if (step.kind === "done") return "bg-emerald-500";
+      if (step.highlights.includes(i)) return KIND_STYLES[step.kind].bar;
+      if (step.sorted.includes(i)) return "bg-emerald-500";
+      return "bg-zinc-300 dark:bg-zinc-700";
+    }
+    if (hasTarget && renderValues[i] === target) return "bg-emerald-500";
+    return "bg-zinc-300 dark:bg-zinc-700";
+  };
+
+  const barIsColored = (i: number): boolean =>
+    step !== undefined &&
+    (step.kind === "done" ||
+      step.highlights.includes(i) ||
+      step.sorted.includes(i));
 
   return (
     <div className="flex flex-col gap-4 p-4 lg:h-dvh lg:p-6">
@@ -139,22 +209,22 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               <ControlButton label="Reset" onClick={reset}>
                 <RotateCcw className="size-4" />
               </ControlButton>
-              <ControlButton label="Step back" onClick={() => step(-1)}>
+              <ControlButton label="Step back" onClick={() => stepBy(-1)}>
                 <StepBack className="size-4" />
               </ControlButton>
               <button
                 type="button"
-                onClick={() => setIsPlaying((p) => !p)}
-                aria-label={isPlaying ? "Pause" : "Play"}
+                onClick={togglePlay}
+                aria-label={playing ? "Pause" : "Play"}
                 className="flex size-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500"
               >
-                {isPlaying ? (
+                {playing ? (
                   <Pause className="size-4" fill="currentColor" />
                 ) : (
                   <Play className="size-4 translate-x-px" fill="currentColor" />
                 )}
               </button>
-              <ControlButton label="Step forward" onClick={() => step(1)}>
+              <ControlButton label="Step forward" onClick={() => stepBy(1)}>
                 <StepForward className="size-4" />
               </ControlButton>
             </div>
@@ -237,28 +307,36 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
         {/* Visualization canvas */}
         <section
           aria-label="Visualization area"
-          className="relative flex min-h-[340px] items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
+          className="relative flex min-h-95 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
         >
           {/* Dotted grid backdrop */}
           <div
             aria-hidden
-            className="absolute inset-0 [background-image:radial-gradient(rgb(113_113_122/0.18)_1px,transparent_1px)] [background-size:22px_22px]"
+            className="absolute inset-0 bg-[radial-gradient(rgb(113_113_122/0.18)_1px,transparent_1px)] bg-size-[22px_22px]"
           />
 
           {/* Status chip */}
           <span
             className={`absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium ${
-              isPlaying
+              playing || (steps && atEnd)
                 ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                 : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
             }`}
           >
             <span
               className={`size-1.5 rounded-full ${
-                isPlaying ? "animate-pulse bg-emerald-500" : "bg-zinc-400"
+                playing
+                  ? "animate-pulse bg-emerald-500"
+                  : steps && atEnd
+                    ? "bg-emerald-500"
+                    : "bg-zinc-400"
               }`}
             />
-            {isPlaying ? `Running · ${speed}x` : "Idle"}
+            {playing
+              ? `Running · ${speed}x`
+              : steps && atEnd
+                ? "Done"
+                : "Idle"}
           </span>
 
           {hasInput ? (
@@ -266,7 +344,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               /* Data structure preview: boxes */
               <div className="relative flex w-full flex-col items-center gap-6 px-6 py-10">
                 <div className="flex max-w-full flex-wrap items-center justify-center gap-y-3">
-                  {displayValues.map((value, i) => (
+                  {renderValues.map((value, i) => (
                     <span key={`${i}-${value}`} className="flex items-center">
                       <motion.span
                         initial={{ opacity: 0, scale: 0.7 }}
@@ -277,11 +355,11 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                         {value}
                       </motion.span>
                       {algorithm.slug === "linked-list" &&
-                        i < displayValues.length - 1 && (
+                        i < renderValues.length - 1 && (
                           <ArrowRight className="mx-1.5 size-4 text-zinc-400" />
                         )}
                       {algorithm.slug !== "linked-list" &&
-                        i < displayValues.length - 1 && (
+                        i < renderValues.length - 1 && (
                           <span className="w-2" />
                         )}
                     </span>
@@ -294,44 +372,81 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 </p>
               </div>
             ) : (
-              /* Sorting / searching preview: bars */
-              <div className="relative flex h-full w-full flex-col justify-end px-8 pb-8 pt-14">
-                <div className="flex h-full items-end justify-center gap-1.5 sm:gap-2">
-                  {displayValues.map((value, i) => {
-                    const isTargetMatch = hasTarget && value === target;
-                    return (
-                      <motion.div
-                        key={`${i}-${value}`}
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{
-                          height: `${Math.max((value / maxValue) * 100, 6)}%`,
-                          opacity: 1,
-                        }}
-                        transition={{ delay: i * 0.04, type: "tween" }}
-                        className={`flex w-full max-w-12 flex-col justify-end rounded-t-md ${
-                          isTargetMatch
-                            ? "bg-emerald-500"
-                            : "bg-zinc-300 dark:bg-zinc-700"
+              /* Sorting / searching: animated bars */
+              <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
+                <div className="flex min-h-0 flex-1 items-end justify-center gap-1.5 sm:gap-2">
+                  {renderValues.map((value, i) => (
+                    <motion.div
+                      key={i}
+                      initial={false}
+                      animate={{
+                        height: `${Math.max((value / maxValue) * 100, 6)}%`,
+                      }}
+                      transition={{ type: "tween", duration: 0.25 }}
+                      className={`flex w-full max-w-12 flex-col justify-end rounded-t-md transition-colors duration-200 ${barColor(i)}`}
+                    >
+                      <span
+                        className={`pb-1 text-center font-mono text-[10px] ${
+                          barIsColored(i) ||
+                          (!step && hasTarget && value === target)
+                            ? "font-semibold text-white"
+                            : "text-zinc-600 dark:text-zinc-300"
                         }`}
                       >
-                        <span
-                          className={`pb-1 text-center font-mono text-[10px] ${
-                            isTargetMatch
-                              ? "font-semibold text-white"
-                              : "text-zinc-600 dark:text-zinc-300"
-                          }`}
-                        >
-                          {value}
-                        </span>
-                      </motion.div>
-                    );
-                  })}
+                        {value}
+                      </span>
+                    </motion.div>
+                  ))}
                 </div>
-                <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
-                  {hasTarget
-                    ? `Looking for ${target} — matches are highlighted. Step-by-step animation coming next.`
-                    : "Your input, ready to sort. Step-by-step animation coming next."}
-                </p>
+
+                {steps && step ? (
+                  /* Step strip: note + counter + scrubber + legend */
+                  <div className="mt-4 rounded-xl border border-zinc-200 bg-white/85 p-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="flex min-w-0 items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+                        <span
+                          className={`size-2 shrink-0 rounded-full ${KIND_STYLES[step.kind].dot}`}
+                        />
+                        <span className="truncate">{step.note}</span>
+                      </p>
+                      <span className="shrink-0 font-mono text-[11px] text-zinc-400">
+                        {Math.min(stepIndex, steps.length - 1) + 1}/
+                        {steps.length}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={steps.length - 1}
+                      value={Math.min(stepIndex, steps.length - 1)}
+                      onChange={(e) => {
+                        setIsPlaying(false);
+                        setStepIndex(Number(e.target.value));
+                      }}
+                      aria-label="Simulation timeline"
+                      className="mt-2 h-1 w-full cursor-pointer accent-emerald-600"
+                    />
+                    <div className="mt-2 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
+                      {LEGEND.map((item) => (
+                        <span
+                          key={item.label}
+                          className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"
+                        >
+                          <span
+                            className={`size-1.5 rounded-full ${item.dot}`}
+                          />
+                          {item.label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                    {hasTarget
+                      ? `Looking for ${target} — matches are highlighted. Step-by-step animation coming next.`
+                      : "Your input, ready to sort. Step-by-step animation coming next."}
+                  </p>
+                )}
               </div>
             )
           ) : (
@@ -362,7 +477,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
         {/* Code viewer */}
         <section
           aria-label="Code viewer"
-          className="flex min-h-[340px] flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 lg:min-h-0"
+          className="flex min-h-85 flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 lg:min-h-0"
         >
           <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
             <span className="flex items-center gap-2 text-xs font-medium text-zinc-400">
