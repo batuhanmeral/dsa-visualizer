@@ -31,16 +31,24 @@ const KIND_STYLES: Record<StepKind, { bar: string; dot: string }> = {
   swap: { bar: "bg-rose-500", dot: "bg-rose-500" },
   shift: { bar: "bg-violet-500", dot: "bg-violet-500" },
   select: { bar: "bg-sky-500", dot: "bg-sky-500" },
+  probe: { bar: "bg-amber-400", dot: "bg-amber-400" },
+  found: { bar: "bg-emerald-500", dot: "bg-emerald-500" },
   info: { bar: "bg-zinc-400", dot: "bg-zinc-400" },
   done: { bar: "bg-emerald-500", dot: "bg-emerald-500" },
 };
 
-const LEGEND: { label: string; dot: string }[] = [
+const SORT_LEGEND: { label: string; dot: string }[] = [
   { label: "compare", dot: "bg-amber-400" },
   { label: "swap", dot: "bg-rose-500" },
   { label: "shift", dot: "bg-violet-500" },
   { label: "select", dot: "bg-sky-500" },
   { label: "sorted", dot: "bg-emerald-500" },
+];
+
+const SEARCH_LEGEND: { label: string; dot: string }[] = [
+  { label: "checking", dot: "bg-amber-400" },
+  { label: "found", dot: "bg-emerald-500" },
+  { label: "eliminated", dot: "bg-zinc-300 dark:bg-zinc-700" },
 ];
 
 function parseValues(text: string): number[] {
@@ -74,8 +82,8 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   );
 
   const steps = useMemo(
-    () => (generator && values.length > 0 ? generator(values) : undefined),
-    [generator, values]
+    () => (generator && values.length > 0 ? generator(values, target) : undefined),
+    [generator, values, target]
   );
   const step = steps ? steps[Math.min(stepIndex, steps.length - 1)] : undefined;
   const atEnd = steps !== undefined && stepIndex >= steps.length - 1;
@@ -166,11 +174,16 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
       if (step.kind === "done") return "bg-emerald-500";
       if (step.highlights.includes(i)) return KIND_STYLES[step.kind].bar;
       if (step.sorted.includes(i)) return "bg-emerald-500";
+      // Outside the active window → eliminated / not being worked on: dim it.
+      if (step.range && (i < step.range[0] || i > step.range[1]))
+        return "bg-zinc-200 dark:bg-zinc-800/70";
       return "bg-zinc-300 dark:bg-zinc-700";
     }
     if (hasTarget && renderValues[i] === target) return "bg-emerald-500";
     return "bg-zinc-300 dark:bg-zinc-700";
   };
+
+  const legend = category.slug === "searching" ? SEARCH_LEGEND : SORT_LEGEND;
 
   const barIsColored = (i: number): boolean =>
     step !== undefined &&
@@ -427,7 +440,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       className="mt-2 h-1 w-full cursor-pointer accent-emerald-600"
                     />
                     <div className="mt-2 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
-                      {LEGEND.map((item) => (
+                      {legend.map((item) => (
                         <span
                           key={item.label}
                           className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"

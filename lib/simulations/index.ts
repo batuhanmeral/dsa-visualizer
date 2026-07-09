@@ -1,7 +1,13 @@
+import { linearSearchSteps, binarySearchSteps } from "./searching";
 import {
   bubbleSortSteps,
+  heapSortSteps,
   insertionSortSteps,
+  mergeSortSteps,
+  quickSortSteps,
+  radixSortSteps,
   selectionSortSteps,
+  shellSortSteps,
 } from "./sorting";
 import type { StepGenerator } from "./types";
 
@@ -10,6 +16,13 @@ const registry: Record<string, StepGenerator> = {
   "bubble-sort": bubbleSortSteps,
   "selection-sort": selectionSortSteps,
   "insertion-sort": insertionSortSteps,
+  "shell-sort": shellSortSteps,
+  "merge-sort": mergeSortSteps,
+  "quick-sort": quickSortSteps,
+  "heap-sort": heapSortSteps,
+  "radix-sort": radixSortSteps,
+  "linear-search": linearSearchSteps,
+  "binary-search": binarySearchSteps,
 };
 
 export function getSimulation(slug: string): StepGenerator | undefined {
