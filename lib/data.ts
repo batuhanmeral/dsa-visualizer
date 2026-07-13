@@ -1,10 +1,12 @@
 import {
   BarChart3,
+  Binary,
   Boxes,
   Layers,
   Puzzle,
   Search,
   Share2,
+  Type,
   type LucideIcon,
 } from "lucide-react";
 
@@ -951,6 +953,334 @@ int solve(int maze[N][N], int r, int c, int sol[N][N]) {
         permute(a, n, k + 1);
         swap(&a[k], &a[i]);   /* undo */
     }
+}`,
+      },
+    ],
+  },
+  {
+    slug: "trees",
+    name: "Trees",
+    tagline: "Hierarchies, balancing & queries",
+    icon: Binary,
+    algorithms: [
+      {
+        slug: "bst",
+        name: "Binary Search Tree",
+        summary:
+          "Ordered tree where every left subtree is smaller and every right subtree larger — insert, search and delete all follow one root-to-leaf path.",
+        time: "O(h)",
+        space: "O(n)",
+        code: `typedef struct Node {
+    int key;
+    struct Node *left, *right;
+} Node;
+
+Node *insert(Node *root, int key) {
+    if (root == NULL)
+        return newNode(key);
+    if (key < root->key)
+        root->left = insert(root->left, key);
+    else if (key > root->key)
+        root->right = insert(root->right, key);
+    return root;
+}
+
+Node *search(Node *root, int key) {
+    while (root && root->key != key)
+        root = key < root->key ? root->left
+                               : root->right;
+    return root;
+}
+
+Node *deleteNode(Node *root, int key) {
+    if (root == NULL) return NULL;
+    if (key < root->key)
+        root->left = deleteNode(root->left, key);
+    else if (key > root->key)
+        root->right = deleteNode(root->right, key);
+    else {
+        if (!root->left)  return root->right;
+        if (!root->right) return root->left;
+        Node *m = minNode(root->right);
+        root->key = m->key;
+        root->right = deleteNode(root->right, m->key);
+    }
+    return root;
+}`,
+      },
+      {
+        slug: "avl",
+        name: "AVL Tree",
+        summary:
+          "A self-balancing BST: after each insert it checks balance factors and rotates so the height stays O(log n).",
+        time: "O(log n)",
+        space: "O(n)",
+        code: `int height(Node *n) { return n ? n->height : 0; }
+int bf(Node *n) {
+    return n ? height(n->left) - height(n->right) : 0;
+}
+
+Node *rotateRight(Node *y) {
+    Node *x = y->left;
+    y->left = x->right;
+    x->right = y;
+    fixHeight(y); fixHeight(x);
+    return x;
+}
+
+Node *rotateLeft(Node *x) {
+    Node *y = x->right;
+    x->right = y->left;
+    y->left = x;
+    fixHeight(x); fixHeight(y);
+    return y;
+}
+
+Node *insert(Node *n, int key) {
+    if (!n) return newNode(key);
+    if (key < n->key) n->left = insert(n->left, key);
+    else n->right = insert(n->right, key);
+    fixHeight(n);
+    int b = bf(n);
+    if (b > 1 && key < n->left->key)
+        return rotateRight(n);
+    if (b < -1 && key > n->right->key)
+        return rotateLeft(n);
+    if (b > 1 && key > n->left->key) {
+        n->left = rotateLeft(n->left);
+        return rotateRight(n);
+    }
+    if (b < -1 && key < n->right->key) {
+        n->right = rotateRight(n->right);
+        return rotateLeft(n);
+    }
+    return n;
+}`,
+      },
+      {
+        slug: "heap",
+        name: "Binary Heap",
+        summary:
+          "A complete binary tree stored in an array; push sifts a value up and pop sinks the last element down to restore the max-heap order.",
+        time: "O(log n)",
+        space: "O(n)",
+        code: `void siftUp(int h[], int i) {
+    while (i > 0 && h[i] > h[(i - 1) / 2]) {
+        swap(&h[i], &h[(i - 1) / 2]);
+        i = (i - 1) / 2;
+    }
+}
+
+void push(int h[], int *n, int val) {
+    h[*n] = val;
+    siftUp(h, (*n)++);
+}
+
+void siftDown(int h[], int n, int i) {
+    for (;;) {
+        int l = 2*i+1, r = 2*i+2, big = i;
+        if (l < n && h[l] > h[big]) big = l;
+        if (r < n && h[r] > h[big]) big = r;
+        if (big == i) break;
+        swap(&h[i], &h[big]);
+        i = big;
+    }
+}
+
+int pop(int h[], int *n) {
+    int top = h[0];
+    h[0] = h[--(*n)];
+    siftDown(h, *n, 0);
+    return top;
+}`,
+      },
+      {
+        slug: "trie",
+        name: "Trie (Prefix Tree)",
+        summary:
+          "A tree keyed by characters: each root-to-node path spells a prefix, so insert and lookup cost only the length of the word.",
+        time: "O(L)",
+        space: "O(Σ · N)",
+        code: `#define R 26
+typedef struct Trie {
+    struct Trie *next[R];
+    int end;
+} Trie;
+
+void insert(Trie *root, const char *w) {
+    Trie *node = root;
+    for (int i = 0; w[i]; i++) {
+        int c = w[i] - 'a';
+        if (!node->next[c])
+            node->next[c] = newTrie();
+        node = node->next[c];
+    }
+    node->end = 1;
+}
+
+int search(Trie *root, const char *w) {
+    Trie *node = root;
+    for (int i = 0; w[i]; i++) {
+        int c = w[i] - 'a';
+        if (!node->next[c]) return 0;
+        node = node->next[c];
+    }
+    return node->end;
+}`,
+      },
+      {
+        slug: "segment-tree",
+        name: "Segment Tree",
+        summary:
+          "A binary tree over array ranges: each node stores an aggregate (here, a sum) so range queries resolve in O(log n) by combining O(log n) covering nodes.",
+        time: "O(log n) query",
+        space: "O(n)",
+        code: `int tree[4 * MAXN];
+
+void build(int a[], int node, int lo, int hi) {
+    if (lo == hi) {
+        tree[node] = a[lo];
+        return;
+    }
+    int mid = (lo + hi) / 2;
+    build(a, 2*node, lo, mid);
+    build(a, 2*node+1, mid+1, hi);
+    tree[node] = tree[2*node] + tree[2*node+1];
+}
+
+int query(int node, int lo, int hi, int l, int r) {
+    if (r < lo || hi < l) return 0;
+    if (l <= lo && hi <= r) return tree[node];
+    int mid = (lo + hi) / 2;
+    return query(2*node, lo, mid, l, r)
+         + query(2*node+1, mid+1, hi, l, r);
+}`,
+      },
+    ],
+  },
+  {
+    slug: "strings",
+    name: "Strings",
+    tagline: "Pattern matching & palindromes",
+    icon: Type,
+    algorithms: [
+      {
+        slug: "kmp",
+        name: "KMP",
+        summary:
+          "Knuth-Morris-Pratt: precomputes a longest-prefix-suffix table so a mismatch never rescans the text — linear-time pattern matching.",
+        time: "O(n + m)",
+        space: "O(m)",
+        code: `void computeLPS(const char *p, int m, int lps[]) {
+    int len = 0;
+    lps[0] = 0;
+    for (int i = 1; i < m; ) {
+        if (p[i] == p[len]) {
+            lps[i++] = ++len;
+        } else if (len > 0) {
+            len = lps[len - 1];
+        } else {
+            lps[i++] = 0;
+        }
+    }
+}
+
+void kmp(const char *t, const char *p) {
+    int n = strlen(t), m = strlen(p);
+    int lps[m];
+    computeLPS(p, m, lps);
+
+    int i = 0, j = 0;
+    while (i < n) {
+        if (t[i] == p[j]) {
+            i++; j++;
+            if (j == m) {
+                printf("found at %d\\n", i - j);
+                j = lps[j - 1];
+            }
+        } else if (j > 0) {
+            j = lps[j - 1];
+        } else {
+            i++;
+        }
+    }
+}`,
+      },
+      {
+        slug: "rabin-karp",
+        name: "Rabin-Karp",
+        summary:
+          "Hashes the pattern and each text window with a rolling hash, verifying character-by-character only when hashes collide.",
+        time: "O(n + m) avg",
+        space: "O(1)",
+        code: `#define BASE 256
+#define MOD 1000000007
+
+void rabinKarp(const char *t, const char *p) {
+    int n = strlen(t), m = strlen(p);
+    long ph = 0, th = 0, pow = 1;
+    for (int i = 0; i < m; i++) {
+        ph = (ph * BASE + p[i]) % MOD;
+        th = (th * BASE + t[i]) % MOD;
+        if (i) pow = (pow * BASE) % MOD;
+    }
+    for (int i = 0; i + m <= n; i++) {
+        if (ph == th) {
+            int k = 0;
+            while (k < m && t[i + k] == p[k]) k++;
+            if (k == m) printf("found at %d\\n", i);
+        }
+        if (i + m < n)
+            th = ((th - t[i] * pow) * BASE
+                  + t[i + m]) % MOD;
+    }
+}`,
+      },
+      {
+        slug: "z-algorithm",
+        name: "Z-Algorithm",
+        summary:
+          "Computes, for every position, the length of the longest substring starting there that matches a prefix of the string — reusing a [l, r) window.",
+        time: "O(n)",
+        space: "O(n)",
+        code: `void zArray(const char *s, int n, int z[]) {
+    z[0] = n;
+    int l = 0, r = 0;
+    for (int i = 1; i < n; i++) {
+        if (i < r)
+            z[i] = min(r - i, z[i - l]);
+        while (i + z[i] < n &&
+               s[z[i]] == s[i + z[i]])
+            z[i]++;
+        if (i + z[i] > r) {
+            l = i;
+            r = i + z[i];
+        }
+    }
+}`,
+      },
+      {
+        slug: "manacher",
+        name: "Manacher's Algorithm",
+        summary:
+          "Finds the longest palindromic substring in linear time by expanding around centers and mirroring radii across the current palindrome.",
+        time: "O(n)",
+        space: "O(n)",
+        code: `/* transform: "aba" -> "^#a#b#a#$" */
+int manacher(const char *t, int n, int p[]) {
+    int c = 0, r = 0, best = 0;
+    for (int i = 1; i < n - 1; i++) {
+        if (i < r)
+            p[i] = min(r - i, p[2 * c - i]);
+        while (t[i + p[i] + 1] == t[i - p[i] - 1])
+            p[i]++;
+        if (i + p[i] > r) {
+            c = i;
+            r = i + p[i];
+        }
+        if (p[i] > best) best = p[i];
+    }
+    return best;
 }`,
       },
     ],

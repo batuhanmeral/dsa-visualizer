@@ -26,14 +26,18 @@ import DataStructureViz, {
 import GraphViz, { hasGraphViz } from "./graph-viz";
 import DpViz, { hasDpViz } from "./dp-viz";
 import BacktrackViz, { hasBacktrackViz } from "./backtracking-viz";
+import TreeViz, { hasTreeViz } from "./tree-viz";
+import StringViz, { hasStringViz } from "./string-viz";
 
-type CustomViz = "ds" | "graph" | "dp" | "backtrack";
+type CustomViz = "ds" | "graph" | "dp" | "backtrack" | "tree" | "string";
 
 function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
   if (isDsCategory && hasDataStructureViz(slug)) return "ds";
   if (hasGraphViz(slug)) return "graph";
   if (hasDpViz(slug)) return "dp";
   if (hasBacktrackViz(slug)) return "backtrack";
+  if (hasTreeViz(slug)) return "tree";
+  if (hasStringViz(slug)) return "string";
   return null;
 }
 
@@ -403,6 +407,20 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             />
           ) : customViz === "backtrack" ? (
             <BacktrackViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "tree" ? (
+            <TreeViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "string" ? (
+            <StringViz
               key={algorithm.slug}
               slug={algorithm.slug}
               speed={speed}
