@@ -510,6 +510,154 @@ void dijkstra(int graph[V][V], int src, int dist[V]) {
     }
 }`,
       },
+      {
+        slug: "bellman-ford",
+        name: "Bellman-Ford",
+        summary:
+          "Shortest paths from a source that also works with negative edge weights, by relaxing every edge V−1 times.",
+        time: "O(V · E)",
+        space: "O(V)",
+        code: `#define V 6
+#define INF 1000000
+
+void bellmanFord(int graph[V][V], int src, int dist[V]) {
+    for (int i = 0; i < V; i++) dist[i] = INF;
+    dist[src] = 0;
+
+    for (int pass = 1; pass < V; pass++) {
+        for (int u = 0; u < V; u++) {
+            if (dist[u] == INF) continue;
+            for (int v = 0; v < V; v++) {
+                if (graph[u][v] &&
+                    dist[u] + graph[u][v] < dist[v])
+                    dist[v] = dist[u] + graph[u][v];
+            }
+        }
+    }
+}`,
+      },
+      {
+        slug: "topological-sort",
+        name: "Topological Sort",
+        summary:
+          "Linear ordering of a DAG's nodes so every edge points forward — Kahn's algorithm peels off in-degree-0 nodes.",
+        time: "O(V + E)",
+        space: "O(V)",
+        code: `#define V 6
+
+void topoSort(int graph[V][V]) {
+    int indeg[V] = {0};
+    for (int u = 0; u < V; u++)
+        for (int v = 0; v < V; v++)
+            if (graph[u][v]) indeg[v]++;
+
+    int queue[V], front = 0, rear = 0;
+    for (int v = 0; v < V; v++)
+        if (indeg[v] == 0) queue[rear++] = v;
+
+    while (front < rear) {
+        int u = queue[front++];
+        printf("%d ", u);
+        for (int v = 0; v < V; v++) {
+            if (graph[u][v] && --indeg[v] == 0)
+                queue[rear++] = v;
+        }
+    }
+}`,
+      },
+      {
+        slug: "prim",
+        name: "Prim's MST",
+        summary:
+          "Grows a minimum spanning tree from a start node, always adding the cheapest edge that reaches a new node.",
+        time: "O(V²)",
+        space: "O(V)",
+        code: `#define V 6
+#define INF 1000000
+
+void prim(int graph[V][V], int start) {
+    int inMST[V] = {0};
+    int key[V], parent[V];
+    for (int i = 0; i < V; i++) key[i] = INF;
+    key[start] = 0;
+
+    for (int count = 0; count < V; count++) {
+        int u = -1;
+        for (int v = 0; v < V; v++)
+            if (!inMST[v] && (u == -1 || key[v] < key[u]))
+                u = v;
+        inMST[u] = 1;
+
+        for (int v = 0; v < V; v++)
+            if (graph[u][v] && !inMST[v] &&
+                graph[u][v] < key[v]) {
+                key[v] = graph[u][v];
+                parent[v] = u;
+            }
+    }
+}`,
+      },
+      {
+        slug: "kruskal",
+        name: "Kruskal's MST",
+        summary:
+          "Builds a minimum spanning tree by adding edges in weight order, using union-find to reject cycle edges.",
+        time: "O(E log E)",
+        space: "O(V)",
+        code: `#define V 6
+
+int parent[V];
+int find(int x) {
+    while (parent[x] != x) x = parent[x];
+    return x;
+}
+
+void kruskal(Edge edges[], int m) {
+    for (int i = 0; i < V; i++) parent[i] = i;
+    sortByWeight(edges, m);
+
+    for (int i = 0; i < m; i++) {
+        int a = find(edges[i].u), b = find(edges[i].v);
+        if (a == b)
+            continue;           /* same set -> cycle, skip */
+        parent[a] = b;          /* union: keep this edge */
+    }
+}`,
+      },
+      {
+        slug: "a-star",
+        name: "A* Search",
+        summary:
+          "Best-first shortest path guided by a heuristic: expands the node with the lowest g + straight-line estimate.",
+        time: "O(E)",
+        space: "O(V)",
+        code: `#define V 6
+#define INF 1000000
+
+/* h[v] = straight-line estimate from v to the goal */
+int aStar(int graph[V][V], int h[V], int src, int goal) {
+    int g[V], f[V], closed[V] = {0};
+    for (int i = 0; i < V; i++) { g[i] = INF; f[i] = INF; }
+    g[src] = 0;
+    f[src] = h[src];
+
+    for (int count = 0; count < V; count++) {
+        int u = -1;
+        for (int v = 0; v < V; v++)
+            if (!closed[v] && (u == -1 || f[v] < f[u]))
+                u = v;
+        if (u == goal) return g[goal];
+        closed[u] = 1;
+
+        for (int v = 0; v < V; v++)
+            if (graph[u][v] && g[u] + graph[u][v] < g[v]) {
+                g[v] = g[u] + graph[u][v];
+                f[v] = g[v] + h[v];
+            }
+    }
+    return -1;
+}`,
+      },
     ],
   },
   {
@@ -568,6 +716,106 @@ int knapsack(int w[], int val[], int n, int W) {
         }
     }
     return dp[n][W];
+}`,
+      },
+      {
+        slug: "edit-distance",
+        name: "Edit Distance",
+        summary:
+          "Fewest single-character insertions, deletions or replacements to turn one string into another (Levenshtein).",
+        time: "O(m · n)",
+        space: "O(m · n)",
+        code: `int min3(int a, int b, int c) {
+    int m = a < b ? a : b;
+    return m < c ? m : c;
+}
+
+int editDistance(const char *a, const char *b) {
+    int m = strlen(a), n = strlen(b);
+    int dp[m + 1][n + 1];
+
+    for (int i = 0; i <= m; i++) {
+        for (int j = 0; j <= n; j++) {
+            if (i == 0)
+                dp[i][j] = j;
+            else if (j == 0)
+                dp[i][j] = i;
+            else if (a[i - 1] == b[j - 1])
+                dp[i][j] = dp[i - 1][j - 1];
+            else
+                dp[i][j] = 1 + min3(dp[i - 1][j - 1],
+                                    dp[i - 1][j], dp[i][j - 1]);
+        }
+    }
+    return dp[m][n];
+}`,
+      },
+      {
+        slug: "coin-change",
+        name: "Coin Change",
+        summary:
+          "Fewest coins that sum to a target amount, given unlimited supply of each denomination.",
+        time: "O(n · amount)",
+        space: "O(n · amount)",
+        code: `#define INF 1000000
+
+int min(int a, int b) { return a < b ? a : b; }
+
+int coinChange(int coins[], int n, int amount) {
+    int dp[n + 1][amount + 1];
+
+    for (int i = 0; i <= n; i++) {
+        for (int a = 0; a <= amount; a++) {
+            if (a == 0)
+                dp[i][a] = 0;
+            else if (i == 0)
+                dp[i][a] = INF;
+            else if (coins[i - 1] > a)
+                dp[i][a] = dp[i - 1][a];
+            else
+                dp[i][a] = min(dp[i - 1][a],
+                               dp[i][a - coins[i - 1]] + 1);
+        }
+    }
+    return dp[n][amount];
+}`,
+      },
+      {
+        slug: "fibonacci",
+        name: "Fibonacci (Tabulation)",
+        summary:
+          "Builds the Fibonacci sequence bottom-up, each term being the sum of the two before it — no repeated work.",
+        time: "O(n)",
+        space: "O(n)",
+        code: `int fib(int n) {
+    if (n <= 1) return n;
+    int dp[n + 1];
+    dp[0] = 0;
+    dp[1] = 1;
+    for (int i = 2; i <= n; i++)
+        dp[i] = dp[i - 1] + dp[i - 2];
+    return dp[n];
+}`,
+      },
+      {
+        slug: "lis",
+        name: "Longest Increasing Subsequence",
+        summary:
+          "Longest run of values that strictly increases (not necessarily contiguous), via dp[i] = best subsequence ending at i.",
+        time: "O(n²)",
+        space: "O(n)",
+        code: `int lis(int a[], int n) {
+    int dp[n];
+    int best = 0;
+    for (int i = 0; i < n; i++) {
+        dp[i] = 1;
+        for (int j = 0; j < i; j++) {
+            if (a[j] < a[i] && dp[j] + 1 > dp[i])
+                dp[i] = dp[j] + 1;
+        }
+        if (dp[i] > best) best = dp[i];
+    }
+    return best;
 }`,
       },
     ],
@@ -639,6 +887,70 @@ int solve(int g[9][9]) {
         }
     }
     return 1;
+}`,
+      },
+      {
+        slug: "rat-in-a-maze",
+        name: "Rat in a Maze",
+        summary:
+          "Finds a path from the top-left to the bottom-right of a grid, marking the route and undoing it at dead ends.",
+        time: "O(4^(N²))",
+        space: "O(N²)",
+        code: `#define N 4
+
+int solve(int maze[N][N], int r, int c, int sol[N][N]) {
+    if (r == N - 1 && c == N - 1) {
+        sol[r][c] = 1;
+        return 1;
+    }
+    if (r < 0 || c < 0 || r >= N || c >= N ||
+        maze[r][c] == 0 || sol[r][c] == 1)
+        return 0;
+
+    sol[r][c] = 1;
+    if (solve(maze, r + 1, c, sol)) return 1;   /* down  */
+    if (solve(maze, r, c + 1, sol)) return 1;   /* right */
+    if (solve(maze, r - 1, c, sol)) return 1;   /* up    */
+    if (solve(maze, r, c - 1, sol)) return 1;   /* left  */
+    sol[r][c] = 0;   /* backtrack */
+    return 0;
+}`,
+      },
+      {
+        slug: "subsets",
+        name: "Subsets",
+        summary:
+          "Generates every subset of a set by, for each element, branching into taking it or leaving it out.",
+        time: "O(2^n)",
+        space: "O(n)",
+        code: `void subsets(int a[], int n, int i, int cur[], int k) {
+    if (i == n) {
+        printSubset(cur, k);
+        return;
+    }
+    cur[k] = a[i];              /* include a[i] */
+    subsets(a, n, i + 1, cur, k + 1);
+    /* backtrack: exclude a[i] */
+    subsets(a, n, i + 1, cur, k);
+}`,
+      },
+      {
+        slug: "permutations",
+        name: "Permutations",
+        summary:
+          "Generates every ordering of a set by fixing each position in turn and swapping, then undoing the swap.",
+        time: "O(n · n!)",
+        space: "O(n)",
+        code: `void permute(int a[], int n, int k) {
+    if (k == n) {
+        printPerm(a, n);
+        return;
+    }
+    for (int i = k; i < n; i++) {
+        swap(&a[k], &a[i]);
+        permute(a, n, k + 1);
+        swap(&a[k], &a[i]);   /* undo */
+    }
 }`,
       },
     ],

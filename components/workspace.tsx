@@ -23,6 +23,19 @@ import { getSimulation, type StepKind } from "@/lib/simulations";
 import DataStructureViz, {
   hasDataStructureViz,
 } from "./data-structure-viz";
+import GraphViz, { hasGraphViz } from "./graph-viz";
+import DpViz, { hasDpViz } from "./dp-viz";
+import BacktrackViz, { hasBacktrackViz } from "./backtracking-viz";
+
+type CustomViz = "ds" | "graph" | "dp" | "backtrack";
+
+function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
+  if (isDsCategory && hasDataStructureViz(slug)) return "ds";
+  if (hasGraphViz(slug)) return "graph";
+  if (hasDpViz(slug)) return "dp";
+  if (hasBacktrackViz(slug)) return "backtrack";
+  return null;
+}
 
 const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const MAX_VALUES = 16;
@@ -170,9 +183,15 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const renderValues = step ? step.array : displayValues;
   const maxValue = Math.max(...renderValues, 1);
   const asBoxes = category.slug === "data-structures";
-  const useDsViz = asBoxes && hasDataStructureViz(algorithm.slug);
+  const customViz = pickCustomViz(
+    algorithm.slug,
+    category.slug === "data-structures"
+  );
+  // Custom canvases (data structures, graphs, DP, backtracking) drive their own
+  // transport + code-line highlight; the shared bar/step engine steps aside.
+  const useCustomViz = customViz !== null;
   const fileExtension = algorithm.language ?? "c";
-  const activeLine = useDsViz ? dsLine : step ? step.codeLine : demoLine;
+  const activeLine = useCustomViz ? dsLine : step ? step.codeLine : demoLine;
 
   const barColor = (i: number): string => {
     if (step) {
@@ -223,7 +242,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
 
           {/* Controls */}
           <div className="flex flex-wrap items-center gap-2">
-            {!useDsViz && (
+            {!useCustomViz && (
               <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
                 <ControlButton label="Reset" onClick={reset}>
                   <RotateCcw className="size-4" />
@@ -270,7 +289,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
         </div>
 
         {/* Custom input */}
-        {hasInput && !useDsViz && (
+        {hasInput && !useCustomViz && (
           <form
             onSubmit={applyInput}
             className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800"
@@ -336,7 +355,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           />
 
           {/* Status chip */}
-          {!useDsViz && (
+          {!useCustomViz && (
             <span
               className={`absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium ${
                 playing || (steps && atEnd)
@@ -361,8 +380,29 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             </span>
           )}
 
-          {useDsViz ? (
+          {customViz === "ds" ? (
             <DataStructureViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "graph" ? (
+            <GraphViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "dp" ? (
+            <DpViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "backtrack" ? (
+            <BacktrackViz
               key={algorithm.slug}
               slug={algorithm.slug}
               speed={speed}
