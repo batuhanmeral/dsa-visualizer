@@ -4,6 +4,7 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Binary, Menu, X } from "lucide-react";
 import SidebarNav from "./sidebar-nav";
+import ThemeToggle from "./theme-toggle";
 
 export default function AppShell({
   children,
@@ -35,6 +36,7 @@ export default function AppShell({
           </span>
           DSA Visualizer
         </span>
+        <ThemeToggle className="ml-auto" />
       </header>
 
       {/* Mobile drawer */}

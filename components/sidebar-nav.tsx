@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Binary, LayoutDashboard } from "lucide-react";
 import { categories } from "@/lib/data";
+import ThemeToggle from "./theme-toggle";
 
 interface SidebarNavProps {
   onNavigate?: () => void;
@@ -89,8 +90,9 @@ export default function SidebarNav({ onNavigate }: SidebarNavProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t border-zinc-200 px-5 py-4 text-[11px] text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
-        v0.1 · Platform shell
+      <div className="flex items-center justify-between border-t border-zinc-200 px-5 py-3 text-[11px] text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
+        <span>v0.1 · Platform shell</span>
+        <ThemeToggle className="-mr-1.5" />
       </div>
     </div>
   );

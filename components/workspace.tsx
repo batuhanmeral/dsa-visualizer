@@ -6,6 +6,7 @@ import {
   ArrowRight,
   Check,
   Clock,
+  Copy,
   Crosshair,
   Database,
   Dices,
@@ -118,6 +119,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
     Number.parseInt(DEFAULT_TARGET, 10)
   );
   const [copied, setCopied] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
   const restored = useRef(false);
 
@@ -320,6 +322,45 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
       /* clipboard unavailable — ignore */
     }
   };
+
+  const copyCode = async () => {
+    try {
+      await navigator.clipboard.writeText(algorithm.code);
+      setCodeCopied(true);
+      window.setTimeout(() => setCodeCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — ignore */
+    }
+  };
+
+  // Keyboard shortcuts for the shared transport: space = play/pause, ←/→ = step.
+  // Skipped while a custom canvas or compare mode owns playback, and while the
+  // user is typing in an input. The handlers are read through a ref so the
+  // listener always sees fresh state (atEnd, steps) without re-subscribing.
+  const shortcutsActive = !useCustomViz && !comparing && steps !== undefined;
+  const transportRef = useRef({ togglePlay, stepBy });
+  useEffect(() => {
+    transportRef.current = { togglePlay, stepBy };
+  });
+  useEffect(() => {
+    if (!shortcutsActive) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) return;
+      if (e.key === " " || e.code === "Space") {
+        e.preventDefault();
+        transportRef.current.togglePlay();
+      } else if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        transportRef.current.stepBy(-1);
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        transportRef.current.stepBy(1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [shortcutsActive]);
 
   const barIsColored = (i: number): boolean =>
     step !== undefined &&
@@ -758,9 +799,33 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               <TerminalSquare className="size-4 text-emerald-400" />
               {algorithm.slug}.{fileExtension}
             </span>
-            <span className="font-mono text-[11px] text-zinc-500">
-              line {activeLine + 1}/{codeLines.length}
-            </span>
+            <div className="flex items-center gap-3">
+              <span className="font-mono text-[11px] text-zinc-500">
+                line {activeLine + 1}/{codeLines.length}
+              </span>
+              <button
+                type="button"
+                onClick={copyCode}
+                title="Copy the source code"
+                className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                  codeCopied
+                    ? "text-emerald-400"
+                    : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                }`}
+              >
+                {codeCopied ? (
+                  <>
+                    <Check className="size-3.5" />
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <Copy className="size-3.5" />
+                    Copy
+                  </>
+                )}
+              </button>
+            </div>
           </div>
           <pre className="scrollbar-slim flex-1 overflow-auto py-3 font-mono text-[13px] leading-6">
             {codeLines.map((line, i) => (

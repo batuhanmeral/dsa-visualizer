@@ -1,8 +1,25 @@
 @import "tailwindcss";
 
+/* Manual theme control: `dark:` keys off the `data-theme` attribute the inline
+   head script stamps on <html> (system preference by default, overridable). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
   --background: #fafafa;
   --foreground: #18181b;
+}
+
+[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #e4e4e7;
+}
+
+/* No-JS fallback: honor the OS preference until the theme script runs. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --background: #09090b;
+    --foreground: #e4e4e7;
+  }
 }
 
 @theme inline {
@@ -10,13 +27,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b;
-    --foreground: #e4e4e7;
-  }
 }
 
 body {

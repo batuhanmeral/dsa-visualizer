@@ -22,6 +22,10 @@ export const metadata: Metadata = {
     "An interactive platform for visualizing data structures and algorithms — sorting, graphs, dynamic programming, and backtracking.",
 };
 
+// Runs before first paint: applies the saved theme (or OS preference) so there
+// is no flash of the wrong colour scheme before React hydrates.
+const themeScript = `(function(){try{var t=localStorage.getItem('theme');document.documentElement.dataset.theme=(t==='light'||t==='dark')?t:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}})();`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -30,8 +34,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className="min-h-full">
         <AppShell>{children}</AppShell>
       </body>
