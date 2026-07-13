@@ -1,15 +1,18 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
+  Check,
   Clock,
   Crosshair,
   Database,
   Dices,
   Gauge,
+  GitCompareArrows,
   Hash,
+  Link2,
   Pause,
   Play,
   RotateCcw,
@@ -18,8 +21,9 @@ import {
   StepForward,
   TerminalSquare,
 } from "lucide-react";
-import type { Algorithm, Category } from "@/lib/data";
+import { categories, type Algorithm, type Category } from "@/lib/data";
 import { getSimulation, type StepKind } from "@/lib/simulations";
+import CompareView from "./compare-view";
 import DataStructureViz, {
   hasDataStructureViz,
 } from "./data-structure-viz";
@@ -71,6 +75,18 @@ const SEARCH_LEGEND: { label: string; dot: string }[] = [
   { label: "eliminated", dot: "bg-zinc-300 dark:bg-zinc-700" },
 ];
 
+/**
+ * Operation counters derived purely from step `kind`s — running totals up to the
+ * current step. Only the kinds an algorithm actually emits are shown, so the set
+ * stays stable across the run.
+ */
+const STAT_KINDS: { kind: StepKind; label: string; dot: string }[] = [
+  { kind: "compare", label: "comparisons", dot: "bg-amber-400" },
+  { kind: "swap", label: "swaps", dot: "bg-rose-500" },
+  { kind: "shift", label: "moves", dot: "bg-violet-500" },
+  { kind: "probe", label: "probes", dot: "bg-amber-400" },
+];
+
 function parseValues(text: string): number[] {
   return text
     .split(/[,\s]+/)
@@ -101,6 +117,21 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const [target, setTarget] = useState(() =>
     Number.parseInt(DEFAULT_TARGET, 10)
   );
+  const [copied, setCopied] = useState(false);
+  const [compareMode, setCompareMode] = useState(false);
+  const restored = useRef(false);
+
+  // Sibling algorithms (same category, same input shape, with an engine) that
+  // this one can be raced against in compare mode.
+  const siblings = useMemo(() => {
+    const cat = categories.find((c) => c.slug === category.slug);
+    return (cat?.algorithms ?? []).filter(
+      (a) =>
+        a.slug !== algorithm.slug &&
+        a.inputKind === algorithm.inputKind &&
+        getSimulation(a.slug) !== undefined
+    );
+  }, [category.slug, algorithm.slug, algorithm.inputKind]);
 
   const steps = useMemo(
     () => (generator && values.length > 0 ? generator(values, target) : undefined),
@@ -194,8 +225,13 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   // Custom canvases (data structures, graphs, DP, backtracking) drive their own
   // transport + code-line highlight; the shared bar/step engine steps aside.
   const useCustomViz = customViz !== null;
+  // Compare mode: race this algorithm against a sibling on the same input.
+  const compareAvailable =
+    !useCustomViz && generator !== undefined && siblings.length > 0;
+  const comparing = compareMode && compareAvailable;
   const fileExtension = algorithm.language ?? "c";
-  const activeLine = useCustomViz ? dsLine : step ? step.codeLine : demoLine;
+  const activeLine =
+    useCustomViz || comparing ? dsLine : step ? step.codeLine : demoLine;
 
   const barColor = (i: number): string => {
     if (step) {
@@ -212,6 +248,78 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   };
 
   const legend = category.slug === "searching" ? SEARCH_LEGEND : SORT_LEGEND;
+
+  // Which operation counters this algorithm emits (stable across the run).
+  const activeStats = useMemo(
+    () => (steps ? STAT_KINDS.filter((s) => steps.some((st) => st.kind === s.kind)) : []),
+    [steps]
+  );
+  // Running totals up to (and including) the current step.
+  const runningCounts = useMemo(() => {
+    const counts = {} as Partial<Record<StepKind, number>>;
+    if (steps) {
+      const upto = Math.min(stepIndex, steps.length - 1);
+      for (let i = 0; i <= upto; i++) {
+        const k = steps[i].kind;
+        counts[k] = (counts[k] ?? 0) + 1;
+      }
+    }
+    return counts;
+  }, [steps, stepIndex]);
+
+  // Restore shareable state (input · target · step) from the URL once on mount.
+  // One-time URL→state hydration: defaults render on the server, the link's
+  // params are applied after mount (hence the scoped set-state-in-effect waiver).
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    if (useCustomViz || !hasInput) {
+      restored.current = true;
+      return;
+    }
+    const p = new URLSearchParams(window.location.search);
+    const inputParam = p.get("input");
+    if (inputParam) {
+      const parsed = parseValues(inputParam);
+      if (parsed.length > 0) {
+        setValues(parsed);
+        setInputText(parsed.join(", "));
+      }
+    }
+    if (hasTarget) {
+      const t = p.get("target");
+      const n = t === null ? NaN : Number.parseInt(t, 10);
+      if (Number.isFinite(n)) {
+        setTarget(n);
+        setTargetText(String(n));
+      }
+    }
+    const s = p.get("step");
+    const si = s === null ? NaN : Number.parseInt(s, 10);
+    if (Number.isFinite(si) && si >= 0) setStepIndex(si);
+    restored.current = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  // Mirror it back into the URL (replaceState — shareable, no history spam).
+  useEffect(() => {
+    if (!restored.current || useCustomViz || !hasInput) return;
+    const p = new URLSearchParams();
+    p.set("input", values.join(","));
+    if (hasTarget) p.set("target", String(target));
+    p.set("step", String(Math.min(stepIndex, (steps?.length ?? 1) - 1)));
+    window.history.replaceState(null, "", `${window.location.pathname}?${p}`);
+  }, [values, target, stepIndex, steps, useCustomViz, hasInput, hasTarget]);
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard unavailable — ignore */
+    }
+  };
 
   const barIsColored = (i: number): boolean =>
     step !== undefined &&
@@ -246,7 +354,22 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
 
           {/* Controls */}
           <div className="flex flex-wrap items-center gap-2">
-            {!useCustomViz && (
+            {compareAvailable && (
+              <button
+                type="button"
+                onClick={() => setCompareMode((c) => !c)}
+                title="Race this algorithm against another on the same input"
+                className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
+                  comparing
+                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
+                }`}
+              >
+                <GitCompareArrows className="size-4" />
+                Compare
+              </button>
+            )}
+            {!useCustomViz && !comparing && (
               <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
                 <ControlButton label="Reset" onClick={reset}>
                   <RotateCcw className="size-4" />
@@ -337,6 +460,28 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               <Dices className="size-4" />
               Random
             </button>
+            <button
+              type="button"
+              onClick={copyLink}
+              title="Copy a link that reopens this exact input and step"
+              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
+                copied
+                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
+              }`}
+            >
+              {copied ? (
+                <>
+                  <Check className="size-4" />
+                  Copied
+                </>
+              ) : (
+                <>
+                  <Link2 className="size-4" />
+                  Share
+                </>
+              )}
+            </button>
             <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
               max {MAX_VALUES} numbers (0–999)
               {algorithm.sortedInput && " · input is sorted automatically"}
@@ -359,7 +504,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           />
 
           {/* Status chip */}
-          {!useCustomViz && (
+          {!useCustomViz && !comparing && (
             <span
               className={`absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium ${
                 playing || (steps && atEnd)
@@ -384,7 +529,17 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             </span>
           )}
 
-          {customViz === "ds" ? (
+          {comparing ? (
+            <CompareView
+              key={algorithm.slug}
+              left={algorithm}
+              opponents={siblings}
+              values={values}
+              target={target}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "ds" ? (
             <DataStructureViz
               key={algorithm.slug}
               slug={algorithm.slug}
@@ -513,7 +668,39 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       aria-label="Simulation timeline"
                       className="mt-2 h-1 w-full cursor-pointer accent-emerald-600"
                     />
-                    <div className="mt-2 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
+                    {(activeStats.length > 0 || (step.vars && step.vars.length > 0)) && (
+                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                        {activeStats.map((s) => (
+                          <span
+                            key={s.kind}
+                            className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
+                          >
+                            <span className={`size-1.5 rounded-full ${s.dot}`} />
+                            {s.label}
+                            <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
+                              {runningCounts[s.kind] ?? 0}
+                            </span>
+                          </span>
+                        ))}
+                        {step.vars && step.vars.length > 0 && (
+                          <>
+                            <span className="mx-0.5 h-3.5 w-px bg-zinc-200 dark:bg-zinc-800" />
+                            {step.vars.map((v) => (
+                              <span
+                                key={v.label}
+                                className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[10px] text-emerald-700 dark:text-emerald-300"
+                              >
+                                {v.label}
+                                <span className="tabular-nums font-semibold">
+                                  {v.value}
+                                </span>
+                              </span>
+                            ))}
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <div className="mt-2.5 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
                       {legend.map((item) => (
                         <span
                           key={item.label}

@@ -249,6 +249,68 @@ void radixSort(int arr[], int n) {
         countingPass(arr, n, exp);
 }`,
       },
+      {
+        slug: "counting-sort",
+        name: "Counting Sort",
+        summary:
+          "Tallies how many times each value occurs, prefix-sums the counts into final positions, then places each element directly — no comparisons.",
+        time: "O(n + k)",
+        space: "O(n + k)",
+        inputKind: "array",
+        code: `void countingSort(int arr[], int n) {
+    int max = arr[0];
+    for (int i = 1; i < n; i++)
+        if (arr[i] > max) max = arr[i];
+
+    int count[max + 1];
+    for (int i = 0; i <= max; i++) count[i] = 0;
+
+    for (int i = 0; i < n; i++)
+        count[arr[i]]++;
+
+    for (int i = 1; i <= max; i++)
+        count[i] += count[i - 1];
+
+    int out[n];
+    for (int i = n - 1; i >= 0; i--)
+        out[--count[arr[i]]] = arr[i];
+
+    for (int i = 0; i < n; i++)
+        arr[i] = out[i];
+}`,
+      },
+      {
+        slug: "bucket-sort",
+        name: "Bucket Sort",
+        summary:
+          "Scatters values into a few range buckets, sorts each bucket, then concatenates them back — fast when the data spreads evenly.",
+        time: "O(n + k)",
+        space: "O(n + k)",
+        inputKind: "array",
+        code: `#define BUCKETS 5
+
+void bucketSort(int arr[], int n) {
+    int max = arr[0];
+    for (int i = 1; i < n; i++)
+        if (arr[i] > max) max = arr[i];
+
+    int bucket[BUCKETS][100], count[BUCKETS] = {0};
+    int size = max / BUCKETS + 1;
+
+    for (int i = 0; i < n; i++) {
+        int b = arr[i] / size;
+        bucket[b][count[b]++] = arr[i];
+    }
+
+    for (int b = 0; b < BUCKETS; b++)
+        insertionSort(bucket[b], count[b]);
+
+    int idx = 0;
+    for (int b = 0; b < BUCKETS; b++)
+        for (int j = 0; j < count[b]; j++)
+            arr[idx++] = bucket[b][j];
+}`,
+      },
     ],
   },
   {
@@ -292,6 +354,62 @@ void radixSort(int arr[], int n) {
             lo = mid + 1;
         else
             hi = mid - 1;
+    }
+    return -1;
+}`,
+      },
+      {
+        slug: "jump-search",
+        name: "Jump Search",
+        summary:
+          "On a sorted array, leaps ahead in fixed blocks of √n to find the block that may hold the target, then scans that block linearly.",
+        time: "O(√n)",
+        space: "O(1)",
+        inputKind: "array-target",
+        sortedInput: true,
+        code: `int jumpSearch(int arr[], int n, int target) {
+    int step = (int)sqrt(n);
+    int prev = 0;
+    while (arr[min(step, n) - 1] < target) {
+        prev = step;
+        step += (int)sqrt(n);
+        if (prev >= n)
+            return -1;
+    }
+    while (arr[prev] < target) {
+        prev++;
+        if (prev == min(step, n))
+            return -1;
+    }
+    if (arr[prev] == target)
+        return prev;
+    return -1;
+}`,
+      },
+      {
+        slug: "interpolation-search",
+        name: "Interpolation Search",
+        summary:
+          "Estimates the probe position from the target's value relative to the window's endpoints — near O(log log n) on uniformly spread data.",
+        time: "O(log log n)",
+        space: "O(1)",
+        inputKind: "array-target",
+        sortedInput: true,
+        code: `int interpolationSearch(int arr[], int n, int target) {
+    int lo = 0, hi = n - 1;
+    while (lo <= hi && target >= arr[lo] && target <= arr[hi]) {
+        if (lo == hi) {
+            if (arr[lo] == target) return lo;
+            return -1;
+        }
+        int pos = lo + (target - arr[lo]) * (hi - lo)
+                       / (arr[hi] - arr[lo]);
+        if (arr[pos] == target)
+            return pos;
+        if (arr[pos] < target)
+            lo = pos + 1;
+        else
+            hi = pos - 1;
     }
     return -1;
 }`,
