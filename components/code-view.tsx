@@ -32,7 +32,7 @@ export default function CodeView({
   const lines = useMemo(() => tokenize(code), [code]);
 
   return (
-    <pre className="scrollbar-slim flex-1 overflow-auto py-3 font-mono text-[13px] leading-6">
+    <pre className="scrollbar-slim flex-1 overflow-auto py-3 font-mono text-[11px] leading-5">
       {lines.map((tokens, i) => (
         <div
           key={i}
@@ -42,9 +42,6 @@ export default function CodeView({
               : "border-l-2 border-transparent"
           }`}
         >
-          <span className="w-8 shrink-0 select-none pr-4 text-right text-zinc-600">
-            {i + 1}
-          </span>
           <code>
             {tokens.length === 0
               ? " "

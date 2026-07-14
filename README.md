@@ -55,5 +55,8 @@ All content lives in `lib/data.ts` (single source of truth) — adding an
 algorithm there generates its route, navigation entry and page automatically.
 Each algorithm is a pure, UI-independent **step generator** under
 `lib/simulations/`; renderers in `components/` just replay the precomputed
-steps. Details in [.docs/ARCHITECTURE.md](.docs/ARCHITECTURE.md), progress log
-in [.docs/PROGRESS.md](.docs/PROGRESS.md).
+steps.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
