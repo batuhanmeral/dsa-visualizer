@@ -12,6 +12,8 @@ import {
   type DPStep,
   type KnapItem,
 } from "@/lib/simulations/dp";
+import { useLang } from "@/lib/i18n";
+import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
 const DP_SLUGS = new Set([
@@ -32,11 +34,17 @@ const INF_DISPLAY = 900;
 const cellText = (v: number | null): string =>
   v === null ? "·" : v >= INF_DISPLAY ? "∞" : String(v);
 
-const LEGEND = [
-  { label: "computing", dot: "bg-emerald-500" },
-  { label: "reads from", dot: "bg-amber-400" },
-  { label: "filled", dot: "bg-sky-500" },
+const LEGEND_KEYS: { key: TKey; dot: string }[] = [
+  { key: "dp.legend.computing", dot: "bg-emerald-500" },
+  { key: "dp.legend.readsFrom", dot: "bg-amber-400" },
+  { key: "dp.legend.filled", dot: "bg-sky-500" },
 ];
+
+/** Shared: build the translated legend for the DP views. */
+function useDpLegend() {
+  const { t } = useLang();
+  return LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
+}
 
 // ── Shared 2-D table renderer ───────────────────────────────────────────
 function DPTable({
@@ -128,16 +136,18 @@ function StringPairViz({
   generate,
   defaultA,
   defaultB,
-  matchLabels,
+  matchKeys,
 }: {
   speed: number;
   onLine: (line: number) => void;
   generate: StringPairGen;
   defaultA: string;
   defaultB: string;
-  /** Badge text for [match, noMatch] on the compared characters. */
-  matchLabels: [string, string];
+  /** Badge keys for [match, noMatch] on the compared characters. */
+  matchKeys: [TKey, TKey];
 }) {
+  const { t } = useLang();
+  const legend = useDpLegend();
   const [a, setA] = useState(defaultA);
   const [b, setB] = useState(defaultB);
   const { a: ca, b: cb, steps } = useMemo(() => generate(a, b), [generate, a, b]);
@@ -153,11 +163,11 @@ function StringPairViz({
       player={player}
       count={steps.length}
       note={step.note}
-      legend={LEGEND}
+      legend={legend}
       extra={
         <>
-          <StringField label="String A" value={a} onChange={setA} />
-          <StringField label="String B" value={b} onChange={setB} />
+          <StringField label={t("dp.stringA")} value={a} onChange={setA} />
+          <StringField label={t("dp.stringB")} value={b} onChange={setB} />
           {step.match !== undefined && (
             <span
               className={`ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium ${
@@ -167,7 +177,7 @@ function StringPairViz({
               }`}
             >
               {step.match && <Check className="size-3" />}
-              {step.match ? matchLabels[0] : matchLabels[1]}
+              {step.match ? t(matchKeys[0]) : t(matchKeys[1])}
             </span>
           )}
         </>
@@ -198,6 +208,8 @@ function KnapsackViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
+  const legend = useDpLegend();
   const { items, capacity, steps } = useMemo(
     () => knapsackSteps(KNAP_ITEMS, KNAP_CAP),
     []
@@ -215,11 +227,11 @@ function KnapsackViz({
       player={player}
       count={steps.length}
       note={step.note}
-      legend={LEGEND}
+      legend={legend}
       extra={
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="mr-1 text-[11px] font-medium text-zinc-400">
-            Items
+            {t("dp.items")}
           </span>
           {items.map((it, i) => (
             <span
@@ -234,7 +246,7 @@ function KnapsackViz({
             </span>
           ))}
           <span className="ml-1 text-[11px] text-zinc-400">
-            cap {capacity}
+            {t("dp.cap", { n: capacity })}
           </span>
         </div>
       }
@@ -260,6 +272,8 @@ function CoinChangeViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
+  const legend = useDpLegend();
   const { coins, amount, steps } = useMemo(
     () => coinChangeSteps(COINS, COIN_AMOUNT),
     []
@@ -277,11 +291,11 @@ function CoinChangeViz({
       player={player}
       count={steps.length}
       note={step.note}
-      legend={LEGEND}
+      legend={legend}
       extra={
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="mr-1 text-[11px] font-medium text-zinc-400">
-            Coins
+            {t("dp.coins")}
           </span>
           {coins.map((c, i) => (
             <span
@@ -296,7 +310,7 @@ function CoinChangeViz({
             </span>
           ))}
           <span className="ml-1 text-[11px] text-zinc-400">
-            amount {amount}
+            {t("dp.amount", { n: amount })}
           </span>
         </div>
       }
@@ -319,6 +333,8 @@ function FibonacciViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
+  const legend = useDpLegend();
   const [n, setN] = useState(8);
   const { steps } = useMemo(() => fibonacciSteps(n), [n]);
   const player = useStepPlayer(steps.length, speed);
@@ -333,10 +349,12 @@ function FibonacciViz({
       player={player}
       count={steps.length}
       note={step.note}
-      legend={LEGEND}
+      legend={legend}
       extra={
         <>
-          <span className="mr-1 text-[11px] font-medium text-zinc-400">n</span>
+          <span className="mr-1 text-[11px] font-medium text-zinc-400">
+            {t("dp.n")}
+          </span>
           {[6, 8, 10, 12].map((size) => (
             <ChoiceButton
               key={size}
@@ -377,6 +395,8 @@ function LISViz({
         .slice(0, 8),
     [text]
   );
+  const { t } = useLang();
+  const legend = useDpLegend();
   const { values: v, steps } = useMemo(
     () => lisSteps(values.length ? values : [3, 1, 2]),
     [values]
@@ -393,10 +413,10 @@ function LISViz({
       player={player}
       count={steps.length}
       note={step.note}
-      legend={LEGEND}
+      legend={legend}
       extra={
         <label className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400">
-          Sequence
+          {t("dp.sequence")}
           <input
             type="text"
             value={text}
@@ -409,7 +429,7 @@ function LISViz({
     >
       <div className="flex flex-col items-center gap-1">
         <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-          dp = length of LIS ending at each value
+          {t("dp.lisNote")}
         </span>
         <DPTable
           step={step}
@@ -463,7 +483,7 @@ export default function DpViz({
         generate={lcsSteps}
         defaultA="AGCAT"
         defaultB="GAC"
-        matchLabels={["chars match", "no match"]}
+        matchKeys={["dp.match", "dp.noMatch"]}
       />
     );
   if (slug === "edit-distance")
@@ -474,7 +494,7 @@ export default function DpViz({
         generate={editDistanceSteps}
         defaultA="SUNDAY"
         defaultB="SATURDAY"
-        matchLabels={["chars match", "chars differ"]}
+        matchKeys={["dp.match", "dp.charsDiffer"]}
       />
     );
   if (slug === "knapsack")

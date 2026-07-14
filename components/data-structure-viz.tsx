@@ -19,6 +19,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 /**
  * Interactive data-structure playground. Unlike the sorting/searching engines
@@ -60,7 +61,8 @@ interface VizProps {
 
 // ── Shared code-walk runner ─────────────────────────────────────────────
 function useRunner(onLine: (line: number) => void, speed: number) {
-  const [note, setNote] = useState("Pick an operation to begin.");
+  const { t } = useLang();
+  const [note, setNote] = useState(() => t("ds.pickOp"));
   const [busy, setBusy] = useState(false);
   const timers = useRef<number[]>([]);
   const speedRef = useRef(speed);
@@ -144,6 +146,7 @@ function ValueInput({
   onSubmit: () => void;
   disabled: boolean;
 }) {
+  const { t } = useLang();
   return (
     <input
       type="text"
@@ -154,7 +157,7 @@ function ValueInput({
         if (e.key === "Enter") onSubmit();
       }}
       disabled={disabled}
-      aria-label="Value"
+      aria-label={t("ds.value")}
       className="w-20 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs outline-none focus:border-emerald-500/60 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950"
     />
   );
@@ -207,6 +210,7 @@ const BOX_ACTIVE =
 
 // ── Stack (LIFO) ────────────────────────────────────────────────────────
 function StackViz({ speed, onLine }: VizProps) {
+  const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [items, setItems] = useState<Item[]>(() => toItems([12, 5, 27]));
   const [val, setVal] = useState("42");
@@ -259,10 +263,10 @@ function StackViz({ speed, onLine }: VizProps) {
             disabled={busy}
           />
           <OpBtn icon={Plus} onClick={push} disabled={busy}>
-            Push
+            {t("ds.push")}
           </OpBtn>
           <OpBtn tone="neutral" icon={Minus} onClick={pop} disabled={busy}>
-            Pop
+            {t("ds.pop")}
           </OpBtn>
           <OpBtn
             tone="neutral"
@@ -273,7 +277,7 @@ function StackViz({ speed, onLine }: VizProps) {
             }}
             disabled={busy}
           >
-            Clear
+            {t("ds.clear")}
           </OpBtn>
         </>
       }
@@ -298,14 +302,14 @@ function StackViz({ speed, onLine }: VizProps) {
                 {it.value}
                 {isTop && (
                   <span className="absolute -right-12 text-[10px] font-medium text-emerald-500">
-                    ← top
+                    {t("ds.top")}
                   </span>
                 )}
               </motion.div>
             );
           })}
         </AnimatePresence>
-        {items.length === 0 && <EmptyHint>stack is empty</EmptyHint>}
+        {items.length === 0 && <EmptyHint>{t("ds.stackEmpty")}</EmptyHint>}
       </div>
     </VizShell>
   );
@@ -313,6 +317,7 @@ function StackViz({ speed, onLine }: VizProps) {
 
 // ── Queue (FIFO) ────────────────────────────────────────────────────────
 function QueueViz({ speed, onLine }: VizProps) {
+  const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [items, setItems] = useState<Item[]>(() => toItems([12, 5, 27]));
   const [val, setVal] = useState("42");
@@ -370,10 +375,10 @@ function QueueViz({ speed, onLine }: VizProps) {
             disabled={busy}
           />
           <OpBtn icon={Plus} onClick={enqueue} disabled={busy}>
-            Enqueue
+            {t("ds.enqueue")}
           </OpBtn>
           <OpBtn tone="neutral" icon={Minus} onClick={dequeue} disabled={busy}>
-            Dequeue
+            {t("ds.dequeue")}
           </OpBtn>
           <OpBtn
             tone="neutral"
@@ -384,7 +389,7 @@ function QueueViz({ speed, onLine }: VizProps) {
             }}
             disabled={busy}
           >
-            Clear
+            {t("ds.clear")}
           </OpBtn>
         </>
       }
@@ -412,13 +417,13 @@ function QueueViz({ speed, onLine }: VizProps) {
                   {it.value}
                 </div>
                 <span className="mt-1 h-3 text-[10px] font-medium text-emerald-500">
-                  {isFront ? "front" : isRear ? "rear" : ""}
+                  {isFront ? t("ds.front") : isRear ? t("ds.rear") : ""}
                 </span>
               </motion.div>
             );
           })}
         </AnimatePresence>
-        {items.length === 0 && <EmptyHint>queue is empty</EmptyHint>}
+        {items.length === 0 && <EmptyHint>{t("ds.queueEmpty")}</EmptyHint>}
       </div>
     </VizShell>
   );
@@ -426,6 +431,7 @@ function QueueViz({ speed, onLine }: VizProps) {
 
 // ── Linked List ─────────────────────────────────────────────────────────
 function LinkedListViz({ speed, onLine }: VizProps) {
+  const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [items, setItems] = useState<Item[]>(() => toItems([27, 5, 12]));
   const [cursor, setCursor] = useState<number | null>(null);
@@ -502,10 +508,10 @@ function LinkedListViz({ speed, onLine }: VizProps) {
             disabled={busy}
           />
           <OpBtn icon={Plus} onClick={pushFront} disabled={busy}>
-            Push front
+            {t("ds.pushFront")}
           </OpBtn>
           <OpBtn tone="neutral" icon={Minus} onClick={remove} disabled={busy}>
-            Remove
+            {t("ds.remove")}
           </OpBtn>
           <OpBtn
             tone="neutral"
@@ -517,14 +523,14 @@ function LinkedListViz({ speed, onLine }: VizProps) {
             }}
             disabled={busy}
           >
-            Clear
+            {t("ds.clear")}
           </OpBtn>
         </>
       }
     >
       <div className="flex flex-wrap items-center justify-center gap-y-4">
         <span className="mr-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-          head
+          {t("ds.head")}
         </span>
         <AnimatePresence mode="popLayout">
           {items.map((it) => (
@@ -560,6 +566,7 @@ function LinkedListViz({ speed, onLine }: VizProps) {
 const BUCKETS = 8;
 
 function HashTableViz({ speed, onLine }: VizProps) {
+  const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [buckets, setBuckets] = useState<Item[][]>(() => {
     const b: Item[][] = Array.from({ length: BUCKETS }, () => []);
@@ -668,10 +675,10 @@ function HashTableViz({ speed, onLine }: VizProps) {
             disabled={busy}
           />
           <OpBtn icon={Plus} onClick={insert} disabled={busy}>
-            Insert
+            {t("ds.insert")}
           </OpBtn>
           <OpBtn tone="neutral" icon={Search} onClick={contains} disabled={busy}>
-            Contains
+            {t("ds.contains")}
           </OpBtn>
           <OpBtn
             tone="neutral"
@@ -685,7 +692,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
             }}
             disabled={busy}
           >
-            Clear
+            {t("ds.clear")}
           </OpBtn>
         </>
       }

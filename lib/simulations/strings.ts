@@ -94,8 +94,9 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
       emitBuild(5, `Match — extend prefix, lps[${i}] = ${len}`, i, len - 1, "match");
       i++;
     } else if (len > 0) {
-      len = lps[len - 1];
-      emitBuild(7, `Mismatch — fall back to len = lps[${len === 0 ? 0 : len - 1}] = ${len}`, i, len, "mismatch");
+      const from = len - 1;
+      len = lps[from];
+      emitBuild(7, `Mismatch — fall back to len = lps[${from}] = ${len}`, i, len, "mismatch");
     } else {
       lps[i] = 0;
       shown[i] = 0;
@@ -352,7 +353,7 @@ export function zSteps(text: string): StringStep[] {
     }
   }
   steps.push({
-    codeLine: 3,
+    codeLine: 14,
     note: "Z-array complete",
     status: "done",
     tracks: [track(-1, -1, -1, [])],
@@ -447,9 +448,9 @@ export function manacherSteps(text: string): StringStep[] {
     }
   }
   // Map best center back to the original string.
-  const start = (bestCenter - best) / 2;
+  const start = Math.floor((bestCenter - best) / 2);
   emit(
-    12,
+    14,
     `Longest palindrome: "${raw.slice(start, start + best)}" (length ${best})`,
     bestCenter,
     bestCenter,

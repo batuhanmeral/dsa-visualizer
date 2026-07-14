@@ -2,17 +2,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { STRING_ALGOS, type StringStep, type Tone, type Track } from "@/lib/simulations/strings";
+import { useLang } from "@/lib/i18n";
+import type { TKey } from "@/lib/dictionaries";
 import { PlaybackPanel, useStepPlayer } from "./step-player";
 
 export function hasStringViz(slug: string): boolean {
   return slug in STRING_ALGOS;
 }
 
-const LEGEND = [
-  { label: "pointer", dot: "bg-emerald-500" },
-  { label: "match", dot: "bg-sky-500" },
-  { label: "mismatch", dot: "bg-rose-500" },
-  { label: "window", dot: "bg-amber-400/70" },
+const LEGEND_KEYS: { key: TKey; dot: string }[] = [
+  { key: "str.legend.pointer", dot: "bg-emerald-500" },
+  { key: "str.legend.match", dot: "bg-sky-500" },
+  { key: "str.legend.mismatch", dot: "bg-rose-500" },
+  { key: "str.legend.window", dot: "bg-amber-400/70" },
 ];
 
 const CELL_TONE: Record<Tone, string> = {
@@ -108,6 +110,7 @@ export default function StringViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
   const config = STRING_ALGOS[slug];
   const [text, setText] = useState(config?.defaultText ?? "");
   const [pattern, setPattern] = useState(config?.defaultPattern ?? "");
@@ -121,6 +124,7 @@ export default function StringViz({
 
   const player = useStepPlayer(steps.length, speed);
   const step = steps[player.index];
+  const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
 
   useEffect(() => {
     if (step) onLine(step.codeLine);
@@ -142,13 +146,13 @@ export default function StringViz({
               ? "bg-emerald-500"
               : "bg-amber-400"
       }
-      legend={LEGEND}
+      legend={legend}
       extra={
         <>
-          <StringField label="Text" value={text} onChange={setText} />
+          <StringField label={t("str.text")} value={text} onChange={setText} />
           {config.usesPattern && (
             <StringField
-              label="Pattern"
+              label={t("str.pattern")}
               value={pattern}
               onChange={setPattern}
               width="w-32"

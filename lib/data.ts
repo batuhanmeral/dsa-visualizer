@@ -16,9 +16,8 @@ export interface Algorithm {
   summary: string;
   time: string;
   space: string;
+  /** C source shown in the code viewer (`<slug>.c`). */
   code: string;
-  /** Code language shown in the viewer. Defaults to "c". */
-  language?: "c" | "java";
   /** When set, the workspace lets the user enter their own numbers. */
   inputKind?: "array" | "array-target";
   /** Input is auto-sorted before display (e.g. Binary Search). */
@@ -402,6 +401,8 @@ void bucketSort(int arr[], int n) {
             if (arr[lo] == target) return lo;
             return -1;
         }
+        if (arr[hi] == arr[lo])   /* flat window: all equal */
+            return lo;            /* loop guard => match    */
         int pos = lo + (target - arr[lo]) * (hi - lo)
                        / (arr[hi] - arr[lo]);
         if (arr[pos] == target)
@@ -964,15 +965,14 @@ int coinChange(int coins[], int n, int amount) {
 
 int solve(int board[], int row, int n) {
     if (row == n) return 1;   /* all queens placed */
-    int count = 0;
     for (int col = 0; col < n; col++) {
         if (safe(board, row, col)) {
             board[row] = col;
-            count += solve(board, row + 1, n);
-            /* board[row] is overwritten next try */
+            if (solve(board, row + 1, n)) return 1;
+            board[row] = -1;   /* backtrack */
         }
     }
-    return count;
+    return 0;
 }`,
       },
       {
@@ -1348,9 +1348,11 @@ void rabinKarp(const char *t, const char *p) {
             while (k < m && t[i + k] == p[k]) k++;
             if (k == m) printf("found at %d\\n", i);
         }
-        if (i + m < n)
+        if (i + m < n) {
             th = ((th - t[i] * pow) * BASE
                   + t[i + m]) % MOD;
+            if (th < 0) th += MOD;
+        }
     }
 }`,
       },

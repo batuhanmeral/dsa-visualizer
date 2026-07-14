@@ -208,32 +208,48 @@ export function interpolationSearchSteps(
       return steps;
     }
 
+    if (arr[hi] === arr[lo]) {
+      // Flat window: every value in [lo..hi] is equal, so the interpolation
+      // denominator would be 0. The loop guard already proved target is in
+      // range, hence it equals arr[lo].
+      w.pos = lo;
+      sorted.add(lo);
+      record(
+        "found",
+        [lo],
+        8,
+        `All values in [${lo}..${hi}] equal ${arr[lo]} — match at index ${lo}.`,
+        [lo, hi]
+      );
+      return steps;
+    }
+
     const pos =
       lo + Math.floor(((target - arr[lo]) * (hi - lo)) / (arr[hi] - arr[lo]));
     w.pos = pos;
     record(
       "probe",
       [pos],
-      7,
+      9,
       `Estimate pos = ${pos} from value ${target} in [${arr[lo]}..${arr[hi]}].`,
       [lo, hi]
     );
     if (arr[pos] === target) {
       sorted.add(pos);
-      record("found", [pos], 10, `Match! ${target} is at index ${pos}.`, [lo, hi]);
+      record("found", [pos], 12, `Match! ${target} is at index ${pos}.`, [lo, hi]);
       return steps;
     }
     if (arr[pos] < target) {
       lo = pos + 1;
       w.lo = lo;
-      record("compare", [pos], 12, `${arr[pos]} < ${target} — search the right part.`, [lo, hi]);
+      record("compare", [pos], 14, `${arr[pos]} < ${target} — search the right part.`, [lo, hi]);
     } else {
       hi = pos - 1;
       w.hi = hi;
-      record("compare", [pos], 14, `${arr[pos]} > ${target} — search the left part.`, [lo, hi]);
+      record("compare", [pos], 16, `${arr[pos]} > ${target} — search the left part.`, [lo, hi]);
     }
   }
 
-  record("info", [], 16, `${target} is outside the remaining window — not present.`);
+  record("info", [], 18, `${target} is outside the remaining window — not present.`);
   return steps;
 }

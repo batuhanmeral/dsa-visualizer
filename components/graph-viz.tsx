@@ -10,6 +10,8 @@ import {
   type Graph,
   type GraphStep,
 } from "@/lib/simulations/graphs";
+import { useLang } from "@/lib/i18n";
+import type { TKey } from "@/lib/dictionaries";
 import {
   ChoiceButton,
   PlaybackPanel,
@@ -20,12 +22,19 @@ export function hasGraphViz(slug: string): boolean {
   return slug in GRAPH_ALGOS;
 }
 
-const LEGEND = [
-  { label: "current", dot: "bg-emerald-500" },
-  { label: "frontier", dot: "bg-amber-400" },
-  { label: "visited", dot: "bg-sky-500" },
-  { label: "tree edge", dot: "bg-emerald-500" },
+const LEGEND_KEYS: { key: TKey; dot: string }[] = [
+  { key: "graph.legend.current", dot: "bg-emerald-500" },
+  { key: "graph.legend.frontier", dot: "bg-amber-400" },
+  { key: "graph.legend.visited", dot: "bg-sky-500" },
+  { key: "graph.legend.treeEdge", dot: "bg-emerald-500" },
 ];
+
+/** Config `startLabel` (English, from GRAPH_ALGOS) → translation key. */
+const START_LABEL_KEY: Record<string, TKey> = {
+  "Start node": "graph.start.node",
+  Source: "graph.start.source",
+  Start: "graph.start.start",
+};
 
 const NODE_R = 20;
 
@@ -71,6 +80,7 @@ export default function GraphViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
   const config = GRAPH_ALGOS[slug];
   const [graph, setGraph] = useState<Graph>(config.graph);
   const [start, setStart] = useState(0);
@@ -84,6 +94,7 @@ export default function GraphViz({
   );
   const player = useStepPlayer(steps.length, speed);
   const step = steps[player.index];
+  const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
 
   useEffect(() => {
     onLine(step.codeLine);
@@ -128,13 +139,13 @@ export default function GraphViz({
       player={player}
       count={steps.length}
       note={step.note}
-      legend={LEGEND}
+      legend={legend}
       extra={
         <>
           {config.usesStart && (
             <div className="flex items-center gap-1">
               <span className="mr-1 text-[11px] font-medium text-zinc-400">
-                {config.startLabel}
+                {t(START_LABEL_KEY[config.startLabel] ?? "graph.start.node")}
               </span>
               {graph.nodes.map((n) => (
                 <ChoiceButton
@@ -150,7 +161,7 @@ export default function GraphViz({
           {config.usesGoal && (
             <div className="flex items-center gap-1">
               <span className="mr-1 text-[11px] font-medium text-zinc-400">
-                Goal
+                {t("graph.goal")}
               </span>
               {graph.nodes.map((n) => (
                 <ChoiceButton
@@ -178,7 +189,7 @@ export default function GraphViz({
                 }`}
               >
                 <Pencil className="size-3.5" />
-                {editing ? "Editing edges" : "Edit graph"}
+                {editing ? t("graph.editing") : t("graph.edit")}
               </button>
               {graph !== config.graph && (
                 <button
@@ -187,11 +198,11 @@ export default function GraphViz({
                     setGraph(config.graph);
                     setSelected(null);
                   }}
-                  title="Restore preset graph"
+                  title={t("graph.reset.title")}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900 dark:border-zinc-800 dark:hover:text-zinc-100"
                 >
                   <RotateCcw className="size-3.5" />
-                  Reset
+                  {t("graph.reset")}
                 </button>
               )}
             </div>
@@ -202,7 +213,7 @@ export default function GraphViz({
       <div className="flex w-full max-w-xl flex-col items-center gap-3">
         {editing && (
           <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
-            Click two nodes to add or remove the edge between them.
+            {t("graph.editHint")}
           </p>
         )}
         <svg
@@ -381,7 +392,7 @@ export default function GraphViz({
         {step.order.length > 0 && (
           <div className="flex min-h-8 flex-wrap items-center justify-center gap-1.5">
             <span className="mr-1 text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-              order
+              {t("graph.order")}
             </span>
             {step.order.map((id, i) => (
               <span key={`${id}-${i}`} className="flex items-center gap-1.5">

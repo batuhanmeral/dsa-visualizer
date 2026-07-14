@@ -5,6 +5,9 @@ import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import type { Algorithm } from "@/lib/data";
 import { getSimulation, type SimulationStep, type StepKind } from "@/lib/simulations";
+import { useLang } from "@/lib/i18n";
+import type { TKey } from "@/lib/dictionaries";
+import { algoName } from "@/lib/content-i18n";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
 /**
@@ -27,11 +30,11 @@ const KIND_BAR: Record<StepKind, string> = {
   done: "bg-emerald-500",
 };
 
-const STAT_KINDS: { kind: StepKind; label: string }[] = [
-  { kind: "compare", label: "comparisons" },
-  { kind: "swap", label: "swaps" },
-  { kind: "shift", label: "moves" },
-  { kind: "probe", label: "probes" },
+const STAT_KINDS: { kind: StepKind; key: TKey }[] = [
+  { kind: "compare", key: "stat.comparisons" },
+  { kind: "swap", key: "stat.swaps" },
+  { kind: "shift", key: "stat.moves" },
+  { kind: "probe", key: "stat.probes" },
 ];
 
 function barClass(step: SimulationStep, i: number): string {
@@ -65,6 +68,7 @@ function Racer({
   /** "win" | "lose" | "tie" once the race ends, else null. */
   outcome: "win" | "lose" | "tie" | null;
 }) {
+  const { t } = useLang();
   const clamped = Math.min(index, steps.length - 1);
   const step = steps[clamped];
   const done = index >= steps.length - 1;
@@ -89,7 +93,7 @@ function Racer({
                 : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
           }`}
         >
-          {steps.length} steps
+          {t("cmp.steps", { n: steps.length })}
         </span>
       </div>
 
@@ -116,7 +120,7 @@ function Racer({
               key={s.kind}
               className="inline-flex items-center gap-1 rounded-md bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
             >
-              {s.label}
+              {t(s.key)}
               <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
                 {counts[s.kind] ?? 0}
               </span>
@@ -143,9 +147,12 @@ export default function CompareView({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t, lang } = useLang();
   const [rightSlug, setRightSlug] = useState(opponents[0]?.slug ?? "");
   const right =
     opponents.find((o) => o.slug === rightSlug) ?? opponents[0];
+  const leftName = algoName(left.slug, left.name, lang);
+  const rightName = algoName(right.slug, right.name, lang);
 
   const genLeft = getSimulation(left.slug);
   const genRight = getSimulation(right.slug);
@@ -188,21 +195,25 @@ export default function CompareView({
   }
 
   const note = !finished
-    ? `Racing on the same input — ${left.name} vs ${right.name}.`
+    ? t("cmp.racing", { a: leftName, b: rightName })
     : leftOutcome === "tie"
-      ? `Tie — both finished in ${stepsLeft.length} steps.`
-      : `${(stepsLeft.length < stepsRight.length ? left : right).name} wins: ${Math.min(stepsLeft.length, stepsRight.length)} vs ${Math.max(stepsLeft.length, stepsRight.length)} steps.`;
+      ? t("cmp.tie", { n: stepsLeft.length })
+      : t("cmp.wins", {
+          name: stepsLeft.length < stepsRight.length ? leftName : rightName,
+          a: Math.min(stepsLeft.length, stepsRight.length),
+          b: Math.max(stepsLeft.length, stepsRight.length),
+        });
 
   const selector = (
     <>
-      <span className="text-[11px] font-medium text-zinc-400">vs</span>
+      <span className="text-[11px] font-medium text-zinc-400">{t("cmp.vs")}</span>
       {opponents.map((o) => (
         <ChoiceButton
           key={o.slug}
           active={o.slug === right.slug}
           onClick={() => setRightSlug(o.slug)}
         >
-          {o.name}
+          {algoName(o.slug, o.name, lang)}
         </ChoiceButton>
       ))}
     </>
@@ -212,14 +223,14 @@ export default function CompareView({
     <PlaybackPanel player={player} count={maxLen} note={note} extra={selector}>
       <div className="grid w-full max-w-3xl grid-cols-1 gap-3 sm:grid-cols-2">
         <Racer
-          name={left.name}
+          name={leftName}
           steps={stepsLeft}
           index={index}
           maxValue={maxValue}
           outcome={leftOutcome}
         />
         <Racer
-          name={right.name}
+          name={rightName}
           steps={stepsRight}
           index={index}
           maxValue={maxValue}

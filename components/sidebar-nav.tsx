@@ -4,7 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Binary, LayoutDashboard } from "lucide-react";
 import { categories } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
+import { algoName, catName } from "@/lib/content-i18n";
 import ThemeToggle from "./theme-toggle";
+import LangToggle from "./lang-toggle";
 
 interface SidebarNavProps {
   onNavigate?: () => void;
@@ -12,6 +15,7 @@ interface SidebarNavProps {
 
 export default function SidebarNav({ onNavigate }: SidebarNavProps) {
   const pathname = usePathname();
+  const { t, lang } = useLang();
 
   return (
     <div className="flex h-full flex-col">
@@ -29,7 +33,7 @@ export default function SidebarNav({ onNavigate }: SidebarNavProps) {
             DSA Visualizer
           </span>
           <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">
-            Learn by watching
+            {t("brand.tagline")}
           </span>
         </span>
       </Link>
@@ -46,7 +50,7 @@ export default function SidebarNav({ onNavigate }: SidebarNavProps) {
           }`}
         >
           <LayoutDashboard className="size-4" />
-          Overview
+          {t("nav.overview")}
         </Link>
 
         <ul className="space-y-6">
@@ -56,7 +60,7 @@ export default function SidebarNav({ onNavigate }: SidebarNavProps) {
               <li key={category.slug}>
                 <div className="mb-1.5 flex items-center gap-2 px-3 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
                   <Icon className="size-3.5" />
-                  {category.name}
+                  {catName(category.slug, category.name, lang)}
                 </div>
                 <ul className="space-y-0.5">
                   {category.algorithms.map((algorithm) => {
@@ -77,7 +81,7 @@ export default function SidebarNav({ onNavigate }: SidebarNavProps) {
                           {isActive && (
                             <span className="absolute left-2 h-4 w-0.5 rounded-full bg-emerald-500" />
                           )}
-                          {algorithm.name}
+                          {algoName(algorithm.slug, algorithm.name, lang)}
                         </Link>
                       </li>
                     );
@@ -90,9 +94,9 @@ export default function SidebarNav({ onNavigate }: SidebarNavProps) {
       </nav>
 
       {/* Footer */}
-      <div className="flex items-center justify-between border-t border-zinc-200 px-5 py-3 text-[11px] text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
-        <span>v0.1 · Platform shell</span>
-        <ThemeToggle className="-mr-1.5" />
+      <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
+        <LangToggle />
+        <ThemeToggle />
       </div>
     </div>
   );

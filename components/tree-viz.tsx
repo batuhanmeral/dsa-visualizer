@@ -12,6 +12,8 @@ import {
   type NodeTone,
   type TreeStep,
 } from "@/lib/simulations/trees";
+import { useLang } from "@/lib/i18n";
+import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
 const TREE_SLUGS = new Set(["bst", "avl", "heap", "trie", "segment-tree"]);
@@ -20,12 +22,12 @@ export function hasTreeViz(slug: string): boolean {
   return TREE_SLUGS.has(slug);
 }
 
-const LEGEND = [
-  { label: "current", dot: "bg-emerald-500" },
-  { label: "compare", dot: "bg-amber-400" },
-  { label: "insert", dot: "bg-sky-500" },
-  { label: "remove", dot: "bg-rose-500" },
-  { label: "rotate", dot: "bg-violet-500" },
+const LEGEND_KEYS: { key: TKey; dot: string }[] = [
+  { key: "tree.legend.current", dot: "bg-emerald-500" },
+  { key: "tree.legend.compare", dot: "bg-amber-400" },
+  { key: "tree.legend.insert", dot: "bg-sky-500" },
+  { key: "tree.legend.remove", dot: "bg-rose-500" },
+  { key: "tree.legend.rotate", dot: "bg-violet-500" },
 ];
 
 const NODE_TONE: Record<NodeTone, { circle: string; text: string }> = {
@@ -159,6 +161,8 @@ function TreeFrame({
   onLine: (line: number) => void;
   extra?: ReactNode;
 }) {
+  const { t } = useLang();
+  const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
   const player = useStepPlayer(steps.length, speed);
   const step = steps[player.index];
 
@@ -173,7 +177,7 @@ function TreeFrame({
       player={player}
       count={steps.length}
       note={step.note}
-      legend={LEGEND}
+      legend={legend}
       extra={
         <>
           {extra}
@@ -236,6 +240,7 @@ const parseNums = (text: string, max = 12): number[] =>
 
 // ── Per-algorithm wrappers ──────────────────────────────────────────────
 function BSTViz({ speed, onLine }: { speed: number; onLine: (l: number) => void }) {
+  const { t } = useLang();
   const [seq, setSeq] = useState("50, 30, 70, 20, 40, 60, 80");
   const [search, setSearch] = useState("40");
   const [del, setDel] = useState("30");
@@ -254,9 +259,9 @@ function BSTViz({ speed, onLine }: { speed: number; onLine: (l: number) => void 
       onLine={onLine}
       extra={
         <>
-          <Field label="Insert" value={seq} onChange={setSeq} width="w-56" />
-          <Field label="Search" value={search} onChange={setSearch} width="w-14" />
-          <Field label="Delete" value={del} onChange={setDel} width="w-14" />
+          <Field label={t("tree.insert")} value={seq} onChange={setSeq} width="w-56" />
+          <Field label={t("tree.search")} value={search} onChange={setSearch} width="w-14" />
+          <Field label={t("tree.delete")} value={del} onChange={setDel} width="w-14" />
         </>
       }
     />
@@ -264,6 +269,7 @@ function BSTViz({ speed, onLine }: { speed: number; onLine: (l: number) => void 
 }
 
 function AVLViz({ speed, onLine }: { speed: number; onLine: (l: number) => void }) {
+  const { t } = useLang();
   const [seq, setSeq] = useState("10, 20, 30, 40, 50, 25");
   const steps = useMemo(() => {
     const s = parseNums(seq);
@@ -274,12 +280,13 @@ function AVLViz({ speed, onLine }: { speed: number; onLine: (l: number) => void 
       steps={steps}
       speed={speed}
       onLine={onLine}
-      extra={<Field label="Insert" value={seq} onChange={setSeq} width="w-56" />}
+      extra={<Field label={t("tree.insert")} value={seq} onChange={setSeq} width="w-56" />}
     />
   );
 }
 
 function HeapViz({ speed, onLine }: { speed: number; onLine: (l: number) => void }) {
+  const { t } = useLang();
   const [seq, setSeq] = useState("15, 40, 30, 50, 20, 60, 45");
   const [pops, setPops] = useState(2);
   const steps = useMemo(() => {
@@ -293,8 +300,8 @@ function HeapViz({ speed, onLine }: { speed: number; onLine: (l: number) => void
       onLine={onLine}
       extra={
         <>
-          <Field label="Push" value={seq} onChange={setSeq} width="w-56" />
-          <span className="text-[11px] font-medium text-zinc-400">Pops</span>
+          <Field label={t("tree.push")} value={seq} onChange={setSeq} width="w-56" />
+          <span className="text-[11px] font-medium text-zinc-400">{t("tree.pops")}</span>
           {[0, 1, 2, 3].map((p) => (
             <ChoiceButton key={p} active={p === pops} onClick={() => setPops(p)}>
               {p}
@@ -307,6 +314,7 @@ function HeapViz({ speed, onLine }: { speed: number; onLine: (l: number) => void
 }
 
 function TrieViz({ speed, onLine }: { speed: number; onLine: (l: number) => void }) {
+  const { t } = useLang();
   const [words, setWords] = useState("CAT, CAR, CARD, DOG, DO");
   const [query, setQuery] = useState("CARD");
   const steps = useMemo(() => {
@@ -324,8 +332,8 @@ function TrieViz({ speed, onLine }: { speed: number; onLine: (l: number) => void
       onLine={onLine}
       extra={
         <>
-          <Field label="Words" value={words} onChange={setWords} width="w-56" />
-          <Field label="Search" value={query} onChange={setQuery} width="w-24" />
+          <Field label={t("tree.words")} value={words} onChange={setWords} width="w-56" />
+          <Field label={t("tree.search")} value={query} onChange={setQuery} width="w-24" />
         </>
       }
     />
@@ -333,6 +341,7 @@ function TrieViz({ speed, onLine }: { speed: number; onLine: (l: number) => void
 }
 
 function SegmentTreeViz({ speed, onLine }: { speed: number; onLine: (l: number) => void }) {
+  const { t } = useLang();
   const [arr, setArr] = useState("2, 5, 1, 4, 9, 3, 7, 6");
   const [lo, setLo] = useState("2");
   const [hi, setHi] = useState("5");
@@ -351,9 +360,9 @@ function SegmentTreeViz({ speed, onLine }: { speed: number; onLine: (l: number) 
       onLine={onLine}
       extra={
         <>
-          <Field label="Array" value={arr} onChange={setArr} width="w-52" />
-          <Field label="Query lo" value={lo} onChange={setLo} width="w-12" />
-          <Field label="hi" value={hi} onChange={setHi} width="w-12" />
+          <Field label={t("tree.array")} value={arr} onChange={setArr} width="w-52" />
+          <Field label={t("tree.queryLo")} value={lo} onChange={setLo} width="w-12" />
+          <Field label={t("tree.queryHi")} value={hi} onChange={setHi} width="w-12" />
         </>
       }
     />

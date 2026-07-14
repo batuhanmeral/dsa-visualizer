@@ -768,6 +768,3 @@ export const GRAPH_ALGOS: Record<string, GraphAlgoConfig> = {
     generate: (g, start, goal) => aStarSteps(g, start, goal),
   },
 };
-
-export type GraphGenerator = (g: Graph, start: number) => GraphStep[];
-export const GRAPH_GENERATORS = GRAPH_ALGOS; // back-compat alias

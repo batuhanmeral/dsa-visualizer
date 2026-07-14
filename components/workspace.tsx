@@ -24,6 +24,10 @@ import {
 } from "lucide-react";
 import { categories, type Algorithm, type Category } from "@/lib/data";
 import { getSimulation, type StepKind } from "@/lib/simulations";
+import { useLang } from "@/lib/i18n";
+import type { TKey } from "@/lib/dictionaries";
+import { algoName, algoSummary, catName } from "@/lib/content-i18n";
+import CodeView from "./code-view";
 import CompareView from "./compare-view";
 import DataStructureViz, {
   hasDataStructureViz,
@@ -62,18 +66,18 @@ const KIND_STYLES: Record<StepKind, { bar: string; dot: string }> = {
   done: { bar: "bg-emerald-500", dot: "bg-emerald-500" },
 };
 
-const SORT_LEGEND: { label: string; dot: string }[] = [
-  { label: "compare", dot: "bg-amber-400" },
-  { label: "swap", dot: "bg-rose-500" },
-  { label: "shift", dot: "bg-violet-500" },
-  { label: "select", dot: "bg-sky-500" },
-  { label: "sorted", dot: "bg-emerald-500" },
+const SORT_LEGEND: { key: TKey; dot: string }[] = [
+  { key: "legend.compare", dot: "bg-amber-400" },
+  { key: "legend.swap", dot: "bg-rose-500" },
+  { key: "legend.shift", dot: "bg-violet-500" },
+  { key: "legend.select", dot: "bg-sky-500" },
+  { key: "legend.sorted", dot: "bg-emerald-500" },
 ];
 
-const SEARCH_LEGEND: { label: string; dot: string }[] = [
-  { label: "checking", dot: "bg-amber-400" },
-  { label: "found", dot: "bg-emerald-500" },
-  { label: "eliminated", dot: "bg-zinc-300 dark:bg-zinc-700" },
+const SEARCH_LEGEND: { key: TKey; dot: string }[] = [
+  { key: "legend.checking", dot: "bg-amber-400" },
+  { key: "legend.found", dot: "bg-emerald-500" },
+  { key: "legend.eliminated", dot: "bg-zinc-300 dark:bg-zinc-700" },
 ];
 
 /**
@@ -81,11 +85,11 @@ const SEARCH_LEGEND: { label: string; dot: string }[] = [
  * current step. Only the kinds an algorithm actually emits are shown, so the set
  * stays stable across the run.
  */
-const STAT_KINDS: { kind: StepKind; label: string; dot: string }[] = [
-  { kind: "compare", label: "comparisons", dot: "bg-amber-400" },
-  { kind: "swap", label: "swaps", dot: "bg-rose-500" },
-  { kind: "shift", label: "moves", dot: "bg-violet-500" },
-  { kind: "probe", label: "probes", dot: "bg-amber-400" },
+const STAT_KINDS: { kind: StepKind; key: TKey; dot: string }[] = [
+  { kind: "compare", key: "stat.comparisons", dot: "bg-amber-400" },
+  { kind: "swap", key: "stat.swaps", dot: "bg-rose-500" },
+  { kind: "shift", key: "stat.moves", dot: "bg-violet-500" },
+  { kind: "probe", key: "stat.probes", dot: "bg-amber-400" },
 ];
 
 function parseValues(text: string): number[] {
@@ -102,6 +106,7 @@ interface WorkspaceProps {
 }
 
 export default function Workspace({ category, algorithm }: WorkspaceProps) {
+  const { t, lang } = useLang();
   const codeLines = useMemo(() => algorithm.code.split("\n"), [algorithm.code]);
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
@@ -231,7 +236,6 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const compareAvailable =
     !useCustomViz && generator !== undefined && siblings.length > 0;
   const comparing = compareMode && compareAvailable;
-  const fileExtension = algorithm.language ?? "c";
   const activeLine =
     useCustomViz || comparing ? dsLine : step ? step.codeLine : demoLine;
 
@@ -376,10 +380,10 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <h1 className="text-lg font-semibold tracking-tight">
-                {algorithm.name}
+                {algoName(algorithm.slug, algorithm.name, lang)}
               </h1>
               <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                {category.name}
+                {catName(category.slug, category.name, lang)}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                 <Clock className="size-3" /> {algorithm.time}
@@ -389,7 +393,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               </span>
             </div>
             <p className="mt-1.5 max-w-2xl text-sm text-zinc-500 dark:text-zinc-400">
-              {algorithm.summary}
+              {algoSummary(algorithm.slug, algorithm.summary, lang)}
             </p>
           </div>
 
@@ -399,7 +403,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               <button
                 type="button"
                 onClick={() => setCompareMode((c) => !c)}
-                title="Race this algorithm against another on the same input"
+                title={t("ws.compare.title")}
                 className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                   comparing
                     ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
@@ -407,21 +411,21 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 }`}
               >
                 <GitCompareArrows className="size-4" />
-                Compare
+                {t("ws.compare")}
               </button>
             )}
             {!useCustomViz && !comparing && (
               <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-                <ControlButton label="Reset" onClick={reset}>
+                <ControlButton label={t("reset")} onClick={reset}>
                   <RotateCcw className="size-4" />
                 </ControlButton>
-                <ControlButton label="Step back" onClick={() => stepBy(-1)}>
+                <ControlButton label={t("stepBack")} onClick={() => stepBy(-1)}>
                   <StepBack className="size-4" />
                 </ControlButton>
                 <button
                   type="button"
                   onClick={togglePlay}
-                  aria-label={playing ? "Pause" : "Play"}
+                  aria-label={playing ? t("pause") : t("play")}
                   className="flex size-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500"
                 >
                   {playing ? (
@@ -430,7 +434,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                     <Play className="size-4 translate-x-px" fill="currentColor" />
                   )}
                 </button>
-                <ControlButton label="Step forward" onClick={() => stepBy(1)}>
+                <ControlButton label={t("stepForward")} onClick={() => stepBy(1)}>
                   <StepForward className="size-4" />
                 </ControlButton>
               </div>
@@ -468,9 +472,9 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 type="text"
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder="e.g. 23, 7, 41, 15"
+                placeholder={t("ws.input.placeholder")}
                 spellCheck={false}
-                aria-label="Input numbers"
+                aria-label={t("ws.input.aria")}
                 className="w-full min-w-32 bg-transparent font-mono text-xs outline-none placeholder:text-zinc-400"
               />
             </label>
@@ -481,7 +485,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                   type="text"
                   value={targetText}
                   onChange={(e) => setTargetText(e.target.value)}
-                  aria-label="Target value"
+                  aria-label={t("ws.target.aria")}
                   className="w-14 bg-transparent font-mono text-xs outline-none"
                 />
               </label>
@@ -490,21 +494,21 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               type="submit"
               className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
             >
-              Apply
+              {t("ws.apply")}
             </button>
             <button
               type="button"
               onClick={shuffle}
-              title="Random input"
+              title={t("ws.random.title")}
               className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
             >
               <Dices className="size-4" />
-              Random
+              {t("ws.random")}
             </button>
             <button
               type="button"
               onClick={copyLink}
-              title="Copy a link that reopens this exact input and step"
+              title={t("ws.share.title")}
               className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                 copied
                   ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
@@ -514,18 +518,18 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               {copied ? (
                 <>
                   <Check className="size-4" />
-                  Copied
+                  {t("ws.copied")}
                 </>
               ) : (
                 <>
                   <Link2 className="size-4" />
-                  Share
+                  {t("ws.share")}
                 </>
               )}
             </button>
             <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
-              max {MAX_VALUES} numbers (0–999)
-              {algorithm.sortedInput && " · input is sorted automatically"}
+              {t("ws.maxNumbers", { n: MAX_VALUES })}
+              {algorithm.sortedInput && t("ws.autoSorted")}
             </span>
           </form>
         )}
@@ -563,10 +567,10 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 }`}
               />
               {playing
-                ? `Running · ${speed}x`
+                ? `${t("ws.status.running")} · ${speed}x`
                 : steps && atEnd
-                  ? "Done"
-                  : "Idle"}
+                  ? t("ws.status.done")
+                  : t("ws.status.idle")}
             </span>
           )}
 
@@ -649,9 +653,13 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                   ))}
                 </div>
                 <p className="max-w-sm text-center text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  Your input, staged as {algorithm.name.toLowerCase()} elements.
-                  Interactive operations (insert, remove, …) arrive with the
-                  simulation engine.
+                  {t("ws.ds.preview", {
+                    name: algoName(
+                      algorithm.slug,
+                      algorithm.name,
+                      lang
+                    ).toLowerCase(),
+                  })}
                 </p>
               </div>
             ) : (
@@ -717,7 +725,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                             className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
                           >
                             <span className={`size-1.5 rounded-full ${s.dot}`} />
-                            {s.label}
+                            {t(s.key)}
                             <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
                               {runningCounts[s.kind] ?? 0}
                             </span>
@@ -744,13 +752,13 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                     <div className="mt-2.5 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
                       {legend.map((item) => (
                         <span
-                          key={item.label}
+                          key={item.key}
                           className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"
                         >
                           <span
                             className={`size-1.5 rounded-full ${item.dot}`}
                           />
-                          {item.label}
+                          {t(item.key)}
                         </span>
                       ))}
                     </div>
@@ -758,8 +766,8 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 ) : (
                   <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
                     {hasTarget
-                      ? `Looking for ${target} — matches are highlighted. Step-by-step animation coming next.`
-                      : "Your input, ready to sort. Step-by-step animation coming next."}
+                      ? t("ws.hint.search", { target })
+                      : t("ws.hint.sort")}
                   </p>
                 )}
               </div>
@@ -779,10 +787,11 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 <ScanEye className="size-7" />
               </motion.span>
               <div>
-                <p className="text-sm font-medium">Visualization Area</p>
+                <p className="text-sm font-medium">{t("ws.viz.title")}</p>
                 <p className="mx-auto mt-1 max-w-xs text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
-                  The animated {algorithm.name} visualization will render here.
-                  Use the controls above to drive playback.
+                  {t("ws.viz.desc", {
+                    name: algoName(algorithm.slug, algorithm.name, lang),
+                  })}
                 </p>
               </div>
             </div>
@@ -797,16 +806,16 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
             <span className="flex items-center gap-2 text-xs font-medium text-zinc-400">
               <TerminalSquare className="size-4 text-emerald-400" />
-              {algorithm.slug}.{fileExtension}
+              {algorithm.slug}.c
             </span>
             <div className="flex items-center gap-3">
               <span className="font-mono text-[11px] text-zinc-500">
-                line {activeLine + 1}/{codeLines.length}
+                {t("ws.line")} {activeLine + 1}/{codeLines.length}
               </span>
               <button
                 type="button"
                 onClick={copyCode}
-                title="Copy the source code"
+                title={t("ws.copy")}
                 className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
                   codeCopied
                     ? "text-emerald-400"
@@ -816,40 +825,18 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 {codeCopied ? (
                   <>
                     <Check className="size-3.5" />
-                    Copied
+                    {t("ws.copied")}
                   </>
                 ) : (
                   <>
                     <Copy className="size-3.5" />
-                    Copy
+                    {t("ws.copy")}
                   </>
                 )}
               </button>
             </div>
           </div>
-          <pre className="scrollbar-slim flex-1 overflow-auto py-3 font-mono text-[13px] leading-6">
-            {codeLines.map((line, i) => (
-              <div
-                key={i}
-                className={`flex px-4 transition-colors ${
-                  i === activeLine
-                    ? "border-l-2 border-emerald-400 bg-emerald-400/10"
-                    : "border-l-2 border-transparent"
-                }`}
-              >
-                <span className="w-8 shrink-0 select-none text-right pr-4 text-zinc-600">
-                  {i + 1}
-                </span>
-                <code
-                  className={
-                    i === activeLine ? "text-emerald-300" : "text-zinc-300"
-                  }
-                >
-                  {line || " "}
-                </code>
-              </div>
-            ))}
-          </pre>
+          <CodeView code={algorithm.code} activeLine={activeLine} />
         </section>
       </div>
     </div>

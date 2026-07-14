@@ -58,21 +58,21 @@ export function nQueensSteps(n: number): QueensStep[] {
     for (let col = 0; col < n; col++) {
       const safe = queenSafe(queens, row, col);
       snap(
-        13,
+        12,
         `Row ${row}: try column ${col} — ${safe ? "safe." : "attacked, skip."}`,
         safe ? "try" : "conflict",
         [row, col]
       );
       if (safe) {
         queens[row] = col;
-        snap(14, `Place a queen at (row ${row}, col ${col}).`, "place", [
+        snap(13, `Place a queen at (row ${row}, col ${col}).`, "place", [
           row,
           col,
         ]);
         if (solve(row + 1)) return true;
         queens[row] = -1;
         snap(
-          16,
+          15,
           `Dead end below — remove the queen from row ${row} and try the next column.`,
           "backtrack",
           [row, col]
@@ -82,7 +82,7 @@ export function nQueensSteps(n: number): QueensStep[] {
     return false;
   };
 
-  snap(12, `Start solving the ${n}×${n} board from row 0.`, "try");
+  snap(11, `Start solving the ${n}×${n} board from row 0.`, "try");
   solve(0);
   return steps;
 }
@@ -254,12 +254,12 @@ export function mazeSteps(maze0: number[][]): MazeStep[] {
       status,
     });
 
-  // Directions: down, right, up, left.
-  const DIRS: [number, number, string][] = [
-    [1, 0, "down"],
-    [0, 1, "right"],
-    [-1, 0, "up"],
-    [0, -1, "left"],
+  // Directions: down, right, up, left — codeLine matches each `if (solve(...))`.
+  const DIRS: [number, number, string, number][] = [
+    [1, 0, "down", 12],
+    [0, 1, "right", 13],
+    [-1, 0, "up", 14],
+    [0, -1, "left", 15],
   ];
 
   const solve = (r: number, c: number): boolean => {
@@ -281,8 +281,8 @@ export function mazeSteps(maze0: number[][]): MazeStep[] {
 
     sol[r][c] = true;
     snap(11, `Step onto (${r}, ${c}).`, "move", [r, c]);
-    for (const [dr, dc, name] of DIRS) {
-      snap(12, `From (${r}, ${c}) try moving ${name}.`, "try", [r, c]);
+    for (const [dr, dc, name, line] of DIRS) {
+      snap(line, `From (${r}, ${c}) try moving ${name}.`, "try", [r, c]);
       if (solve(r + dr, c + dc)) return true;
     }
     sol[r][c] = false;

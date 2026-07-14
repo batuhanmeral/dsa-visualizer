@@ -129,7 +129,6 @@ export function bstSteps(
   ID = 0;
   const steps: TreeStep[] = [];
   let root: BNode | null = null;
-  const path = new Map<string, NodeTone>();
 
   const emit = (
     codeLine: number,
@@ -241,7 +240,6 @@ export function bstSteps(
   };
   root = del(root, deleteKey, new Map());
   emit(35, `Deleted ${deleteKey} — BST property preserved`, new Map());
-  void path;
   return steps;
 }
 
@@ -453,8 +451,11 @@ export function heapSteps(pushSeq: number[], popCount: number): TreeStep[] {
     swap(0, last);
     heap.pop();
     ids.pop();
-    if (heap.length > 0)
-      emit(25, `Move last element ${heap[0]} to the root`, new Map([[0, "current"]]));
+    if (heap.length === 0) {
+      emit(25, `Heap is empty after popping ${top}`, new Map());
+      continue;
+    }
+    emit(25, `Move last element ${heap[0]} to the root`, new Map([[0, "current"]]));
     let i = 0;
     for (;;) {
       const l = 2 * i + 1;

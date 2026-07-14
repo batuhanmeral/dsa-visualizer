@@ -20,6 +20,8 @@ import {
   type SudokuStatus,
   type SudokuStep,
 } from "@/lib/simulations/backtracking";
+import { useLang } from "@/lib/i18n";
+import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
 const BT_SLUGS = new Set([
@@ -34,12 +36,18 @@ export function hasBacktrackViz(slug: string): boolean {
   return BT_SLUGS.has(slug);
 }
 
+/** Translate a `{key, dot}[]` legend for the active language. */
+function useLegend(keys: { key: TKey; dot: string }[]) {
+  const { t } = useLang();
+  return keys.map((l) => ({ label: t(l.key), dot: l.dot }));
+}
+
 // ── N-Queens ────────────────────────────────────────────────────────────
-const QUEEN_LEGEND = [
-  { label: "trying", dot: "bg-amber-400" },
-  { label: "placed", dot: "bg-emerald-500" },
-  { label: "conflict", dot: "bg-rose-500" },
-  { label: "backtrack", dot: "bg-violet-500" },
+const QUEEN_LEGEND: { key: TKey; dot: string }[] = [
+  { key: "bt.legend.trying", dot: "bg-amber-400" },
+  { key: "bt.legend.placed", dot: "bg-emerald-500" },
+  { key: "bt.legend.conflict", dot: "bg-rose-500" },
+  { key: "bt.legend.backtrack", dot: "bg-violet-500" },
 ];
 
 const QUEEN_DOT: Record<QueenStatus, string> = {
@@ -80,6 +88,8 @@ function QueensViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
+  const legend = useLegend(QUEEN_LEGEND);
   const [n, setN] = useState(6);
   const steps = useMemo(() => nQueensSteps(n), [n]);
   const player = useStepPlayer(steps.length, speed);
@@ -97,11 +107,11 @@ function QueensViz({
       count={steps.length}
       note={step.note}
       dotClass={QUEEN_DOT[step.status]}
-      legend={QUEEN_LEGEND}
+      legend={legend}
       extra={
         <>
           <span className="mr-1 text-[11px] font-medium text-zinc-400">
-            Board size
+            {t("bt.boardSize")}
           </span>
           {[4, 5, 6, 7, 8].map((size) => (
             <ChoiceButton
@@ -166,11 +176,11 @@ function QueensViz({
 }
 
 // ── Sudoku ──────────────────────────────────────────────────────────────
-const SUDOKU_LEGEND = [
-  { label: "scanning", dot: "bg-sky-500" },
-  { label: "trying", dot: "bg-amber-400" },
-  { label: "placed", dot: "bg-emerald-500" },
-  { label: "reject/backtrack", dot: "bg-rose-500" },
+const SUDOKU_LEGEND: { key: TKey; dot: string }[] = [
+  { key: "bt.legend.scanning", dot: "bg-sky-500" },
+  { key: "bt.legend.trying", dot: "bg-amber-400" },
+  { key: "bt.legend.placed", dot: "bg-emerald-500" },
+  { key: "bt.legend.rejectBacktrack", dot: "bg-rose-500" },
 ];
 
 const SUDOKU_DOT: Record<SudokuStatus, string> = {
@@ -189,6 +199,8 @@ function SudokuViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
+  const legend = useLegend(SUDOKU_LEGEND);
   // Puzzle is fixed per mount; `fixed` marks the given (non-editable) clues.
   const { grid, fixed } = useMemo(() => makeSudokuGrid(), []);
   const steps = useMemo(() => sudokuSteps(grid), [grid]);
@@ -205,10 +217,10 @@ function SudokuViz({
       count={steps.length}
       note={step.note}
       dotClass={SUDOKU_DOT[step.status]}
-      legend={SUDOKU_LEGEND}
+      legend={legend}
       extra={
         <span className="text-[11px] text-zinc-400">
-          Solving one preset puzzle — watch digits get tried, placed and undone.
+          {t("bt.sudokuHint")}
         </span>
       }
     >
@@ -249,11 +261,11 @@ function SudokuViz({
 }
 
 // ── Rat in a Maze ───────────────────────────────────────────────────────
-const MAZE_LEGEND = [
-  { label: "trying", dot: "bg-amber-400" },
-  { label: "on path", dot: "bg-emerald-500" },
-  { label: "dead end", dot: "bg-rose-500" },
-  { label: "backtrack", dot: "bg-violet-500" },
+const MAZE_LEGEND: { key: TKey; dot: string }[] = [
+  { key: "bt.legend.trying", dot: "bg-amber-400" },
+  { key: "bt.legend.onPath", dot: "bg-emerald-500" },
+  { key: "bt.legend.deadEnd", dot: "bg-rose-500" },
+  { key: "bt.legend.backtrack", dot: "bg-violet-500" },
 ];
 
 const MAZE_DOT: Record<MazeStatus, string> = {
@@ -271,6 +283,8 @@ function MazeViz({
   speed: number;
   onLine: (line: number) => void;
 }) {
+  const { t } = useLang();
+  const legend = useLegend(MAZE_LEGEND);
   const steps = useMemo(() => mazeSteps(SAMPLE_MAZE), []);
   const player = useStepPlayer(steps.length, speed);
   const step: MazeStep = steps[player.index];
@@ -286,10 +300,10 @@ function MazeViz({
       count={steps.length}
       note={step.note}
       dotClass={MAZE_DOT[step.status]}
-      legend={MAZE_LEGEND}
+      legend={legend}
       extra={
         <span className="text-[11px] text-zinc-400">
-          Rat starts top-left, exit is bottom-right. Walls are dark cells.
+          {t("bt.mazeHint")}
         </span>
       }
     >
@@ -337,10 +351,10 @@ function MazeViz({
 }
 
 // ── Subsets & Permutations (choice tree) ────────────────────────────────
-const CHOICE_LEGEND = [
-  { label: "choose", dot: "bg-amber-400" },
-  { label: "backtrack", dot: "bg-violet-500" },
-  { label: "recorded", dot: "bg-emerald-500" },
+const CHOICE_LEGEND: { key: TKey; dot: string }[] = [
+  { key: "bt.legend.choose", dot: "bg-amber-400" },
+  { key: "bt.legend.backtrack", dot: "bg-violet-500" },
+  { key: "bt.legend.recorded", dot: "bg-emerald-500" },
 ];
 
 const CHOICE_DOT: Record<ChoiceStatus, string> = {
@@ -364,6 +378,8 @@ function ChoiceViz({
   input: number[];
   kind: "subset" | "permutation";
 }) {
+  const { t } = useLang();
+  const legend = useLegend(CHOICE_LEGEND);
   const steps = useMemo(() => generate(input), [generate, input]);
   const player = useStepPlayer(steps.length, speed);
   const step: ChoiceStep = steps[player.index];
@@ -373,6 +389,8 @@ function ChoiceViz({
   }, [step.codeLine, onLine]);
 
   const brackets = kind === "subset" ? ["{", "}"] : ["[", "]"];
+  const total =
+    kind === "subset" ? 2 ** input.length : factorial(input.length);
 
   return (
     <PlaybackPanel
@@ -380,14 +398,12 @@ function ChoiceViz({
       count={steps.length}
       note={step.note}
       dotClass={CHOICE_DOT[step.status]}
-      legend={CHOICE_LEGEND}
+      legend={legend}
       extra={
         <span className="text-[11px] text-zinc-400">
-          {kind === "subset" ? "Set" : "Elements"}: {input.join(", ")} ·
-          found {step.results.length}
-          {kind === "subset"
-            ? ` / ${2 ** input.length}`
-            : ` / ${factorial(input.length)}`}
+          {t(kind === "subset" ? "bt.set" : "bt.elements")}:{" "}
+          {input.join(", ")} ·{" "}
+          {t("bt.found", { n: step.results.length, total })}
         </span>
       }
     >
@@ -395,14 +411,14 @@ function ChoiceViz({
         {/* Current candidate */}
         <div className="flex flex-col items-center gap-1.5">
           <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-            building
+            {t("bt.building")}
           </span>
           <div className="flex min-h-11 items-center gap-1.5">
             <span className="font-mono text-lg text-zinc-400">
               {brackets[0]}
             </span>
             {step.current.length === 0 && (
-              <span className="px-2 text-xs text-zinc-400">empty</span>
+              <span className="px-2 text-xs text-zinc-400">{t("bt.empty")}</span>
             )}
             {step.current.map((v, i) => {
               const locked =
@@ -434,11 +450,11 @@ function ChoiceViz({
         {/* Results collected so far */}
         <div className="flex w-full flex-col items-center gap-1.5">
           <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-            recorded ({step.results.length})
+            {t("bt.recordedCount", { n: step.results.length })}
           </span>
           <div className="flex max-h-40 flex-wrap items-center justify-center gap-1.5 overflow-auto">
             {step.results.length === 0 && (
-              <span className="text-xs text-zinc-400">none yet</span>
+              <span className="text-xs text-zinc-400">{t("bt.noneYet")}</span>
             )}
             {step.results.map((res, i) => (
               <motion.span

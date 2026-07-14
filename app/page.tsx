@@ -1,8 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { categories } from "@/lib/data";
+import { useLang } from "@/lib/i18n";
+import { algoName, catName, catTagline } from "@/lib/content-i18n";
 
 export default function HomePage() {
+  const { t, lang } = useLang();
   const algorithmCount = categories.reduce(
     (sum, c) => sum + c.algorithms.length,
     0
@@ -14,15 +19,18 @@ export default function HomePage() {
       <div className="mb-12">
         <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
           <Sparkles className="size-3.5" />
-          {algorithmCount} algorithms · {categories.length} categories
+          {t("home.badge", {
+            count: algorithmCount,
+            categories: categories.length,
+          })}
         </span>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-          See algorithms <span className="text-emerald-500">think</span>.
+          {t("home.title.pre")}
+          <span className="text-emerald-500">{t("home.title.accent")}</span>
+          {t("home.title.post")}
         </h1>
         <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-          An interactive workspace for learning data structures and
-          algorithms. Pick a topic, watch every step unfold, and follow along
-          in the code — at your own pace.
+          {t("home.subtitle")}
         </p>
       </div>
 
@@ -41,10 +49,10 @@ export default function HomePage() {
                 </span>
                 <div>
                   <h2 className="text-sm font-semibold tracking-tight">
-                    {category.name}
+                    {catName(category.slug, category.name, lang)}
                   </h2>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {category.tagline}
+                    {catTagline(category.slug, category.tagline, lang)}
                   </p>
                 </div>
               </div>
@@ -55,7 +63,7 @@ export default function HomePage() {
                       href={`/${category.slug}/${algorithm.slug}`}
                       className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
                     >
-                      {algorithm.name}
+                      {algoName(algorithm.slug, algorithm.name, lang)}
                       <span className="flex items-center gap-2">
                         <span className="font-mono text-[11px] text-zinc-400 dark:text-zinc-500">
                           {algorithm.time}

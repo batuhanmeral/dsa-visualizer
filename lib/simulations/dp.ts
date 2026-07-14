@@ -295,7 +295,7 @@ export function coinChangeSteps(coins: number[], amount: number): CoinResult {
       } else if (i === 0) {
         snap(11, `No coins available for amount ${a}.`, [i, a], []);
         dp[i][a] = COIN_INF;
-        snap(10, `Unreachable → dp[0][${a}] = ∞.`, [i, a], []);
+        snap(12, `Unreachable → dp[0][${a}] = ∞.`, [i, a], []);
       } else {
         const coin = coins[i - 1];
         if (coin > a) {

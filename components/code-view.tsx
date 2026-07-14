@@ -1,0 +1,61 @@
+"use client";
+
+import { useMemo } from "react";
+import { tokenize, type TokenType } from "@/lib/highlight";
+
+/**
+ * Syntax-highlighted C code panel. Tokenizes the snippet once (memoized on the
+ * source) and renders it line by line so the workspace's active-line highlight
+ * — driven by the current simulation step — can style each row independently.
+ * Token colours stay visible on the active line; the emerald left border and
+ * tint mark which line is executing.
+ */
+const TOKEN_CLASS: Record<TokenType, string> = {
+  comment: "text-zinc-500 italic",
+  preprocessor: "text-rose-400",
+  keyword: "text-violet-400",
+  type: "text-sky-400",
+  constant: "text-orange-400",
+  string: "text-amber-300",
+  number: "text-orange-400",
+  function: "text-yellow-200",
+  plain: "text-zinc-300",
+};
+
+export default function CodeView({
+  code,
+  activeLine,
+}: {
+  code: string;
+  activeLine: number;
+}) {
+  const lines = useMemo(() => tokenize(code), [code]);
+
+  return (
+    <pre className="scrollbar-slim flex-1 overflow-auto py-3 font-mono text-[13px] leading-6">
+      {lines.map((tokens, i) => (
+        <div
+          key={i}
+          className={`flex px-4 transition-colors ${
+            i === activeLine
+              ? "border-l-2 border-emerald-400 bg-emerald-400/10"
+              : "border-l-2 border-transparent"
+          }`}
+        >
+          <span className="w-8 shrink-0 select-none pr-4 text-right text-zinc-600">
+            {i + 1}
+          </span>
+          <code>
+            {tokens.length === 0
+              ? " "
+              : tokens.map((t, j) => (
+                  <span key={j} className={TOKEN_CLASS[t.type]}>
+                    {t.value}
+                  </span>
+                ))}
+          </code>
+        </div>
+      ))}
+    </pre>
+  );
+}

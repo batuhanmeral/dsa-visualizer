@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Moon, Sun } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 /**
  * Flips the manual light/dark theme and persists the choice to localStorage.
@@ -12,6 +13,7 @@ import { Moon, Sun } from "lucide-react";
  */
 export default function ThemeToggle({ className = "" }: { className?: string }) {
   const [theme, setTheme] = useState<"light" | "dark" | null>(null);
+  const { t } = useLang();
 
   // Sync local state to the theme the inline script already applied — a one-time
   // read of a value that only exists after mount (hence the scoped waiver).
@@ -38,8 +40,8 @@ export default function ThemeToggle({ className = "" }: { className?: string }) 
     <button
       type="button"
       onClick={toggle}
-      aria-label="Toggle dark mode"
-      title={theme === "light" ? "Switch to dark" : "Switch to light"}
+      aria-label={t("toggle.theme.dark")}
+      title={theme === "light" ? t("toggle.theme.dark") : t("toggle.theme.light")}
       className={`flex size-9 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 ${className}`}
     >
       {theme === "light" ? (

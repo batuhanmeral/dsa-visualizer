@@ -3,15 +3,14 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Binary, Menu, X } from "lucide-react";
+import { LangProvider, useLang } from "@/lib/i18n";
 import SidebarNav from "./sidebar-nav";
 import ThemeToggle from "./theme-toggle";
+import LangToggle from "./lang-toggle";
 
-export default function AppShell({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function Shell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { t } = useLang();
 
   return (
     <div className="min-h-dvh">
@@ -25,7 +24,7 @@ export default function AppShell({
         <button
           type="button"
           onClick={() => setDrawerOpen(true)}
-          aria-label="Open navigation"
+          aria-label={t("nav.open")}
           className="flex size-9 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <Menu className="size-5" />
@@ -36,7 +35,10 @@ export default function AppShell({
           </span>
           DSA Visualizer
         </span>
-        <ThemeToggle className="ml-auto" />
+        <div className="ml-auto flex items-center gap-2">
+          <LangToggle />
+          <ThemeToggle />
+        </div>
       </header>
 
       {/* Mobile drawer */}
@@ -63,7 +65,7 @@ export default function AppShell({
               <button
                 type="button"
                 onClick={() => setDrawerOpen(false)}
-                aria-label="Close navigation"
+                aria-label={t("nav.close")}
                 className="absolute right-3 top-4 flex size-9 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 <X className="size-5" />
@@ -77,5 +79,13 @@ export default function AppShell({
       {/* Content */}
       <main className="pt-14 lg:pl-72 lg:pt-0">{children}</main>
     </div>
+  );
+}
+
+export default function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <LangProvider>
+      <Shell>{children}</Shell>
+    </LangProvider>
   );
 }
