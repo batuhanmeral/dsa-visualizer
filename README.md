@@ -1,4 +1,4 @@
-# DSA Visualizer
+# Flowy - DSA Visualizer
 
 An interactive platform for learning data structures and algorithms by watching
 them run — step by step, with the corresponding C code line highlighted as it
@@ -49,13 +49,16 @@ npm run build  # static production build
 npm run lint
 ```
 
-## Architecture
+## Screenshots
 
-All content lives in `lib/data.ts` (single source of truth) — adding an
-algorithm there generates its route, navigation entry and page automatically.
-Each algorithm is a pure, UI-independent **step generator** under
-`lib/simulations/`; renderers in `components/` just replay the precomputed
-steps.
+| |
+| :---: |
+| <img src="docs/overview.png" alt="Overview — category grid" width="850"> |
+| *Overview* |
+| <img src="docs/bubble_sort.png" alt="Bubble Sort visualization" width="850"> |
+| *Bubble Sort — step player, stat counters and C code highlighting* |
+| <img src="docs/n_queens.png" alt="N-Queens backtracking visualization" width="850"> |
+| *N-Queens — backtracking on the board* |
 
 ## License
 
