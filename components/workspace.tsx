@@ -28,6 +28,12 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
 import CodeView from "./code-view";
+import {
+  SPEEDS,
+  SpeedContext,
+  SpeedSelect,
+  TransportControls,
+} from "./step-player";
 import CompareView from "./compare-view";
 import DataStructureViz, {
   hasDataStructureViz,
@@ -50,7 +56,6 @@ function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
   return null;
 }
 
-const SPEEDS = [0.5, 1, 1.5, 2] as const;
 const MAX_VALUES = 16;
 const DEFAULT_INPUT = "23, 7, 41, 15, 3, 34, 9, 28";
 const DEFAULT_TARGET = "15";
@@ -373,6 +378,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
       step.sorted.includes(i));
 
   return (
+    <SpeedContext.Provider value={{ speed, setSpeed }}>
     <div className="flex flex-col gap-4 p-4 lg:h-dvh lg:p-6">
       {/* ── Top bar ─────────────────────────────────────────────── */}
       <header className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
@@ -392,7 +398,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 <Database className="size-3" /> {algorithm.space}
               </span>
             </div>
-            <p className="mt-1.5 max-w-2xl text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
               {algoSummary(algorithm.slug, algorithm.summary, lang)}
             </p>
           </div>
@@ -414,49 +420,53 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 {t("ws.compare")}
               </button>
             )}
-            {!useCustomViz && !comparing && (
-              <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-                <ControlButton label={t("reset")} onClick={reset}>
-                  <RotateCcw className="size-4" />
-                </ControlButton>
-                <ControlButton label={t("stepBack")} onClick={() => stepBy(-1)}>
-                  <StepBack className="size-4" />
-                </ControlButton>
-                <button
-                  type="button"
-                  onClick={togglePlay}
-                  aria-label={playing ? t("pause") : t("play")}
-                  className="flex size-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500"
-                >
-                  {playing ? (
-                    <Pause className="size-4" fill="currentColor" />
-                  ) : (
-                    <Play className="size-4 translate-x-px" fill="currentColor" />
-                  )}
-                </button>
-                <ControlButton label={t("stepForward")} onClick={() => stepBy(1)}>
-                  <StepForward className="size-4" />
-                </ControlButton>
-              </div>
-            )}
+            {/* Fallback-only controls: algorithms without a step engine have no
+                panel below the canvas, so the demo transport + speed stay here. */}
+            {!useCustomViz && !comparing && !steps && (
+              <>
+                <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
+                  <ControlButton label={t("reset")} onClick={reset}>
+                    <RotateCcw className="size-4" />
+                  </ControlButton>
+                  <ControlButton label={t("stepBack")} onClick={() => stepBy(-1)}>
+                    <StepBack className="size-4" />
+                  </ControlButton>
+                  <button
+                    type="button"
+                    onClick={togglePlay}
+                    aria-label={playing ? t("pause") : t("play")}
+                    className="flex size-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500"
+                  >
+                    {playing ? (
+                      <Pause className="size-4" fill="currentColor" />
+                    ) : (
+                      <Play className="size-4 translate-x-px" fill="currentColor" />
+                    )}
+                  </button>
+                  <ControlButton label={t("stepForward")} onClick={() => stepBy(1)}>
+                    <StepForward className="size-4" />
+                  </ControlButton>
+                </div>
 
-            <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-              <Gauge className="ml-1.5 size-4 text-zinc-400" />
-              {SPEEDS.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => setSpeed(s)}
-                  className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                    speed === s
-                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-                      : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                  }`}
-                >
-                  {s}x
-                </button>
-              ))}
-            </div>
+                <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
+                  <Gauge className="ml-1.5 size-4 text-zinc-400" />
+                  {SPEEDS.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSpeed(s)}
+                      className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                        speed === s
+                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      }`}
+                    >
+                      {s}x
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -693,74 +703,85 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 {steps && step ? (
                   /* Step strip: note + counter + scrubber + legend */
                   <div className="mt-4 rounded-xl border border-zinc-200 bg-white/85 p-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="flex min-w-0 items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
-                        <span
-                          className={`size-2 shrink-0 rounded-full ${KIND_STYLES[step.kind].dot}`}
-                        />
-                        <span className="truncate">{step.note}</span>
-                      </p>
+                    <p className="flex min-w-0 items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+                      <span
+                        className={`size-2 shrink-0 rounded-full ${KIND_STYLES[step.kind].dot}`}
+                      />
+                      <span className="truncate">{step.note}</span>
+                    </p>
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={0}
+                        max={steps.length - 1}
+                        value={Math.min(stepIndex, steps.length - 1)}
+                        onChange={(e) => {
+                          setIsPlaying(false);
+                          setStepIndex(Number(e.target.value));
+                        }}
+                        aria-label="Simulation timeline"
+                        className="h-1 flex-1 cursor-pointer accent-emerald-600"
+                      />
                       <span className="shrink-0 font-mono text-[11px] text-zinc-400">
                         {Math.min(stepIndex, steps.length - 1) + 1}/
                         {steps.length}
                       </span>
+                      <TransportControls
+                        playing={playing}
+                        onToggle={togglePlay}
+                        onReset={reset}
+                        onStep={stepBy}
+                      />
                     </div>
-                    <input
-                      type="range"
-                      min={0}
-                      max={steps.length - 1}
-                      value={Math.min(stepIndex, steps.length - 1)}
-                      onChange={(e) => {
-                        setIsPlaying(false);
-                        setStepIndex(Number(e.target.value));
-                      }}
-                      aria-label="Simulation timeline"
-                      className="mt-2 h-1 w-full cursor-pointer accent-emerald-600"
-                    />
-                    {(activeStats.length > 0 || (step.vars && step.vars.length > 0)) && (
-                      <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-                        {activeStats.map((s) => (
-                          <span
-                            key={s.kind}
-                            className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
-                          >
-                            <span className={`size-1.5 rounded-full ${s.dot}`} />
-                            {t(s.key)}
-                            <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
-                              {runningCounts[s.kind] ?? 0}
-                            </span>
-                          </span>
-                        ))}
-                        {step.vars && step.vars.length > 0 && (
-                          <>
-                            <span className="mx-0.5 h-3.5 w-px bg-zinc-200 dark:bg-zinc-800" />
-                            {step.vars.map((v) => (
+                    <div className="mt-2.5 flex items-end justify-between gap-3">
+                      <div className="min-w-0">
+                        {(activeStats.length > 0 || (step.vars && step.vars.length > 0)) && (
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {activeStats.map((s) => (
                               <span
-                                key={v.label}
-                                className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[10px] text-emerald-700 dark:text-emerald-300"
+                                key={s.kind}
+                                className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
                               >
-                                {v.label}
-                                <span className="tabular-nums font-semibold">
-                                  {v.value}
+                                <span className={`size-1.5 rounded-full ${s.dot}`} />
+                                {t(s.key)}
+                                <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
+                                  {runningCounts[s.kind] ?? 0}
                                 </span>
                               </span>
                             ))}
-                          </>
+                            {step.vars && step.vars.length > 0 && (
+                              <>
+                                <span className="mx-0.5 h-3.5 w-px bg-zinc-200 dark:bg-zinc-800" />
+                                {step.vars.map((v) => (
+                                  <span
+                                    key={v.label}
+                                    className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[10px] text-emerald-700 dark:text-emerald-300"
+                                  >
+                                    {v.label}
+                                    <span className="tabular-nums font-semibold">
+                                      {v.value}
+                                    </span>
+                                  </span>
+                                ))}
+                              </>
+                            )}
+                          </div>
                         )}
+                        <div className="mt-2.5 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
+                          {legend.map((item) => (
+                            <span
+                              key={item.key}
+                              className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"
+                            >
+                              <span
+                                className={`size-1.5 rounded-full ${item.dot}`}
+                              />
+                              {t(item.key)}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    )}
-                    <div className="mt-2.5 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
-                      {legend.map((item) => (
-                        <span
-                          key={item.key}
-                          className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"
-                        >
-                          <span
-                            className={`size-1.5 rounded-full ${item.dot}`}
-                          />
-                          {t(item.key)}
-                        </span>
-                      ))}
+                      <SpeedSelect />
                     </div>
                   </div>
                 ) : (
@@ -840,6 +861,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
         </section>
       </div>
     </div>
+    </SpeedContext.Provider>
   );
 }
 

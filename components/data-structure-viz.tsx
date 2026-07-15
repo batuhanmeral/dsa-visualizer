@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { SpeedSelect } from "./step-player";
 
 /**
  * Interactive data-structure playground. Unlike the sorting/searching engines
@@ -122,14 +123,17 @@ function VizShell({
       </div>
       <div className="mt-4 rounded-xl border border-zinc-200 bg-white/85 p-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70">
         <div className="flex flex-wrap items-center gap-2">{controls}</div>
-        <p className="mt-2.5 flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
-          <span
-            className={`size-2 shrink-0 rounded-full ${
-              busy ? "animate-pulse bg-emerald-500" : "bg-zinc-400"
-            }`}
-          />
-          <span className="truncate">{note}</span>
-        </p>
+        <div className="mt-2.5 flex items-end justify-between gap-3">
+          <p className="flex min-w-0 items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+            <span
+              className={`size-2 shrink-0 rounded-full ${
+                busy ? "animate-pulse bg-emerald-500" : "bg-zinc-400"
+              }`}
+            />
+            <span className="truncate">{note}</span>
+          </p>
+          <SpeedSelect />
+        </div>
       </div>
     </div>
   );

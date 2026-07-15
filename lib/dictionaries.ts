@@ -15,10 +15,12 @@ export const en = {
   pause: "Pause",
 
   // Shell / navigation
-  "brand.tagline": "Learn by watching",
+  "brand.tagline": "DSA Visualizer",
   "nav.overview": "Overview",
   "nav.open": "Open navigation",
   "nav.close": "Close navigation",
+  "nav.collapse": "Collapse sidebar",
+  "nav.expand": "Expand sidebar",
   "toggle.lang": "Switch language",
   "toggle.theme.dark": "Switch to dark",
   "toggle.theme.light": "Switch to light",
@@ -204,10 +206,12 @@ export const tr: Partial<Record<TKey, string>> = {
   pause: "Duraklat",
 
   // Shell / navigation
-  "brand.tagline": "İzleyerek öğren",
+  "brand.tagline": "DSA Visualizer",
   "nav.overview": "Genel Bakış",
   "nav.open": "Menüyü aç",
   "nav.close": "Menüyü kapat",
+  "nav.collapse": "Kenar çubuğunu kapat",
+  "nav.expand": "Kenar çubuğunu aç",
   "toggle.lang": "Dili değiştir",
   "toggle.theme.dark": "Koyu temaya geç",
   "toggle.theme.light": "Açık temaya geç",

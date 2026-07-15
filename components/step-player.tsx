@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
 import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import {
+  Gauge,
   Pause,
   Play,
   RotateCcw,
@@ -73,6 +80,81 @@ export function useStepPlayer(count: number, speed: number) {
 
 export type StepPlayer = ReturnType<typeof useStepPlayer>;
 
+// ── Speed control ───────────────────────────────────────────────────────
+// The speed state lives in `Workspace`, but the selector renders inside the
+// panel below each simulation (bottom-right). The context carries the pair
+// down without threading a setter through every visualizer.
+export const SPEEDS = [0.5, 1, 1.5, 2] as const;
+
+export const SpeedContext = createContext<{
+  speed: number;
+  setSpeed: (s: (typeof SPEEDS)[number]) => void;
+} | null>(null);
+
+export function SpeedSelect() {
+  const ctx = useContext(SpeedContext);
+  if (!ctx) return null;
+  return (
+    <div className="flex shrink-0 items-center gap-0.5 rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-800 dark:bg-zinc-950">
+      <Gauge className="ml-1 size-3.5 text-zinc-400" />
+      {SPEEDS.map((s) => (
+        <button
+          key={s}
+          type="button"
+          onClick={() => ctx.setSpeed(s)}
+          className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+            ctx.speed === s
+              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+              : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+          }`}
+        >
+          {s}x
+        </button>
+      ))}
+    </div>
+  );
+}
+
+// ── Transport buttons (reset · back · play/pause · forward) ─────────────
+// Rendered to the right of the step counter in every playback panel.
+export function TransportControls({
+  playing,
+  onToggle,
+  onReset,
+  onStep,
+}: {
+  playing: boolean;
+  onToggle: () => void;
+  onReset: () => void;
+  onStep: (delta: number) => void;
+}) {
+  return (
+    <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
+      <TransportButton label="Reset" onClick={onReset}>
+        <RotateCcw className="size-3.5" />
+      </TransportButton>
+      <TransportButton label="Step back" onClick={() => onStep(-1)}>
+        <StepBack className="size-3.5" />
+      </TransportButton>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={playing ? "Pause" : "Play"}
+        className="flex size-8 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-500"
+      >
+        {playing ? (
+          <Pause className="size-3.5" fill="currentColor" />
+        ) : (
+          <Play className="size-3.5 translate-x-px" fill="currentColor" />
+        )}
+      </button>
+      <TransportButton label="Step forward" onClick={() => onStep(1)}>
+        <StepForward className="size-3.5" />
+      </TransportButton>
+    </div>
+  );
+}
+
 // ── Canvas layout + transport bar ───────────────────────────────────────
 export function PlaybackPanel({
   player,
@@ -107,33 +189,6 @@ export function PlaybackPanel({
         )}
 
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-            <TransportButton label="Reset" onClick={player.reset}>
-              <RotateCcw className="size-3.5" />
-            </TransportButton>
-            <TransportButton label="Step back" onClick={() => player.stepBy(-1)}>
-              <StepBack className="size-3.5" />
-            </TransportButton>
-            <button
-              type="button"
-              onClick={player.toggle}
-              aria-label={player.playing ? "Pause" : "Play"}
-              className="flex size-8 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-500"
-            >
-              {player.playing ? (
-                <Pause className="size-3.5" fill="currentColor" />
-              ) : (
-                <Play className="size-3.5 translate-x-px" fill="currentColor" />
-              )}
-            </button>
-            <TransportButton
-              label="Step forward"
-              onClick={() => player.stepBy(1)}
-            >
-              <StepForward className="size-3.5" />
-            </TransportButton>
-          </div>
-
           <input
             type="range"
             min={0}
@@ -146,26 +201,36 @@ export function PlaybackPanel({
           <span className="shrink-0 font-mono text-[11px] text-zinc-400">
             {player.index + 1}/{count}
           </span>
+          <TransportControls
+            playing={player.playing}
+            onToggle={player.toggle}
+            onReset={player.reset}
+            onStep={player.stepBy}
+          />
         </div>
 
-        <p className="mt-2.5 flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
-          <span className={`size-2 shrink-0 rounded-full ${dotClass}`} />
-          <span className="truncate">{note}</span>
-        </p>
-
-        {legend && (
-          <div className="mt-2 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
-            {legend.map((item) => (
-              <span
-                key={item.label}
-                className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"
-              >
-                <span className={`size-1.5 rounded-full ${item.dot}`} />
-                {item.label}
-              </span>
-            ))}
+        <div className="mt-2.5 flex items-end justify-between gap-3">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
+              <span className={`size-2 shrink-0 rounded-full ${dotClass}`} />
+              <span className="truncate">{note}</span>
+            </p>
+            {legend && (
+              <div className="mt-2 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
+                {legend.map((item) => (
+                  <span
+                    key={item.label}
+                    className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"
+                  >
+                    <span className={`size-1.5 rounded-full ${item.dot}`} />
+                    {item.label}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
-        )}
+          <SpeedSelect />
+        </div>
       </div>
     </div>
   );

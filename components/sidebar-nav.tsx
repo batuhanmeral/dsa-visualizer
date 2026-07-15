@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Binary, LayoutDashboard } from "lucide-react";
+import { Binary, LayoutDashboard, PanelLeftClose } from "lucide-react";
 import { categories } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { algoName, catName } from "@/lib/content-i18n";
@@ -11,32 +11,47 @@ import LangToggle from "./lang-toggle";
 
 interface SidebarNavProps {
   onNavigate?: () => void;
+  /** Desktop only: renders the collapse button next to the brand. */
+  onCollapse?: () => void;
 }
 
-export default function SidebarNav({ onNavigate }: SidebarNavProps) {
+export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) {
   const pathname = usePathname();
   const { t, lang } = useLang();
 
   return (
     <div className="flex h-full flex-col">
       {/* Brand */}
-      <Link
-        href="/"
-        onClick={onNavigate}
-        className="flex items-center gap-3 px-5 py-5"
-      >
-        <span className="flex size-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
-          <Binary className="size-5" />
-        </span>
-        <span className="leading-tight">
-          <span className="block text-sm font-semibold tracking-tight">
-            DSA Visualizer
+      <div className="flex items-center gap-3 px-5 py-5">
+        <Link
+          href="/"
+          onClick={onNavigate}
+          className="flex min-w-0 flex-1 items-center gap-3"
+        >
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+            <Binary className="size-5" />
           </span>
-          <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">
-            {t("brand.tagline")}
+          <span className="leading-tight">
+            <span className="block text-sm font-semibold tracking-tight">
+              Flowy
+            </span>
+            <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">
+              {t("brand.tagline")}
+            </span>
           </span>
-        </span>
-      </Link>
+        </Link>
+        {onCollapse && (
+          <button
+            type="button"
+            onClick={onCollapse}
+            aria-label={t("nav.collapse")}
+            title={t("nav.collapse")}
+            className="flex size-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+          >
+            <PanelLeftClose className="size-4" />
+          </button>
+        )}
+      </div>
 
       {/* Nav */}
       <nav className="scrollbar-slim flex-1 overflow-y-auto px-3 pb-6">

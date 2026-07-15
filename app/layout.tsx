@@ -15,8 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "DSA Visualizer",
-    template: "%s · DSA Visualizer",
+    default: "Flowy — DSA Visualizer",
+    template: "%s · Flowy",
   },
   description:
     "An interactive platform for visualizing data structures and algorithms — sorting, graphs, dynamic programming, and backtracking.",
