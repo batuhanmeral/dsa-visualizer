@@ -856,9 +856,6 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               {algorithm.slug}.c
             </span>
             <div className="flex items-center gap-3">
-              <span className="font-mono text-[11px] text-zinc-500">
-                {t("ws.line")} {activeLine + 1}/{codeLines.length}
-              </span>
               <button
                 type="button"
                 onClick={copyCode}
