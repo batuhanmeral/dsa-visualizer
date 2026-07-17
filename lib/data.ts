@@ -2,10 +2,12 @@ import {
   BarChart3,
   Binary,
   Boxes,
+  HandCoins,
   Layers,
   Puzzle,
   Search,
   Share2,
+  Sigma,
   Type,
   type LucideIcon,
 } from "lucide-react";
@@ -942,6 +944,120 @@ int coinChange(int coins[], int n, int amount) {
     ],
   },
   {
+    slug: "greedy",
+    name: "Greedy",
+    tagline: "Locally optimal choices",
+    icon: HandCoins,
+    algorithms: [
+      {
+        slug: "activity-selection",
+        name: "Activity Selection",
+        summary:
+          "Picks the maximum number of non-overlapping activities by always taking the one that finishes earliest.",
+        time: "O(n log n)",
+        space: "O(1)",
+        code: `/* activities sorted by finish time */
+void activitySelect(int start[], int finish[], int n) {
+    int lastFinish = finish[0];
+    printf("select 0\\n");
+    for (int i = 1; i < n; i++) {
+        if (start[i] >= lastFinish) {
+            printf("select %d\\n", i);
+            lastFinish = finish[i];
+        }
+    }
+}`,
+      },
+      {
+        slug: "fractional-knapsack",
+        name: "Fractional Knapsack",
+        summary:
+          "Maximizes value under a weight limit when items can be split: take items in value/weight order, breaking the last one.",
+        time: "O(n log n)",
+        space: "O(1)",
+        code: `/* items sorted by value/weight ratio (desc) */
+double fracKnapsack(int w[], int v[], int n, int W) {
+    double total = 0;
+    int remaining = W;
+    for (int i = 0; i < n && remaining > 0; i++) {
+        if (w[i] <= remaining) {
+            remaining -= w[i];       /* take it all */
+            total += v[i];
+        } else {
+            double frac = (double)remaining / w[i];
+            total += v[i] * frac;    /* take a fraction */
+            remaining = 0;
+        }
+    }
+    return total;
+}`,
+      },
+      {
+        slug: "job-sequencing",
+        name: "Job Sequencing",
+        summary:
+          "Schedules deadline-bound unit jobs for maximum profit: greedily place each job (highest profit first) into the latest free hour before its deadline.",
+        time: "O(n²)",
+        space: "O(n)",
+        code: `/* jobs sorted by profit (desc) */
+int jobSequence(int dl[], int p[], int n, int maxD) {
+    int slot[maxD + 1];
+    for (int t = 1; t <= maxD; t++)
+        slot[t] = -1;                /* all hours free */
+
+    int total = 0;
+    for (int i = 0; i < n; i++) {
+        for (int t = dl[i]; t >= 1; t--) {
+            if (slot[t] == -1) {
+                slot[t] = i;         /* latest free hour */
+                total += p[i];
+                break;
+            }
+        }
+    }
+    return total;
+}`,
+      },
+      {
+        slug: "huffman-coding",
+        name: "Huffman Coding",
+        summary:
+          "Builds an optimal prefix code: repeatedly merge the two least frequent trees, then read codes off the root-to-leaf paths.",
+        time: "O(n log n)",
+        space: "O(n)",
+        code: `typedef struct Node {
+    char ch;
+    int freq;
+    struct Node *left, *right;
+} Node;
+
+Node *buildHuffman(Node *forest[], int n) {
+    while (n > 1) {
+        int a = minIndex(forest, n, -1);
+        int b = minIndex(forest, n, a);
+        Node *m = newNode(forest[a]->freq
+                        + forest[b]->freq);
+        m->left  = forest[a];
+        m->right = forest[b];
+        forest[a] = m;               /* replace one    */
+        forest[b] = forest[--n];     /* drop the other */
+    }
+    return forest[0];
+}
+
+void printCodes(Node *t, char buf[], int d) {
+    if (!t->left && !t->right) {
+        buf[d] = '\\0';
+        printf("%c: %s\\n", t->ch, buf);
+        return;
+    }
+    buf[d] = '0'; printCodes(t->left,  buf, d + 1);
+    buf[d] = '1'; printCodes(t->right, buf, d + 1);
+}`,
+      },
+    ],
+  },
+  {
     slug: "backtracking",
     name: "Backtracking",
     tagline: "Explore, fail fast, undo",
@@ -1401,6 +1517,71 @@ int manacher(const char *t, int n, int p[]) {
         if (p[i] > best) best = p[i];
     }
     return best;
+}`,
+      },
+    ],
+  },
+  {
+    slug: "math",
+    name: "Math / Number Theory",
+    tagline: "Primes, GCD & modular arithmetic",
+    icon: Sigma,
+    algorithms: [
+      {
+        slug: "sieve-of-eratosthenes",
+        name: "Sieve of Eratosthenes",
+        summary:
+          "Finds every prime up to n by crossing out the multiples of each prime, starting from its square.",
+        time: "O(n log log n)",
+        space: "O(n)",
+        code: `void sieve(int n) {
+    int prime[n + 1];
+    for (int i = 0; i <= n; i++) prime[i] = 1;
+    prime[0] = prime[1] = 0;
+
+    for (int p = 2; p * p <= n; p++) {
+        if (!prime[p]) continue;
+        for (int m = p * p; m <= n; m += p)
+            prime[m] = 0;      /* cross out multiple */
+    }
+
+    for (int i = 2; i <= n; i++)
+        if (prime[i]) printf("%d ", i);
+}`,
+      },
+      {
+        slug: "euclidean-gcd",
+        name: "Euclidean Algorithm (GCD)",
+        summary:
+          "Computes the greatest common divisor by replacing the pair (a, b) with (b, a mod b) until the remainder is zero.",
+        time: "O(log min(a, b))",
+        space: "O(1)",
+        code: `int gcd(int a, int b) {
+    while (b != 0) {
+        int r = a % b;    /* a = q*b + r */
+        a = b;
+        b = r;
+    }
+    return a;
+}`,
+      },
+      {
+        slug: "fast-exponentiation",
+        name: "Fast Exponentiation",
+        summary:
+          "Computes baseᵉˣᵖ mod m in O(log exp) by squaring the base and multiplying it in only where the exponent has a 1-bit.",
+        time: "O(log exp)",
+        space: "O(1)",
+        code: `long long power(long long b, long long e, long long m) {
+    long long result = 1;
+    b %= m;
+    while (e > 0) {
+        if (e & 1)                /* low bit set? */
+            result = result * b % m;
+        b = b * b % m;            /* square */
+        e >>= 1;                  /* shift right */
+    }
+    return result;
 }`,
       },
     ],

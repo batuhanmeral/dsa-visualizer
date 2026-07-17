@@ -144,6 +144,37 @@ export const en = {
   "str.text": "Text",
   "str.pattern": "Pattern",
 
+  // Greedy
+  "greedy.legend.considering": "considering",
+  "greedy.legend.selected": "selected",
+  "greedy.legend.rejected": "rejected",
+  "greedy.legend.taken": "taken whole",
+  "greedy.legend.fraction": "taken fraction",
+  "greedy.legend.picked": "picked (two minima)",
+  "greedy.legend.merged": "merged",
+  "greedy.legend.codeEmitted": "code emitted",
+  "greedy.activityHint": "Sorted by finish time — the line marks the last finish.",
+  "greedy.jobsHint": "Sorted by profit — each job grabs the latest free hour.",
+  "greedy.capacity": "capacity {n}",
+  "greedy.total": "total",
+  "greedy.bag": "Bag",
+  "greedy.hour": "hour",
+  "greedy.text": "Text",
+  "greedy.codes": "Codes",
+
+  // Math / number theory
+  "math.legend.prime": "prime",
+  "math.legend.crossing": "crossing out",
+  "math.legend.crossed": "crossed",
+  "math.legend.currentBit": "current bit",
+  "math.legend.doneBit": "processed bit",
+  "math.n": "n",
+  "math.a": "a",
+  "math.b": "b",
+  "math.base": "Base",
+  "math.exp": "Exp",
+  "math.mod": "Mod",
+
   // Backtracking
   "bt.legend.trying": "trying",
   "bt.legend.placed": "placed",
@@ -335,6 +366,39 @@ export const tr: Partial<Record<TKey, string>> = {
   "str.legend.window": "pencere",
   "str.text": "Metin",
   "str.pattern": "Desen",
+
+  // Greedy
+  "greedy.legend.considering": "değerlendiriliyor",
+  "greedy.legend.selected": "seçildi",
+  "greedy.legend.rejected": "reddedildi",
+  "greedy.legend.taken": "tamamı alındı",
+  "greedy.legend.fraction": "kesri alındı",
+  "greedy.legend.picked": "seçilen (iki en küçük)",
+  "greedy.legend.merged": "birleştirildi",
+  "greedy.legend.codeEmitted": "kod üretildi",
+  "greedy.activityHint":
+    "Bitiş zamanına göre sıralı — çizgi son bitişi gösterir.",
+  "greedy.jobsHint":
+    "Kâra göre sıralı — her iş en geç boş saati kapar.",
+  "greedy.capacity": "kapasite {n}",
+  "greedy.total": "toplam",
+  "greedy.bag": "Çanta",
+  "greedy.hour": "saat",
+  "greedy.text": "Metin",
+  "greedy.codes": "Kodlar",
+
+  // Math / number theory
+  "math.legend.prime": "asal",
+  "math.legend.crossing": "eleniyor",
+  "math.legend.crossed": "elendi",
+  "math.legend.currentBit": "aktif bit",
+  "math.legend.doneBit": "işlenen bit",
+  "math.n": "n",
+  "math.a": "a",
+  "math.b": "b",
+  "math.base": "Taban",
+  "math.exp": "Üs",
+  "math.mod": "Mod",
 
   // Backtracking
   "bt.legend.trying": "deneniyor",

@@ -17,9 +17,17 @@ const categoryTr: Record<string, { name: string; tagline: string }> = {
     name: "Dinamik Programlama",
     tagline: "Optimal alt yapı ve hafızalama",
   },
+  greedy: {
+    name: "Açgözlü Algoritmalar",
+    tagline: "Yerel en iyi seçimler",
+  },
   backtracking: {
     name: "Geri İzleme",
     tagline: "Keşfet, hızlı başarısız ol, geri al",
+  },
+  math: {
+    name: "Matematik / Sayı Teorisi",
+    tagline: "Asallar, OBEB ve modüler aritmetik",
   },
   trees: { name: "Ağaçlar", tagline: "Hiyerarşiler, dengeleme ve sorgular" },
   strings: { name: "Dizeler", tagline: "Desen eşleme ve palindromlar" },
@@ -196,6 +204,28 @@ const algoTr: Record<string, { name: string; summary: string }> = {
       "Kesin artan (bitişik olması gerekmeyen) en uzun değer dizisi; dp[i] = i'de biten en iyi alt dizi ile.",
   },
 
+  // ── Greedy ──
+  "activity-selection": {
+    name: "Etkinlik Seçimi",
+    summary:
+      "Her zaman en erken biteni alarak çakışmayan en fazla sayıda etkinliği seçer.",
+  },
+  "fractional-knapsack": {
+    name: "Kesirli Sırt Çantası",
+    summary:
+      "Öğeler bölünebildiğinde ağırlık sınırı altında değeri en büyükler: öğeleri değer/ağırlık sırasıyla al, sonuncuyu kesirli böl.",
+  },
+  "job-sequencing": {
+    name: "İş Sıralama",
+    summary:
+      "Son teslim tarihli birim işleri en yüksek kâr için planlar: her işi (en kârlı önce) son teslim tarihinden önceki en geç boş saate açgözlüce yerleştirir.",
+  },
+  "huffman-coding": {
+    name: "Huffman Kodlaması",
+    summary:
+      "Optimal önek kodu kurar: en düşük frekanslı iki ağacı tekrar tekrar birleştirir, sonra kodları kök-yaprak yollarından okur.",
+  },
+
   // ── Backtracking ──
   "n-queens": {
     name: "N-Vezir",
@@ -270,6 +300,23 @@ const algoTr: Record<string, { name: string; summary: string }> = {
     name: "Manacher Algoritması",
     summary:
       "Merkezler etrafında genişleyip yarıçapları mevcut palindrom boyunca yansıtarak en uzun palindrom alt dizeyi doğrusal zamanda bulur.",
+  },
+
+  // ── Math / Number Theory ──
+  "sieve-of-eratosthenes": {
+    name: "Eratosthenes Kalburu",
+    summary:
+      "Her asalın katlarını karesinden başlayarak eleyerek n'e kadar tüm asalları bulur.",
+  },
+  "euclidean-gcd": {
+    name: "Öklid Algoritması (OBEB)",
+    summary:
+      "(a, b) çiftini kalan sıfır olana dek (b, a mod b) ile değiştirerek en büyük ortak böleni hesaplar.",
+  },
+  "fast-exponentiation": {
+    name: "Hızlı Üs Alma",
+    summary:
+      "Tabanı karesini alarak ve yalnızca üssün 1-bitlerinde çarparak baseᵉˣᵖ mod m'yi O(log üs) sürede hesaplar.",
   },
 };
 

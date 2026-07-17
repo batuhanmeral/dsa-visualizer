@@ -43,8 +43,18 @@ import DpViz, { hasDpViz } from "./dp-viz";
 import BacktrackViz, { hasBacktrackViz } from "./backtracking-viz";
 import TreeViz, { hasTreeViz } from "./tree-viz";
 import StringViz, { hasStringViz } from "./string-viz";
+import GreedyViz, { hasGreedyViz } from "./greedy-viz";
+import MathViz, { hasMathViz } from "./math-viz";
 
-type CustomViz = "ds" | "graph" | "dp" | "backtrack" | "tree" | "string";
+type CustomViz =
+  | "ds"
+  | "graph"
+  | "dp"
+  | "backtrack"
+  | "tree"
+  | "string"
+  | "greedy"
+  | "math";
 
 function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
   if (isDsCategory && hasDataStructureViz(slug)) return "ds";
@@ -53,6 +63,8 @@ function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
   if (hasBacktrackViz(slug)) return "backtrack";
   if (hasTreeViz(slug)) return "tree";
   if (hasStringViz(slug)) return "string";
+  if (hasGreedyViz(slug)) return "greedy";
+  if (hasMathViz(slug)) return "math";
   return null;
 }
 
@@ -631,6 +643,20 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             />
           ) : customViz === "string" ? (
             <StringViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "greedy" ? (
+            <GreedyViz
+              key={algorithm.slug}
+              slug={algorithm.slug}
+              speed={speed}
+              onLine={setDsLine}
+            />
+          ) : customViz === "math" ? (
+            <MathViz
               key={algorithm.slug}
               slug={algorithm.slug}
               speed={speed}
