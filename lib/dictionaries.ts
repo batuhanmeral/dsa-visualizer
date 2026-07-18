@@ -113,7 +113,9 @@ export const en = {
   "graph.editing": "Editing edges",
   "graph.reset": "Reset",
   "graph.reset.title": "Restore preset graph",
-  "graph.editHint": "Click two nodes to add or remove the edge between them.",
+  "graph.addNode": "Add node",
+  "graph.editHint":
+    "Click two nodes to toggle the edge between them — drag a node to move it.",
   "graph.order": "order",
 
   // Dynamic programming
@@ -349,7 +351,9 @@ export const tr: Partial<Record<TKey, string>> = {
   "graph.editing": "Kenarlar düzenleniyor",
   "graph.reset": "Sıfırla",
   "graph.reset.title": "Hazır grafı geri yükle",
-  "graph.editHint": "İki düğüme tıklayarak aralarındaki kenarı ekleyin ya da kaldırın.",
+  "graph.addNode": "Düğüm ekle",
+  "graph.editHint":
+    "İki düğüme tıklayarak aralarındaki kenarı ekleyip kaldırın — düğümü sürükleyerek taşıyın.",
   "graph.order": "sıra",
 
   // DP

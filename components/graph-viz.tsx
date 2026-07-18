@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Pencil, RotateCcw } from "lucide-react";
+import { Pencil, Plus, RotateCcw } from "lucide-react";
 import {
   GRAPH_ALGOS,
   VIEW_H,
@@ -69,6 +69,29 @@ const LABEL_FILL: Record<NodeState, string> = {
 const same = (e: [number, number], a: number, b: number) =>
   (e[0] === a && e[1] === b) || (e[0] === b && e[1] === a);
 
+const MAX_NODES = 10;
+
+/** Spot for a new node: the candidate farthest from every existing node. */
+function freeSpot(nodes: { x: number; y: number }[]): { x: number; y: number } {
+  const candidates: { x: number; y: number }[] = [];
+  for (let ix = 0; ix < 5; ix++)
+    for (let iy = 0; iy < 4; iy++)
+      candidates.push({
+        x: 50 + (ix * (VIEW_W - 100)) / 4,
+        y: 40 + (iy * (VIEW_H - 80)) / 3,
+      });
+  let best = candidates[0];
+  let bestDist = -1;
+  for (const c of candidates) {
+    const d = Math.min(...nodes.map((n) => Math.hypot(n.x - c.x, n.y - c.y)));
+    if (d > bestDist) {
+      bestDist = d;
+      best = c;
+    }
+  }
+  return best;
+}
+
 type EdgeRole = "active" | "tree" | "rejected" | "idle";
 
 export default function GraphViz({
@@ -87,6 +110,10 @@ export default function GraphViz({
   const [goal, setGoal] = useState(5);
   const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
+  const svgRef = useRef<SVGSVGElement | null>(null);
+  // Drag state lives in refs — no re-render churn while the pointer moves.
+  const dragId = useRef<number | null>(null);
+  const dragMoved = useRef(false);
 
   const steps = useMemo(
     () => config.generate(graph, start, goal),
@@ -124,6 +151,11 @@ export default function GraphViz({
 
   const onNodeClick = (id: number) => {
     if (!editing) return;
+    // A drag that just ended must not double as an edge-toggle click.
+    if (dragMoved.current) {
+      dragMoved.current = false;
+      return;
+    }
     if (selected === null) {
       setSelected(id);
     } else if (selected === id) {
@@ -132,6 +164,44 @@ export default function GraphViz({
       toggleEdge(selected, id);
       setSelected(null);
     }
+  };
+
+  /** Pointer position in viewBox coordinates. */
+  const toView = (e: React.PointerEvent): { x: number; y: number } => {
+    const rect = svgRef.current!.getBoundingClientRect();
+    return {
+      x: ((e.clientX - rect.left) / rect.width) * VIEW_W,
+      y: ((e.clientY - rect.top) / rect.height) * VIEW_H,
+    };
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (dragId.current === null || !svgRef.current) return;
+    const { x, y } = toView(e);
+    dragMoved.current = true;
+    setGraph((g) => ({
+      ...g,
+      nodes: g.nodes.map((n) =>
+        n.id === dragId.current
+          ? {
+              ...n,
+              x: Math.min(Math.max(x, NODE_R), VIEW_W - NODE_R),
+              y: Math.min(Math.max(y, NODE_R), VIEW_H - NODE_R),
+            }
+          : n
+      ),
+    }));
+  };
+
+  const addNode = () => {
+    setGraph((g) => {
+      if (g.nodes.length >= MAX_NODES) return g;
+      const spot = freeSpot(g.nodes);
+      return {
+        ...g,
+        nodes: [...g.nodes, { id: g.nodes.length, ...spot }],
+      };
+    });
   };
 
   return (
@@ -176,6 +246,16 @@ export default function GraphViz({
           )}
           {config.editable && (
             <div className="ml-auto flex items-center gap-1.5">
+              {editing && graph.nodes.length < MAX_NODES && (
+                <button
+                  type="button"
+                  onClick={addNode}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900 dark:border-zinc-800 dark:hover:text-zinc-100"
+                >
+                  <Plus className="size-3.5" />
+                  {t("graph.addNode")}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
@@ -217,10 +297,18 @@ export default function GraphViz({
           </p>
         )}
         <svg
+          ref={svgRef}
           viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-          className="h-auto w-full max-h-[44vh]"
+          className={`h-auto w-full max-h-[44vh] ${editing ? "touch-none" : ""}`}
           role="img"
           aria-label={`${slug} graph`}
+          onPointerMove={onPointerMove}
+          onPointerUp={() => {
+            dragId.current = null;
+          }}
+          onPointerLeave={() => {
+            dragId.current = null;
+          }}
         >
           {graph.directed && (
             <defs>
@@ -329,7 +417,13 @@ export default function GraphViz({
               <g
                 key={n.id}
                 onClick={() => onNodeClick(n.id)}
-                className={editing ? "cursor-pointer" : undefined}
+                onPointerDown={(e) => {
+                  if (!editing) return;
+                  dragId.current = n.id;
+                  dragMoved.current = false;
+                  (e.target as Element).releasePointerCapture?.(e.pointerId);
+                }}
+                className={editing ? "cursor-move" : undefined}
               >
                 {isGoal && (
                   <circle
