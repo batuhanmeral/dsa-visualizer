@@ -29,6 +29,7 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
 import CodeView from "./code-view";
+import GrowthChart from "./growth-chart";
 import {
   SPEEDS,
   SpeedContext,
@@ -144,11 +145,21 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
-  const [panelTab, setPanelTab] = useState<"code" | "about">("code");
+  const [panelTab, setPanelTab] = useState<"code" | "about" | "growth">(
+    "code"
+  );
   const restored = useRef(false);
 
   const info = getAlgoInfo(algorithm.slug, lang);
-  const showCode = panelTab === "code" || !info;
+  const hasGrowth = getSimulation(algorithm.slug) !== undefined;
+  const panelTabs = (["code", "about", "growth"] as const).filter(
+    (tab) =>
+      tab === "code" ||
+      (tab === "about" && info !== undefined) ||
+      (tab === "growth" && hasGrowth)
+  );
+  const activeTab = panelTabs.includes(panelTab) ? panelTab : "code";
+  const showCode = activeTab === "code";
 
   // Sibling algorithms (same category, same input shape, with an engine) that
   // this one can be raced against in compare mode.
@@ -871,26 +882,32 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               <span className="truncate">{algorithm.slug}.c</span>
             </span>
             <div className="flex shrink-0 items-center gap-2">
-              {info && (
+              {panelTabs.length > 1 && (
                 <div
                   className={`flex items-center gap-0.5 rounded-lg p-0.5 ${
                     showCode ? "bg-zinc-900" : "bg-zinc-100 dark:bg-zinc-950"
                   }`}
                 >
-                  {(["code", "about"] as const).map((tab) => (
+                  {panelTabs.map((tab) => (
                     <button
                       key={tab}
                       type="button"
                       onClick={() => setPanelTab(tab)}
                       className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                        panelTab === tab
+                        activeTab === tab
                           ? "bg-emerald-500/15 text-emerald-500 dark:text-emerald-400"
                           : showCode
                             ? "text-zinc-500 hover:text-zinc-200"
                             : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
-                      {t(tab === "code" ? "ws.tab.code" : "ws.tab.about")}
+                      {t(
+                        tab === "code"
+                          ? "ws.tab.code"
+                          : tab === "about"
+                            ? "ws.tab.about"
+                            : "ws.tab.growth"
+                      )}
                     </button>
                   ))}
                 </div>
@@ -923,6 +940,8 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           </div>
           {showCode ? (
             <CodeView code={algorithm.code} activeLine={activeLine} />
+          ) : activeTab === "growth" ? (
+            <GrowthChart algorithm={algorithm} categorySlug={category.slug} />
           ) : (
             <div className="scrollbar-slim flex-1 space-y-5 overflow-y-auto p-5">
               <InfoBlock title={t("info.how")} accent="text-emerald-600 dark:text-emerald-400">

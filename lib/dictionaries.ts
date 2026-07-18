@@ -73,6 +73,12 @@ export const en = {
   // Side panel tabs + about section
   "ws.tab.code": "Code",
   "ws.tab.about": "About",
+  "ws.tab.growth": "Growth",
+  "growth.hint":
+    "Steps produced by the simulation on the same random input at growing sizes — watch the curves separate.",
+  "growth.steps": "steps",
+  "growth.others": "other algorithms ({n})",
+  "growth.table": "Show data table",
   "info.how": "How it works",
   "info.best": "Best case",
   "info.worst": "Worst case",
@@ -303,6 +309,12 @@ export const tr: Partial<Record<TKey, string>> = {
   // Side panel tabs + about section
   "ws.tab.code": "Kod",
   "ws.tab.about": "Açıklama",
+  "ws.tab.growth": "Büyüme",
+  "growth.hint":
+    "Aynı rastgele girdide, büyüyen boyutlarda simülasyonun ürettiği adım sayısı — eğrilerin ayrışmasını izleyin.",
+  "growth.steps": "adım",
+  "growth.others": "diğer algoritmalar ({n})",
+  "growth.table": "Veri tablosunu göster",
   "info.how": "Nasıl çalışır?",
   "info.best": "En iyi durum",
   "info.worst": "En kötü durum",
