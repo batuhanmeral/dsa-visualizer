@@ -70,6 +70,14 @@ export const en = {
   "ws.viz.desc":
     "The animated {name} visualization will render here. Use the controls above to drive playback.",
 
+  // Side panel tabs + about section
+  "ws.tab.code": "Code",
+  "ws.tab.about": "About",
+  "info.how": "How it works",
+  "info.best": "Best case",
+  "info.worst": "Worst case",
+  "info.use": "When to use it",
+
   // Legends (sorting / searching)
   "legend.compare": "compare",
   "legend.swap": "swap",
@@ -291,6 +299,14 @@ export const tr: Partial<Record<TKey, string>> = {
   "ws.viz.title": "Görselleştirme Alanı",
   "ws.viz.desc":
     "Animasyonlu {name} görselleştirmesi burada oluşur. Oynatmayı yukarıdaki kontrollerle sür.",
+
+  // Side panel tabs + about section
+  "ws.tab.code": "Kod",
+  "ws.tab.about": "Açıklama",
+  "info.how": "Nasıl çalışır?",
+  "info.best": "En iyi durum",
+  "info.worst": "En kötü durum",
+  "info.use": "Ne zaman kullanılır?",
 
   // Legends
   "legend.compare": "karşılaştır",

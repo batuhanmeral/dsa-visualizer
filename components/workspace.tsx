@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { categories, type Algorithm, type Category } from "@/lib/data";
 import { getSimulation, type StepKind } from "@/lib/simulations";
+import { getAlgoInfo } from "@/lib/algo-info";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
@@ -143,7 +144,11 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [compareMode, setCompareMode] = useState(false);
+  const [panelTab, setPanelTab] = useState<"code" | "about">("code");
   const restored = useRef(false);
+
+  const info = getAlgoInfo(algorithm.slug, lang);
+  const showCode = panelTab === "code" || !info;
 
   // Sibling algorithms (same category, same input shape, with an engine) that
   // this one can be raced against in compare mode.
@@ -845,46 +850,126 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           )}
         </section>
 
-        {/* Code viewer */}
+        {/* Code viewer / About */}
         <section
           aria-label="Code viewer"
-          className="flex min-h-85 flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950 lg:min-h-0"
+          className={`flex min-h-85 flex-col overflow-hidden rounded-2xl border lg:min-h-0 ${
+            showCode
+              ? "border-zinc-800 bg-zinc-950"
+              : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
+          }`}
         >
-          <div className="flex items-center justify-between border-b border-zinc-800 px-4 py-3">
-            <span className="flex items-center gap-2 text-xs font-medium text-zinc-400">
-              <TerminalSquare className="size-4 text-emerald-400" />
-              {algorithm.slug}.c
+          <div
+            className={`flex items-center justify-between gap-2 border-b px-4 py-2.5 ${
+              showCode
+                ? "border-zinc-800"
+                : "border-zinc-200 dark:border-zinc-800"
+            }`}
+          >
+            <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-400">
+              <TerminalSquare className="size-4 shrink-0 text-emerald-400" />
+              <span className="truncate">{algorithm.slug}.c</span>
             </span>
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={copyCode}
-                title={t("ws.copy")}
-                className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
-                  codeCopied
-                    ? "text-emerald-400"
-                    : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
-                }`}
-              >
-                {codeCopied ? (
-                  <>
-                    <Check className="size-3.5" />
-                    {t("ws.copied")}
-                  </>
-                ) : (
-                  <>
-                    <Copy className="size-3.5" />
-                    {t("ws.copy")}
-                  </>
-                )}
-              </button>
+            <div className="flex shrink-0 items-center gap-2">
+              {info && (
+                <div
+                  className={`flex items-center gap-0.5 rounded-lg p-0.5 ${
+                    showCode ? "bg-zinc-900" : "bg-zinc-100 dark:bg-zinc-950"
+                  }`}
+                >
+                  {(["code", "about"] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setPanelTab(tab)}
+                      className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                        panelTab === tab
+                          ? "bg-emerald-500/15 text-emerald-500 dark:text-emerald-400"
+                          : showCode
+                            ? "text-zinc-500 hover:text-zinc-200"
+                            : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                      }`}
+                    >
+                      {t(tab === "code" ? "ws.tab.code" : "ws.tab.about")}
+                    </button>
+                  ))}
+                </div>
+              )}
+              {showCode && (
+                <button
+                  type="button"
+                  onClick={copyCode}
+                  title={t("ws.copy")}
+                  className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                    codeCopied
+                      ? "text-emerald-400"
+                      : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                  }`}
+                >
+                  {codeCopied ? (
+                    <>
+                      <Check className="size-3.5" />
+                      {t("ws.copied")}
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="size-3.5" />
+                      {t("ws.copy")}
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
-          <CodeView code={algorithm.code} activeLine={activeLine} />
+          {showCode ? (
+            <CodeView code={algorithm.code} activeLine={activeLine} />
+          ) : (
+            <div className="scrollbar-slim flex-1 space-y-5 overflow-y-auto p-5">
+              <InfoBlock title={t("info.how")} accent="text-emerald-600 dark:text-emerald-400">
+                {info!.how}
+              </InfoBlock>
+              {info!.best && (
+                <InfoBlock title={t("info.best")} accent="text-sky-600 dark:text-sky-400">
+                  {info!.best}
+                </InfoBlock>
+              )}
+              {info!.worst && (
+                <InfoBlock title={t("info.worst")} accent="text-rose-600 dark:text-rose-400">
+                  {info!.worst}
+                </InfoBlock>
+              )}
+              <InfoBlock title={t("info.use")} accent="text-amber-600 dark:text-amber-400">
+                {info!.use}
+              </InfoBlock>
+            </div>
+          )}
         </section>
       </div>
     </div>
     </SpeedContext.Provider>
+  );
+}
+
+function InfoBlock({
+  title,
+  accent,
+  children,
+}: {
+  title: string;
+  accent: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <h3
+        className={`mb-1.5 text-[11px] font-semibold uppercase tracking-wide ${accent}`}
+      >
+        {title}
+      </h3>
+      <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-300">
+        {children}
+      </p>
+    </div>
   );
 }
 
