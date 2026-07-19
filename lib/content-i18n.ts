@@ -129,6 +129,11 @@ const algoTr: Record<string, { name: string; summary: string }> = {
     summary:
       "Anahtarları bir hash fonksiyonuyla kovalara eşler; çakışmalar her kovanın içinde bağlı liste olarak zincirlenir.",
   },
+  "union-find": {
+    name: "Union-Find (Ayrık Küme)",
+    summary:
+      "Küme ormanı: find köke yürür ve arkasındaki yolu düzleştirir, union düşük rütbeli kökü yükseğin altına asar.",
+  },
 
   // ── Graphs ──
   bfs: {

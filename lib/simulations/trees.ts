@@ -765,3 +765,205 @@ export function segmentTreeSteps(
   );
   return steps;
 }
+
+// ── Union-Find (Disjoint Set) ───────────────────────────────────────────
+// Forest snapshots: every element is a node, parent pointers are the edges.
+// Union by rank + path compression, mirroring the C code line by line.
+
+export function unionFindSteps(
+  unions: [number, number][],
+  findKey: number,
+  n: number
+): TreeStep[] {
+  const parent = Array.from({ length: n }, (_, i) => i);
+  const rank = new Array<number>(n).fill(0);
+  const steps: TreeStep[] = [];
+
+  /** Bottom-up n-ary forest layout: trees side by side, leaves drive x. */
+  const snapUF = (
+    codeLine: number,
+    note: string,
+    tones: Map<number, NodeTone>,
+    activeEdges: Set<number>,
+    vars?: { label: string; value: string }[]
+  ) => {
+    const children = new Map<number, number[]>();
+    for (let i = 0; i < n; i++) {
+      if (parent[i] !== i) {
+        const list = children.get(parent[i]) ?? [];
+        list.push(i);
+        children.set(parent[i], list);
+      }
+    }
+    const nodes: VizNode[] = [];
+    const edges: VizEdge[] = [];
+    let col = 0;
+    let depthMax = 1;
+    const place = (id: number, d: number): number => {
+      depthMax = Math.max(depthMax, d + 1);
+      const kids = children.get(id) ?? [];
+      let x: number;
+      if (kids.length === 0) {
+        x = col++;
+      } else {
+        const xs = kids.map((k) => place(k, d + 1));
+        x = xs.reduce((s, v) => s + v, 0) / xs.length;
+      }
+      nodes.push({
+        id: `u${id}`,
+        label: String(id),
+        sub: parent[id] === id ? `r${rank[id]}` : undefined,
+        x,
+        y: d,
+        tone: tones.get(id) ?? "idle",
+      });
+      for (const k of kids)
+        edges.push({
+          from: `u${id}`,
+          to: `u${k}`,
+          tone: activeEdges.has(k) ? "active" : "idle",
+        });
+      return x;
+    };
+    for (let i = 0; i < n; i++) {
+      if (parent[i] === i) {
+        place(i, 0);
+        col += 0.6; // gap between trees
+      }
+    }
+    steps.push({
+      codeLine,
+      note,
+      nodes,
+      edges,
+      cols: Math.max(col - 0.6, 1),
+      depth: depthMax,
+      vars,
+    });
+  };
+
+  const opVars = (op: string) => [{ label: "op", value: op }];
+
+  snapUF(
+    4,
+    `makeSets(${n}): every element is its own root with rank 0.`,
+    new Map(),
+    new Set()
+  );
+
+  /** find(x) with steps: walk to the root, then compress the path. */
+  const findSteps = (x: number, op: string): number => {
+    const path: number[] = [];
+    let cur = x;
+    while (parent[cur] !== cur) {
+      path.push(cur);
+      const tones = new Map<number, NodeTone>(path.map((p) => [p, "path"]));
+      tones.set(cur, "current");
+      snapUF(
+        10,
+        `find(${x}): ${cur} is not a root — follow parent[${cur}] = ${parent[cur]}.`,
+        tones,
+        new Set([cur]),
+        opVars(op)
+      );
+      cur = parent[cur];
+    }
+    const root = cur;
+    const rootTones = new Map<number, NodeTone>(path.map((p) => [p, "path"]));
+    rootTones.set(root, "found");
+    snapUF(
+      12,
+      `find(${x}) = ${root} — the root represents the set.`,
+      rootTones,
+      new Set(),
+      opVars(op)
+    );
+    const toCompress = path.filter((p) => parent[p] !== root);
+    if (toCompress.length > 0) {
+      for (const p of toCompress) parent[p] = root;
+      const tones = new Map<number, NodeTone>(
+        toCompress.map((p) => [p, "rotate"])
+      );
+      tones.set(root, "found");
+      snapUF(
+        11,
+        `Path compression: ${toCompress.join(", ")} now point${toCompress.length === 1 ? "s" : ""} straight at ${root}.`,
+        tones,
+        new Set(toCompress),
+        opVars(op)
+      );
+    }
+    return root;
+  };
+
+  for (const [a, b] of unions) {
+    const op = `union(${a}, ${b})`;
+    const ra = findSteps(a, op);
+    const rb = findSteps(b, op);
+    if (ra === rb) {
+      snapUF(
+        17,
+        `${op}: both are already in set ${ra} — nothing to do.`,
+        new Map([[ra, "remove"]]),
+        new Set(),
+        opVars(op)
+      );
+      continue;
+    }
+    if (rank[ra] < rank[rb]) {
+      parent[ra] = rb;
+      snapUF(
+        19,
+        `${op}: rank ${rank[ra]} < ${rank[rb]} — hang root ${ra} under ${rb}.`,
+        new Map([
+          [rb, "insert"],
+          [ra, "rotate"],
+        ]),
+        new Set([ra]),
+        opVars(op)
+      );
+    } else if (rank[ra] > rank[rb]) {
+      parent[rb] = ra;
+      snapUF(
+        21,
+        `${op}: rank ${rank[ra]} > ${rank[rb]} — hang root ${rb} under ${ra}.`,
+        new Map([
+          [ra, "insert"],
+          [rb, "rotate"],
+        ]),
+        new Set([rb]),
+        opVars(op)
+      );
+    } else {
+      parent[rb] = ra;
+      rank[ra]++;
+      snapUF(
+        24,
+        `${op}: equal ranks — hang ${rb} under ${ra} and bump rank[${ra}] to ${rank[ra]}.`,
+        new Map([
+          [ra, "insert"],
+          [rb, "rotate"],
+        ]),
+        new Set([rb]),
+        opVars(op)
+      );
+    }
+  }
+
+  if (findKey >= 0 && findKey < n) {
+    const op = `find(${findKey})`;
+    const root = findSteps(findKey, op);
+    snapUF(
+      12,
+      `Done. find(${findKey}) = ${root}; repeated finds have flattened the forest.`,
+      new Map([
+        [root, "result"],
+        [findKey, "found"],
+      ]),
+      new Set(),
+      opVars(op)
+    );
+  }
+
+  return steps;
+}

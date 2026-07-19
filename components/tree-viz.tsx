@@ -8,6 +8,7 @@ import {
   heapSteps,
   segmentTreeSteps,
   trieSteps,
+  unionFindSteps,
   type ArrayView,
   type NodeTone,
   type TreeStep,
@@ -16,7 +17,14 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
-const TREE_SLUGS = new Set(["bst", "avl", "heap", "trie", "segment-tree"]);
+const TREE_SLUGS = new Set([
+  "bst",
+  "avl",
+  "heap",
+  "trie",
+  "segment-tree",
+  "union-find",
+]);
 
 export function hasTreeViz(slug: string): boolean {
   return TREE_SLUGS.has(slug);
@@ -369,6 +377,37 @@ function SegmentTreeViz({ speed, onLine }: { speed: number; onLine: (l: number) 
   );
 }
 
+function UnionFindViz({ speed, onLine }: { speed: number; onLine: (l: number) => void }) {
+  const { t } = useLang();
+  const [unions, setUnions] = useState("0-1, 2-3, 1-3, 4-5, 6-7, 5-7, 3-7");
+  const [find, setFind] = useState("7");
+  const steps = useMemo(() => {
+    const pairs: [number, number][] = [];
+    for (const m of unions.matchAll(/(\d+)\s*-\s*(\d+)/g)) {
+      const a = Number.parseInt(m[1], 10);
+      const b = Number.parseInt(m[2], 10);
+      if (a < 10 && b < 10) pairs.push([a, b]);
+    }
+    const list = pairs.length ? pairs.slice(0, 12) : ([[0, 1]] as [number, number][]);
+    const n = Math.min(Math.max(...list.flat()) + 1, 10);
+    const f = Number.parseInt(find, 10);
+    return unionFindSteps(list, Number.isFinite(f) ? Math.min(f, n - 1) : 0, n);
+  }, [unions, find]);
+  return (
+    <TreeFrame
+      steps={steps}
+      speed={speed}
+      onLine={onLine}
+      extra={
+        <>
+          <Field label={t("tree.unions")} value={unions} onChange={setUnions} width="w-64" />
+          <Field label={t("tree.find")} value={find} onChange={setFind} width="w-12" />
+        </>
+      }
+    />
+  );
+}
+
 export default function TreeViz({
   slug,
   speed,
@@ -384,5 +423,7 @@ export default function TreeViz({
   if (slug === "trie") return <TrieViz speed={speed} onLine={onLine} />;
   if (slug === "segment-tree")
     return <SegmentTreeViz speed={speed} onLine={onLine} />;
+  if (slug === "union-find")
+    return <UnionFindViz speed={speed} onLine={onLine} />;
   return null;
 }

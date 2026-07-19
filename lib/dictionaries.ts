@@ -150,6 +150,8 @@ export const en = {
   "tree.array": "Array",
   "tree.queryLo": "Query lo",
   "tree.queryHi": "hi",
+  "tree.unions": "Unions",
+  "tree.find": "Find",
 
   // Strings
   "str.legend.pointer": "pointer",
@@ -388,6 +390,8 @@ export const tr: Partial<Record<TKey, string>> = {
   "tree.array": "Dizi",
   "tree.queryLo": "Sorgu alt",
   "tree.queryHi": "üst",
+  "tree.unions": "Birleştirmeler",
+  "tree.find": "Bul",
 
   // Strings
   "str.legend.pointer": "işaretçi",

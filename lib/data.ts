@@ -550,6 +550,41 @@ int contains(int key) {
     return 0;
 }`,
       },
+      {
+        slug: "union-find",
+        name: "Union-Find (Disjoint Set)",
+        summary:
+          "Forest of sets: find walks to a root and flattens the path behind it, union hangs the lower-rank root under the higher one.",
+        time: "O(α(n))",
+        space: "O(n)",
+        code: `int parent[N], rank_[N];
+
+void makeSets(int n) {
+    for (int i = 0; i < n; i++) {
+        parent[i] = i;
+        rank_[i] = 0;
+    }
+}
+
+int find(int x) {
+    if (parent[x] != x)
+        parent[x] = find(parent[x]);   /* compress */
+    return parent[x];
+}
+
+void unionSets(int a, int b) {
+    int ra = find(a), rb = find(b);
+    if (ra == rb) return;              /* same set */
+    if (rank_[ra] < rank_[rb]) {
+        parent[ra] = rb;
+    } else if (rank_[ra] > rank_[rb]) {
+        parent[rb] = ra;
+    } else {
+        parent[rb] = ra;
+        rank_[ra]++;
+    }
+}`,
+      },
     ],
   },
   {
