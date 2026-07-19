@@ -328,6 +328,11 @@ const algoTr: Record<string, { name: string; summary: string }> = {
     summary:
       "(a, b) çiftini kalan sıfır olana dek (b, a mod b) ile değiştirerek en büyük ortak böleni hesaplar.",
   },
+  "extended-euclidean": {
+    name: "Genişletilmiş Öklid Algoritması",
+    summary:
+      "Öklid'i Bézout katsayılarını izleyerek çalıştırır; gcd(a, b) = x·a + y·b ile biter — modüler tersin anahtarı.",
+  },
   "fast-exponentiation": {
     name: "Hızlı Üs Alma",
     summary:

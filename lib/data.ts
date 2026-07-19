@@ -1644,6 +1644,28 @@ int manacher(const char *t, int n, int p[]) {
 }`,
       },
       {
+        slug: "extended-euclidean",
+        name: "Extended Euclidean Algorithm",
+        summary:
+          "Runs Euclid while tracking Bézout coefficients, so it ends with gcd(a, b) = x·a + y·b — the key to modular inverses.",
+        time: "O(log min(a, b))",
+        space: "O(1)",
+        code: `void extendedGcd(int a, int b) {
+    int old_r = a, r = b;
+    int old_s = 1, s = 0;     /* coeff of a */
+    int old_t = 0, t = 1;     /* coeff of b */
+    while (r != 0) {
+        int q = old_r / r;
+        int tmp;
+        tmp = old_r - q*r; old_r = r; r = tmp;
+        tmp = old_s - q*s; old_s = s; s = tmp;
+        tmp = old_t - q*t; old_t = t; t = tmp;
+    }
+    printf("gcd = %d = %d*a + %d*b\\n",
+           old_r, old_s, old_t);
+}`,
+      },
+      {
         slug: "fast-exponentiation",
         name: "Fast Exponentiation",
         summary:

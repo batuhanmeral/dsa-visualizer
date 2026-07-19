@@ -129,6 +129,82 @@ export function gcdSteps(aIn: number, bIn: number): GcdResult {
   return { a: Math.max(1, Math.floor(aIn)), b: Math.max(0, Math.floor(bIn)), steps };
 }
 
+// ── Extended Euclidean Algorithm ────────────────────────────────────────
+export interface ExtRow {
+  /** Quotient that produced this row (null for the two seed rows). */
+  q: number | null;
+  r: number;
+  s: number;
+  t: number;
+}
+
+export interface ExtStep {
+  codeLine: number;
+  note: string;
+  rows: ExtRow[];
+  /** Set on the final step: gcd and the Bézout pair. */
+  result?: { g: number; x: number; y: number };
+}
+
+export interface ExtResult {
+  a: number;
+  b: number;
+  steps: ExtStep[];
+}
+
+export function extGcdSteps(aIn: number, bIn: number): ExtResult {
+  const a = Math.max(1, Math.floor(aIn));
+  const b = Math.max(1, Math.floor(bIn));
+  const rows: ExtRow[] = [
+    { q: null, r: a, s: 1, t: 0 },
+    { q: null, r: b, s: 0, t: 1 },
+  ];
+  const steps: ExtStep[] = [];
+  const snap = (
+    codeLine: number,
+    note: string,
+    result?: { g: number; x: number; y: number }
+  ) => steps.push({ codeLine, note, rows: rows.map((r) => ({ ...r })), result });
+
+  let oldR = a,
+    r = b;
+  let oldS = 1,
+    s = 0;
+  let oldT = 0,
+    t = 1;
+
+  snap(
+    3,
+    `Seed two rows: ${a} = 1·a + 0·b and ${b} = 0·a + 1·b — every row keeps r = s·a + t·b.`
+  );
+
+  while (r !== 0) {
+    const q = Math.floor(oldR / r);
+    snap(5, `q = ⌊${oldR} / ${r}⌋ = ${q}.`);
+    const newR = oldR - q * r;
+    const newS = oldS - q * s;
+    const newT = oldT - q * t;
+    oldR = r;
+    r = newR;
+    oldS = s;
+    s = newS;
+    oldT = t;
+    t = newT;
+    rows.push({ q, r: newR, s: newS, t: newT });
+    snap(
+      9,
+      `New row: r = ${newR}, s = ${newS}, t = ${newT} — check: ${newS}·${a} + ${newT}·${b} = ${newS * a + newT * b}.`
+    );
+  }
+
+  snap(
+    12,
+    `Done. gcd(${a}, ${b}) = ${oldR} = ${oldS}·${a} + ${oldT}·${b} — the Bézout identity.`,
+    { g: oldR, x: oldS, y: oldT }
+  );
+  return { a, b, steps };
+}
+
 // ── Fast (modular) exponentiation ───────────────────────────────────────
 export interface PowRow {
   /** Bit value processed this round (LSB first). */

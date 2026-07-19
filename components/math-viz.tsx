@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  extGcdSteps,
   fastPowSteps,
   gcdSteps,
   sieveSteps,
@@ -13,6 +14,7 @@ import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 const MATH_SLUGS = new Set([
   "sieve-of-eratosthenes",
   "euclidean-gcd",
+  "extended-euclidean",
   "fast-exponentiation",
 ]);
 
@@ -228,6 +230,98 @@ function GcdViz({
   );
 }
 
+// ── Extended Euclid ─────────────────────────────────────────────────────
+function ExtGcdViz({
+  speed,
+  onLine,
+}: {
+  speed: number;
+  onLine: (line: number) => void;
+}) {
+  const { t } = useLang();
+  const [aText, setAText] = useState("240");
+  const [bText, setBText] = useState("46");
+  const a = parseNum(aText, 240, 99999);
+  const b = parseNum(bText, 46, 99999);
+  const { steps } = useMemo(() => extGcdSteps(a, b), [a, b]);
+  const player = useStepPlayer(steps.length, speed);
+  const step = steps[player.index];
+
+  useEffect(() => {
+    onLine(step.codeLine);
+  }, [step.codeLine, onLine]);
+
+  return (
+    <PlaybackPanel
+      player={player}
+      count={steps.length}
+      note={step.note}
+      extra={
+        <>
+          <NumField label={t("math.a")} value={aText} onChange={setAText} />
+          <NumField label={t("math.b")} value={bText} onChange={setBText} />
+          <span className="ml-auto text-[11px] text-zinc-400">
+            {t("math.extNote")}
+          </span>
+        </>
+      }
+    >
+      <div className="flex flex-col items-center gap-5">
+        <table className="border-separate border-spacing-x-3 border-spacing-y-1 font-mono text-xs">
+          <thead>
+            <tr className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+              <th className="text-right">q</th>
+              <th className="text-right">r</th>
+              <th className="text-right">s</th>
+              <th className="text-right">t</th>
+            </tr>
+          </thead>
+          <tbody>
+            {step.rows.map((row, i) => {
+              const isLast = i === step.rows.length - 1 && i > 1;
+              const isGcdRow =
+                step.result !== undefined && i === step.rows.length - 2;
+              return (
+                <tr
+                  key={i}
+                  className={
+                    isGcdRow
+                      ? "text-emerald-700 dark:text-emerald-300"
+                      : isLast
+                        ? "text-amber-700 dark:text-amber-200"
+                        : "text-zinc-500 dark:text-zinc-400"
+                  }
+                >
+                  <td className="text-right text-zinc-400">{row.q ?? "—"}</td>
+                  <td
+                    className={`rounded-md border px-2 py-0.5 text-right tabular-nums ${
+                      isGcdRow
+                        ? "border-emerald-500/60 bg-emerald-500/10 font-semibold"
+                        : isLast
+                          ? "border-amber-400/60 bg-amber-400/10"
+                          : "border-zinc-200 dark:border-zinc-800"
+                    }`}
+                  >
+                    {row.r}
+                  </td>
+                  <td className="text-right tabular-nums">{row.s}</td>
+                  <td className="text-right tabular-nums">{row.t}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        {step.result && (
+          <div className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-5 py-2 font-mono text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+            gcd = {step.result.g} = {step.result.x}·{a} + {step.result.y}·{b}
+          </div>
+        )}
+      </div>
+    </PlaybackPanel>
+  );
+}
+
 // ── Fast exponentiation ─────────────────────────────────────────────────
 function PowViz({
   speed,
@@ -351,6 +445,8 @@ export default function MathViz({
   if (slug === "sieve-of-eratosthenes")
     return <SieveViz speed={speed} onLine={onLine} />;
   if (slug === "euclidean-gcd") return <GcdViz speed={speed} onLine={onLine} />;
+  if (slug === "extended-euclidean")
+    return <ExtGcdViz speed={speed} onLine={onLine} />;
   if (slug === "fast-exponentiation")
     return <PowViz speed={speed} onLine={onLine} />;
   return null;

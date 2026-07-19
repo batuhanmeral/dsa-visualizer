@@ -194,6 +194,7 @@ export const en = {
   "math.base": "Base",
   "math.exp": "Exp",
   "math.mod": "Mod",
+  "math.extNote": "every row keeps r = s·a + t·b",
 
   // Backtracking
   "bt.legend.trying": "trying",
@@ -439,6 +440,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "math.base": "Taban",
   "math.exp": "Üs",
   "math.mod": "Mod",
+  "math.extNote": "her satırda r = s·a + t·b korunur",
 
   // Backtracking
   "bt.legend.trying": "deneniyor",
