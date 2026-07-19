@@ -176,6 +176,11 @@ const algoTr: Record<string, { name: string; summary: string }> = {
     summary:
       "Bir sezgiselle yönlendirilen en-iyi-öncelikli en kısa yol: en düşük g + düz-çizgi tahminine sahip düğümü genişletir.",
   },
+  "floyd-warshall": {
+    name: "Floyd-Warshall",
+    summary:
+      "Dinamik programlamayla tüm-çiftler en kısa yol: k turu her çifte, k düğümünde mola vermenin yolu kısaltıp kısaltmadığını sorar.",
+  },
 
   // ── Dynamic programming ──
   lcs: {

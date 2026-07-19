@@ -132,6 +132,8 @@ export const en = {
   "dp.coins": "Coins",
   "dp.amount": "amount {n}",
   "dp.n": "n",
+  "dp.k": "k",
+  "dp.fwNote": "round k = allowed stopover",
   "dp.sequence": "Sequence",
   "dp.lisNote": "dp = length of LIS ending at each value",
 
@@ -372,6 +374,8 @@ export const tr: Partial<Record<TKey, string>> = {
   "dp.coins": "Paralar",
   "dp.amount": "tutar {n}",
   "dp.n": "n",
+  "dp.k": "k",
+  "dp.fwNote": "k turu = izinli ara durak",
   "dp.sequence": "Dizi",
   "dp.lisNote": "dp = her değerde biten EAA uzunluğu",
 

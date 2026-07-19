@@ -816,6 +816,28 @@ int aStar(int graph[V][V], int h[V], int src, int goal) {
     return -1;
 }`,
       },
+      {
+        slug: "floyd-warshall",
+        name: "Floyd-Warshall",
+        summary:
+          "All-pairs shortest paths by dynamic programming: round k asks every pair whether a stopover at node k shortens their path.",
+        time: "O(V³)",
+        space: "O(V²)",
+        code: `#define V 4
+#define INF 1000000
+
+void floydWarshall(int dist[V][V]) {
+    for (int k = 0; k < V; k++) {
+        for (int i = 0; i < V; i++) {
+            for (int j = 0; j < V; j++) {
+                if (dist[i][k] + dist[k][j] < dist[i][j])
+                    dist[i][j] = dist[i][k]
+                               + dist[k][j];
+            }
+        }
+    }
+}`,
+      },
     ],
   },
   {

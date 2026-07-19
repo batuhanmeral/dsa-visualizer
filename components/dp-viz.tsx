@@ -6,6 +6,7 @@ import {
   coinChangeSteps,
   editDistanceSteps,
   fibonacciSteps,
+  floydWarshallSteps,
   knapsackSteps,
   lcsSteps,
   lisSteps,
@@ -23,6 +24,7 @@ const DP_SLUGS = new Set([
   "coin-change",
   "fibonacci",
   "lis",
+  "floyd-warshall",
 ]);
 
 export function hasDpViz(slug: string): boolean {
@@ -325,6 +327,60 @@ function CoinChangeViz({
   );
 }
 
+// ── Floyd-Warshall (V×V dist matrix) ────────────────────────────────────
+function FloydViz({
+  speed,
+  onLine,
+}: {
+  speed: number;
+  onLine: (line: number) => void;
+}) {
+  const { t } = useLang();
+  const legend = useDpLegend();
+  const { size, steps } = useMemo(() => floydWarshallSteps(), []);
+  const player = useStepPlayer(steps.length, speed);
+  const step = steps[player.index];
+
+  useEffect(() => {
+    onLine(step.codeLine);
+  }, [step.codeLine, onLine]);
+
+  const heads = Array.from({ length: size }, (_, i) => String(i));
+
+  return (
+    <PlaybackPanel
+      player={player}
+      count={steps.length}
+      note={step.note}
+      legend={legend}
+      extra={
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="mr-1 text-[11px] font-medium text-zinc-400">
+            {t("dp.k")}
+          </span>
+          {heads.map((h, k) => (
+            <span
+              key={k}
+              className={`flex size-7 items-center justify-center rounded-full border font-mono text-[11px] transition-colors ${
+                step.k === k
+                  ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  : "border-zinc-300 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
+              }`}
+            >
+              {h}
+            </span>
+          ))}
+          <span className="ml-1 text-[11px] text-zinc-400">
+            {t("dp.fwNote")}
+          </span>
+        </div>
+      }
+    >
+      <DPTable step={step} corner="i\j" rowHeads={heads} colHeads={heads} />
+    </PlaybackPanel>
+  );
+}
+
 // ── Fibonacci (single-row table) ────────────────────────────────────────
 function FibonacciViz({
   speed,
@@ -504,5 +560,7 @@ export default function DpViz({
   if (slug === "fibonacci")
     return <FibonacciViz speed={speed} onLine={onLine} />;
   if (slug === "lis") return <LISViz speed={speed} onLine={onLine} />;
+  if (slug === "floyd-warshall")
+    return <FloydViz speed={speed} onLine={onLine} />;
   return null;
 }

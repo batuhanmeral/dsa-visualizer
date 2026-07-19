@@ -15,6 +15,8 @@ export interface DPStep {
   deps: [number, number][];
   /** For LCS: whether the two compared characters matched. */
   match?: boolean;
+  /** For Floyd-Warshall: the intermediate node of the current round. */
+  k?: number;
 }
 
 // ── Longest Common Subsequence ──────────────────────────────────────────
@@ -325,6 +327,99 @@ export function coinChangeSteps(coins: number[], amount: number): CoinResult {
     []
   );
   return { coins, amount, steps };
+}
+
+// ── Floyd-Warshall (all-pairs shortest paths) ───────────────────────────
+export const FW_INF = 1_000_000;
+
+/** Preset 4-node directed weighted graph as an adjacency/dist matrix. */
+export const FW_GRAPH: number[][] = [
+  [0, 3, FW_INF, 7],
+  [8, 0, 2, FW_INF],
+  [5, FW_INF, 0, 1],
+  [2, FW_INF, FW_INF, 0],
+];
+
+export interface FloydResult {
+  size: number;
+  steps: DPStep[];
+}
+
+export function floydWarshallSteps(graph: number[][] = FW_GRAPH): FloydResult {
+  const V = graph.length;
+  const dist: (number | null)[][] = graph.map((row) => [...row]);
+  const steps: DPStep[] = [];
+  const show = (v: number | null) =>
+    v === null || v >= FW_INF ? "∞" : String(v);
+  const snap = (
+    codeLine: number,
+    note: string,
+    k: number | undefined,
+    active: [number, number] | undefined,
+    deps: [number, number][]
+  ) =>
+    steps.push({
+      codeLine,
+      note,
+      table: dist.map((r) => r.slice()),
+      active,
+      deps,
+      k,
+    });
+
+  snap(3, `Start from the edge matrix: dist[i][j] = direct edge (∞ = none).`, undefined, undefined, []);
+
+  for (let k = 0; k < V; k++) {
+    snap(4, `Round k = ${k}: may any pair improve by stopping over at node ${k}?`, k, undefined, []);
+    for (let i = 0; i < V; i++) {
+      for (let j = 0; j < V; j++) {
+        // i==j never improves; legs touching k are the identity — skip the noise.
+        if (i === j || i === k || j === k) continue;
+        const ik = dist[i][k] ?? FW_INF;
+        const kj = dist[k][j] ?? FW_INF;
+        const ij = dist[i][j] ?? FW_INF;
+        if (ik >= FW_INF || kj >= FW_INF) {
+          snap(
+            7,
+            `dist[${i}][${k}] + dist[${k}][${j}] = ${show(ik)} + ${show(kj)} — no path through ${k}.`,
+            k,
+            [i, j],
+            [
+              [i, k],
+              [k, j],
+            ]
+          );
+          continue;
+        }
+        snap(
+          7,
+          `Via ${k}: ${show(ik)} + ${show(kj)} = ${ik + kj} vs current dist[${i}][${j}] = ${show(ij)}.`,
+          k,
+          [i, j],
+          [
+            [i, k],
+            [k, j],
+          ]
+        );
+        if (ik + kj < ij) {
+          dist[i][j] = ik + kj;
+          snap(
+            8,
+            `Shorter — dist[${i}][${j}] = ${ik + kj} (through node ${k}).`,
+            k,
+            [i, j],
+            [
+              [i, k],
+              [k, j],
+            ]
+          );
+        }
+      }
+    }
+  }
+
+  snap(13, `Done. dist[i][j] is now the shortest path between every pair.`, undefined, undefined, []);
+  return { size: V, steps };
 }
 
 // ── Fibonacci (tabulation) ──────────────────────────────────────────────
