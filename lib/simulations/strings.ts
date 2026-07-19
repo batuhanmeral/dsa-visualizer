@@ -460,6 +460,121 @@ export function manacherSteps(text: string): StringStep[] {
   return steps;
 }
 
+// ── Boyer-Moore (bad-character rule) ────────────────────────────────────
+export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
+  const t = text;
+  const p = pattern;
+  const n = t.length;
+  const m = p.length;
+  const steps: StringStep[] = [];
+  if (m === 0 || n === 0 || m > n) return steps;
+
+  // Phase 1 — last-occurrence ("bad character") table over the pattern.
+  const last = new Map<string, number>();
+  const shown: (number | null)[] = new Array(m).fill(null);
+  const emitBuild = (codeLine: number, note: string, i: number, status: Tone) => {
+    const tones = idle(m);
+    tones[i] = "active";
+    const arrTones = idle(m);
+    for (let k = 0; k < m; k++) if (shown[k] !== null) arrTones[k] = "window";
+    arrTones[i] = "active";
+    steps.push({
+      codeLine,
+      note,
+      status,
+      tracks: [{ label: "pattern", chars: p.split(""), tones, arr: [...shown], arrTones }],
+      vars: [{ label: "i", value: String(i) }],
+    });
+  };
+  for (let i = 0; i < m; i++) {
+    const prev = last.get(p[i]);
+    last.set(p[i], i);
+    shown[i] = i;
+    emitBuild(
+      5,
+      prev === undefined
+        ? `last['${p[i]}'] = ${i} — rightmost occurrence so far`
+        : `last['${p[i]}'] = ${i} — overwrites ${prev}`,
+      i,
+      "window"
+    );
+  }
+
+  // Phase 2 — scan alignments left to right, compare right to left.
+  const matched = new Array(n).fill(false);
+  const searchTracks = (s: number, j: number, tone?: Tone): Track[] => {
+    const tTones = idle(n);
+    for (let k = 0; k < n; k++) if (matched[k]) tTones[k] = "done";
+    for (let k = 0; k < m; k++)
+      if (s + k >= 0 && s + k < n && tTones[s + k] === "idle")
+        tTones[s + k] = "window";
+    if (j >= 0 && j < m && s + j < n && tone) tTones[s + j] = tone;
+    const pTones = idle(m);
+    if (j >= 0 && j < m && tone) pTones[j] = tone;
+    return [
+      { label: "text", chars: t.split(""), tones: tTones },
+      { label: "pattern", chars: p.split(""), tones: pTones, offset: s },
+    ];
+  };
+  const emitSearch = (
+    codeLine: number,
+    note: string,
+    s: number,
+    j: number,
+    status: Tone,
+    tone?: Tone
+  ) => {
+    steps.push({
+      codeLine,
+      note,
+      status,
+      tracks: searchTracks(s, j, tone),
+      vars: [
+        { label: "s", value: String(s) },
+        { label: "j", value: String(j) },
+      ],
+    });
+  };
+
+  let s = 0;
+  while (s <= n - m) {
+    let j = m - 1;
+    emitSearch(15, `Align pattern at s = ${s}; compare right to left`, s, j, "window", "active");
+    while (j >= 0 && p[j] === t[s + j]) {
+      emitSearch(16, `p[${j}]='${p[j]}' == t[${s + j}]='${t[s + j]}'`, s, j, "match", "match");
+      j--;
+    }
+    if (j < 0) {
+      for (let k = 0; k < m; k++) matched[s + k] = true;
+      emitSearch(19, `Full match at index ${s}`, s, -1, "done");
+      s += 1;
+    } else {
+      const bad = t[s + j];
+      emitSearch(16, `Mismatch: p[${j}]='${p[j]}' != t[${s + j}]='${bad}'`, s, j, "mismatch", "mismatch");
+      const lo = last.get(bad) ?? -1;
+      const shift = Math.max(1, j - lo);
+      emitSearch(
+        23,
+        lo === -1
+          ? `'${bad}' is not in the pattern — jump past it (shift ${shift})`
+          : `last['${bad}'] = ${lo} — align it under the mismatch (shift ${shift})`,
+        s,
+        j,
+        "active"
+      );
+      s += shift;
+    }
+  }
+  const totalMatches = matched.filter(Boolean).length / m;
+  steps.push({
+    codeLine: 25,
+    note: `Done — ${totalMatches} match${totalMatches === 1 ? "" : "es"} found`,
+    status: "done",
+    tracks: searchTracks(n, -1),
+  });
+  return steps;
+}
+
 export interface StringAlgoConfig {
   usesPattern: boolean;
   defaultText: string;
@@ -491,5 +606,11 @@ export const STRING_ALGOS: Record<string, StringAlgoConfig> = {
     defaultText: "ABABABA",
     defaultPattern: "",
     generate: (t) => manacherSteps(t),
+  },
+  "boyer-moore": {
+    usesPattern: true,
+    defaultText: "ABAAABCDBBABCDDEBCABC",
+    defaultPattern: "ABC",
+    generate: (t, p) => boyerMooreSteps(t, p),
   },
 };

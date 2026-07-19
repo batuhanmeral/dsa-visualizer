@@ -311,6 +311,11 @@ const algoTr: Record<string, { name: string; summary: string }> = {
     summary:
       "Her konum için, oradan başlayıp dizenin önekiyle eşleşen en uzun alt dizenin uzunluğunu hesaplar — bir [l, r) penceresini yeniden kullanarak.",
   },
+  "boyer-moore": {
+    name: "Boyer-Moore",
+    summary:
+      "Deseni sağdan sola karşılaştırır ve kötü-karakter tablosuyla umutsuz hizalamaların üzerinden atlar — pratikte çoğu zaman alt-doğrusal.",
+  },
   manacher: {
     name: "Manacher Algoritması",
     summary:

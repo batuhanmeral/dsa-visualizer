@@ -1574,6 +1574,41 @@ void rabinKarp(const char *t, const char *p) {
 }`,
       },
       {
+        slug: "boyer-moore",
+        name: "Boyer-Moore",
+        summary:
+          "Compares the pattern right to left and uses the bad-character table to leap past hopeless alignments — often sublinear in practice.",
+        time: "O(n/m) best",
+        space: "O(σ)",
+        code: `#define R 256
+
+void badChar(const char *p, int m, int last[R]) {
+    for (int c = 0; c < R; c++) last[c] = -1;
+    for (int i = 0; i < m; i++)
+        last[(int)p[i]] = i;
+}
+
+void boyerMoore(const char *t, const char *p) {
+    int n = strlen(t), m = strlen(p);
+    int last[R];
+    badChar(p, m, last);
+
+    int s = 0;
+    while (s <= n - m) {
+        int j = m - 1;
+        while (j >= 0 && p[j] == t[s + j])
+            j--;
+        if (j < 0) {
+            printf("found at %d\\n", s);
+            s += 1;
+        } else {
+            int shift = j - last[(int)t[s + j]];
+            s += shift > 1 ? shift : 1;
+        }
+    }
+}`,
+      },
+      {
         slug: "manacher",
         name: "Manacher's Algorithm",
         summary:
