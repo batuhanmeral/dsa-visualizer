@@ -459,6 +459,57 @@ export function fibonacciSteps(n: number): FibResult {
   return { n, steps };
 }
 
+// ── Kadane (maximum subarray sum) ───────────────────────────────────────
+export interface KadaneResult {
+  values: number[];
+  steps: DPStep[];
+}
+
+export function kadaneSteps(input: number[]): KadaneResult {
+  const a = input.slice(0, 10);
+  const n = a.length;
+  // Single-row table: dp[i] = best subarray sum ending exactly at i.
+  const row = new Array<number | null>(n).fill(null);
+  const steps: DPStep[] = [];
+  const snap = (
+    codeLine: number,
+    note: string,
+    active: [number, number] | undefined,
+    deps: [number, number][]
+  ) => steps.push({ codeLine, note, table: [row.slice()], active, deps });
+
+  let cur = a[0];
+  let best = a[0];
+  row[0] = a[0];
+  snap(1, `Start: best = cur = a[0] = ${a[0]}.`, [0, 0], []);
+
+  for (let i = 1; i < n; i++) {
+    const extend = cur + a[i];
+    snap(
+      4,
+      `Extend the run (${cur} + ${a[i]} = ${extend}) or restart at ${a[i]}?`,
+      [0, i],
+      [[0, i - 1]]
+    );
+    if (extend > a[i]) {
+      cur = extend;
+      row[i] = cur;
+      snap(5, `Extend — the prefix helps: cur = ${cur}.`, [0, i], [[0, i - 1]]);
+    } else {
+      cur = a[i];
+      row[i] = cur;
+      snap(7, `Restart — the prefix only drags the sum down: cur = ${cur}.`, [0, i], []);
+    }
+    if (cur > best) {
+      best = cur;
+      snap(9, `New best subarray sum: ${best}.`, [0, i], []);
+    }
+  }
+
+  snap(11, `Done. Maximum subarray sum is ${best}.`, undefined, []);
+  return { values: a, steps };
+}
+
 // ── Longest Increasing Subsequence ──────────────────────────────────────
 export interface LISResult {
   values: number[];

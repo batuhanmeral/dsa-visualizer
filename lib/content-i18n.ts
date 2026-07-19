@@ -208,6 +208,11 @@ const algoTr: Record<string, { name: string; summary: string }> = {
     summary:
       "Fibonacci dizisini aşağıdan yukarıya kurar; her terim kendinden önceki ikinin toplamıdır — tekrar iş yok.",
   },
+  kadane: {
+    name: "Kadane Algoritması",
+    summary:
+      "Tek geçişte maksimum alt dizi toplamı: süregelen toplam yardım ettikçe uzat, negatife dönünce mevcut elemandan yeniden başla.",
+  },
   lis: {
     name: "En Uzun Artan Alt Dizi",
     summary:

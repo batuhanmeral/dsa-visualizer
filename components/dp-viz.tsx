@@ -7,6 +7,7 @@ import {
   editDistanceSteps,
   fibonacciSteps,
   floydWarshallSteps,
+  kadaneSteps,
   knapsackSteps,
   lcsSteps,
   lisSteps,
@@ -25,6 +26,7 @@ const DP_SLUGS = new Set([
   "fibonacci",
   "lis",
   "floyd-warshall",
+  "kadane",
 ]);
 
 export function hasDpViz(slug: string): boolean {
@@ -498,6 +500,71 @@ function LISViz({
   );
 }
 
+// ── Kadane (single-row table, negatives allowed) ────────────────────────
+function KadaneViz({
+  speed,
+  onLine,
+}: {
+  speed: number;
+  onLine: (line: number) => void;
+}) {
+  const [text, setText] = useState("-2, 1, -3, 4, -1, 2, 1, -5, 4");
+  const values = useMemo(
+    () =>
+      text
+        .split(/[,\s]+/)
+        .map((t) => Number.parseInt(t, 10))
+        .filter((v) => Number.isFinite(v))
+        .slice(0, 10),
+    [text]
+  );
+  const { t } = useLang();
+  const legend = useDpLegend();
+  const { values: v, steps } = useMemo(
+    () => kadaneSteps(values.length ? values : [-2, 1, -3, 4]),
+    [values]
+  );
+  const player = useStepPlayer(steps.length, speed);
+  const step = steps[player.index];
+
+  useEffect(() => {
+    onLine(step.codeLine);
+  }, [step.codeLine, onLine]);
+
+  return (
+    <PlaybackPanel
+      player={player}
+      count={steps.length}
+      note={step.note}
+      legend={legend}
+      extra={
+        <label className="flex items-center gap-1.5 text-[11px] font-medium text-zinc-400">
+          {t("dp.sequence")}
+          <input
+            type="text"
+            value={text}
+            spellCheck={false}
+            onChange={(e) => setText(e.target.value)}
+            className="w-64 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+          />
+        </label>
+      }
+    >
+      <div className="flex flex-col items-center gap-1">
+        <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+          {t("dp.kadaneNote")}
+        </span>
+        <DPTable
+          step={step}
+          corner="a"
+          rowHeads={["cur"]}
+          colHeads={v.map((x) => String(x))}
+        />
+      </div>
+    </PlaybackPanel>
+  );
+}
+
 function StringField({
   label,
   value,
@@ -562,5 +629,6 @@ export default function DpViz({
   if (slug === "lis") return <LISViz speed={speed} onLine={onLine} />;
   if (slug === "floyd-warshall")
     return <FloydViz speed={speed} onLine={onLine} />;
+  if (slug === "kadane") return <KadaneViz speed={speed} onLine={onLine} />;
   return null;
 }

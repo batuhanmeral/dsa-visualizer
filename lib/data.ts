@@ -978,6 +978,27 @@ int coinChange(int coins[], int n, int amount) {
 }`,
       },
       {
+        slug: "kadane",
+        name: "Kadane's Algorithm",
+        summary:
+          "Maximum subarray sum in one pass: extend the running sum while it helps, restart at the current element when it turns negative.",
+        time: "O(n)",
+        space: "O(1)",
+        code: `int kadane(int a[], int n) {
+    int best = a[0];
+    int cur = a[0];
+    for (int i = 1; i < n; i++) {
+        if (cur + a[i] > a[i])
+            cur = cur + a[i];   /* extend the run   */
+        else
+            cur = a[i];         /* restart run here */
+        if (cur > best)
+            best = cur;
+    }
+    return best;
+}`,
+      },
+      {
         slug: "lis",
         name: "Longest Increasing Subsequence",
         summary:

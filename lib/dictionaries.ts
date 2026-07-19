@@ -136,6 +136,7 @@ export const en = {
   "dp.fwNote": "round k = allowed stopover",
   "dp.sequence": "Sequence",
   "dp.lisNote": "dp = length of LIS ending at each value",
+  "dp.kadaneNote": "cur = best subarray sum ending at each value",
 
   // Trees
   "tree.legend.current": "current",
@@ -378,6 +379,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "dp.fwNote": "k turu = izinli ara durak",
   "dp.sequence": "Dizi",
   "dp.lisNote": "dp = her değerde biten EAA uzunluğu",
+  "dp.kadaneNote": "cur = her değerde biten en iyi alt dizi toplamı",
 
   // Trees
   "tree.legend.current": "mevcut",
