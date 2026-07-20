@@ -4,7 +4,7 @@ An interactive platform for learning data structures and algorithms by watching
 them run — step by step, with the corresponding C code line highlighted as it
 executes.
 
-**68 algorithms · 10 categories · every page statically generated**
+**58 algorithms · 10 categories · every page statically generated**
 
 | Category | Algorithms |
 | --- | --- |
