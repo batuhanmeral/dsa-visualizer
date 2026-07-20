@@ -4,20 +4,20 @@ An interactive platform for learning data structures and algorithms by watching
 them run — step by step, with the corresponding C code line highlighted as it
 executes.
 
-**63 algorithms · 10 categories · every page statically generated**
+**68 algorithms · 10 categories · every page statically generated**
 
 | Category | Algorithms |
 | --- | --- |
 | Sorting | Bubble, Selection, Insertion, Shell, Merge, Quick, Heap, Radix, Counting, Bucket |
 | Searching | Linear, Binary, Jump, Interpolation |
-| Data Structures | Linked List, Stack, Queue, Hash Table (operation-driven playgrounds) |
-| Graphs | BFS, DFS, Dijkstra, Bellman-Ford, Topological Sort, Prim, Kruskal, A* |
-| Dynamic Programming | LCS, 0/1 Knapsack, Edit Distance, Coin Change, Fibonacci, LIS |
+| Data Structures | Linked List, Stack, Queue, Hash Table, Union-Find |
+| Graphs | BFS, DFS, Dijkstra, Bellman-Ford, Floyd-Warshall, Topological Sort, Prim, Kruskal, A* |
+| Dynamic Programming | LCS, 0/1 Knapsack, Edit Distance, Coin Change, Fibonacci, Kadane, LIS |
 | Greedy | Activity Selection, Fractional Knapsack, Job Sequencing, Huffman Coding |
 | Backtracking | N-Queens, Sudoku, Rat in a Maze, Subsets, Permutations |
 | Trees | BST, AVL, Binary Heap, Trie, Segment Tree |
-| Strings | KMP, Rabin-Karp, Z-Algorithm, Manacher |
-| Math / Number Theory | Sieve of Eratosthenes, Euclidean GCD, Fast Exponentiation |
+| Strings | KMP, Rabin-Karp, Boyer-Moore, Z-Algorithm, Manacher |
+| Math / Number Theory | Sieve of Eratosthenes, Euclidean GCD, Extended Euclid, Fast Exponentiation |
 
 ## Features
 
@@ -29,6 +29,12 @@ executes.
 - **Syntax-highlighted C code** — a dependency-free tokenizer colours the
   snippet; every animation step points at the exact source line it corresponds
   to, plus a copy button
+- **About tab** — per-algorithm intuition, best/worst case behaviour and
+  when-to-use notes, in both languages
+- **Growth tab** — an empirical step-count chart: the current algorithm's curve
+  against its whole family on identical inputs of growing size
+- **Draw your own graph** — add and drag nodes, toggle edges, then rerun the
+  traversal on your graph
 - **Bilingual (TR/EN)** — an EN/TR toggle in the navbar switches the whole UI
   and all algorithm/category names and summaries, persisted across visits
 - **Custom input** — type your own numbers/strings, pick start nodes, edit
