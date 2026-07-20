@@ -761,7 +761,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                           setIsPlaying(false);
                           setStepIndex(Number(e.target.value));
                         }}
-                        aria-label="Simulation timeline"
+                        aria-label={t("ws.timeline")}
                         className="h-1 flex-1 cursor-pointer accent-emerald-600"
                       />
                       <span className="shrink-0 font-mono text-[11px] text-zinc-400">

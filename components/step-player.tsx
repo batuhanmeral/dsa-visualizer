@@ -15,6 +15,7 @@ import {
   StepBack,
   StepForward,
 } from "lucide-react";
+import { useLang } from "@/lib/i18n";
 
 /**
  * Shared playback engine for the "precomputed step list" visualizers
@@ -128,18 +129,19 @@ export function TransportControls({
   onReset: () => void;
   onStep: (delta: number) => void;
 }) {
+  const { t } = useLang();
   return (
     <div className="flex shrink-0 items-center gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-      <TransportButton label="Reset" onClick={onReset}>
+      <TransportButton label={t("reset")} onClick={onReset}>
         <RotateCcw className="size-3.5" />
       </TransportButton>
-      <TransportButton label="Step back" onClick={() => onStep(-1)}>
+      <TransportButton label={t("stepBack")} onClick={() => onStep(-1)}>
         <StepBack className="size-3.5" />
       </TransportButton>
       <button
         type="button"
         onClick={onToggle}
-        aria-label={playing ? "Pause" : "Play"}
+        aria-label={playing ? t("pause") : t("play")}
         className="flex size-8 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-500"
       >
         {playing ? (
@@ -148,7 +150,7 @@ export function TransportControls({
           <Play className="size-3.5 translate-x-px" fill="currentColor" />
         )}
       </button>
-      <TransportButton label="Step forward" onClick={() => onStep(1)}>
+      <TransportButton label={t("stepForward")} onClick={() => onStep(1)}>
         <StepForward className="size-3.5" />
       </TransportButton>
     </div>
@@ -175,6 +177,7 @@ export function PlaybackPanel({
   extra?: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useLang();
   return (
     <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
       <div className="scrollbar-slim flex min-h-0 flex-1 items-center justify-center overflow-auto">
@@ -195,7 +198,7 @@ export function PlaybackPanel({
             max={Math.max(count - 1, 0)}
             value={player.index}
             onChange={(e) => player.seek(Number(e.target.value))}
-            aria-label="Simulation timeline"
+            aria-label={t("ws.timeline")}
             className="h-1 flex-1 cursor-pointer accent-emerald-600"
           />
           <span className="shrink-0 font-mono text-[11px] text-zinc-400">
