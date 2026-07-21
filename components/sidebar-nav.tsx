@@ -33,7 +33,7 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
           </span>
           <span className="leading-tight">
             <span className="block text-sm font-semibold tracking-tight">
-              Flowy
+              Algorhythm
             </span>
             <span className="block text-[11px] text-zinc-500 dark:text-zinc-400">
               {t("brand.tagline")}

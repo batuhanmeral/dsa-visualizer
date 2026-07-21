@@ -1,8 +1,13 @@
-# Flowy - DSA Visualizer
+# Algorhythm
+> DSA Visualizer gibi bir şey yaz
 
-An interactive platform for learning data structures and algorithms by watching
+Interactive platform for learning data structures and algorithms by watching
 them run — step by step, with the corresponding C code line highlighted as it
 executes.
+
+**[View the live application here.](algorhythm-batuhanmeral.vercel.app)**
+
+## Algorithms
 
 **58 algorithms · 10 categories · every page statically generated**
 
@@ -69,7 +74,7 @@ npm run lint
 | *Overview* |
 | <img src="docs/bubble_sort.png" alt="Bubble Sort visualization" width="850"> |
 | *Bubble Sort — step player, stat counters and C code highlighting* |
-| <img src="docs/n_queens.png" alt="N-Queens backtracking visualization" width="850"> |
+| <img src="docs/linked_list.png" alt="Linked List visualization" width="850"> |
 | *N-Queens — backtracking on the board* |
 
 ## License
