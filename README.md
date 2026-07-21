@@ -1,5 +1,4 @@
 # Algorhythm
-> DSA Visualizer gibi bir şey yaz
 
 Interactive platform for learning data structures and algorithms by watching
 them run — step by step, with the corresponding C code line highlighted as it
