@@ -5,7 +5,7 @@ Interactive platform for learning data structures and algorithms by watching
 them run — step by step, with the corresponding C code line highlighted as it
 executes.
 
-**[View the live application here.](algorhythm-batuhanmeral.vercel.app)**
+**[View the live application here.](https://algorhythm-batuhanmeral.vercel.app/)**
 
 ## Algorithms
 
