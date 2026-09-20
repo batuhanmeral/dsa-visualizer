@@ -4,6 +4,8 @@
  * `codeLine` values are 0-based and MUST match the C code in lib/data.ts.
  */
 
+import { msg, type Note, type StepNoteKey } from "./note";
+
 // ── N-Queens ────────────────────────────────────────────────────────────
 export type QueenStatus =
   | "try"
@@ -14,7 +16,7 @@ export type QueenStatus =
 
 export interface QueensStep {
   codeLine: number;
-  note: string;
+  note: Note;
   n: number;
   /** Column of the queen in each row, or -1 if the row is empty. */
   queens: number[];
@@ -37,7 +39,7 @@ export function nQueensSteps(n: number): QueensStep[] {
   const steps: QueensStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     status: QueenStatus,
     active?: [number, number]
   ) =>
@@ -52,37 +54,29 @@ export function nQueensSteps(n: number): QueensStep[] {
 
   const solve = (row: number): boolean => {
     if (row === n) {
-      snap(10, `All ${n} queens placed — solution found!`, "solved");
+      snap(10, msg("n.queens.solved", { n }), "solved");
       return true;
     }
     for (let col = 0; col < n; col++) {
       const safe = queenSafe(queens, row, col);
       snap(
         12,
-        `Row ${row}: try column ${col} — ${safe ? "safe." : "attacked, skip."}`,
+        msg(safe ? "n.queens.trySafe" : "n.queens.tryAttacked", { row, col }),
         safe ? "try" : "conflict",
         [row, col]
       );
       if (safe) {
         queens[row] = col;
-        snap(13, `Place a queen at (row ${row}, col ${col}).`, "place", [
-          row,
-          col,
-        ]);
+        snap(13, msg("n.queens.place", { row, col }), "place", [row, col]);
         if (solve(row + 1)) return true;
         queens[row] = -1;
-        snap(
-          15,
-          `Dead end below — remove the queen from row ${row} and try the next column.`,
-          "backtrack",
-          [row, col]
-        );
+        snap(15, msg("n.queens.backtrack", { row }), "backtrack", [row, col]);
       }
     }
     return false;
   };
 
-  snap(11, `Start solving the ${n}×${n} board from row 0.`, "try");
+  snap(11, msg("n.queens.start", { n }), "try");
   solve(0);
   return steps;
 }
@@ -92,7 +86,7 @@ export type SudokuStatus = "scan" | "try" | "place" | "reject" | "backtrack" | "
 
 export interface SudokuStep {
   codeLine: number;
-  note: string;
+  note: Note;
   grid: number[][];
   active?: [number, number];
   digit?: number;
@@ -157,7 +151,7 @@ export function sudokuSteps(grid0: number[][]): SudokuStep[] {
   const steps: SudokuStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     status: SudokuStatus,
     active?: [number, number],
     digit?: number
@@ -175,38 +169,29 @@ export function sudokuSteps(grid0: number[][]): SudokuStep[] {
     for (let r = 0; r < 9; r++) {
       for (let c = 0; c < 9; c++) {
         if (g[r][c]) continue;
-        snap(13, `Empty cell at (${r}, ${c}) — try to fill it.`, "scan", [
-          r,
-          c,
-        ]);
+        snap(13, msg("n.sudoku.scan", { r, c }), "scan", [r, c]);
         for (let d = 1; d <= 9; d++) {
           const ok = sudokuValid(g, r, c, d);
           snap(
             15,
-            `Try ${d} at (${r}, ${c}) — ${ok ? "valid." : "breaks a rule, reject."}`,
+            msg(ok ? "n.sudoku.tryValid" : "n.sudoku.tryInvalid", { d, r, c }),
             ok ? "try" : "reject",
             [r, c],
             d
           );
           if (ok) {
             g[r][c] = d;
-            snap(16, `Place ${d} at (${r}, ${c}).`, "place", [r, c], d);
+            snap(16, msg("n.sudoku.place", { d, r, c }), "place", [r, c], d);
             if (solve()) return true;
             g[r][c] = 0;
-            snap(
-              18,
-              `Backtrack — clear (${r}, ${c}) and try a larger digit.`,
-              "backtrack",
-              [r, c],
-              d
-            );
+            snap(18, msg("n.sudoku.backtrack", { r, c }), "backtrack", [r, c], d);
           }
         }
-        snap(21, `No digit fits (${r}, ${c}) — back up.`, "backtrack", [r, c]);
+        snap(21, msg("n.sudoku.stuck", { r, c }), "backtrack", [r, c]);
         return false;
       }
     }
-    snap(24, `Every cell filled — Sudoku solved!`, "solved");
+    snap(24, msg("n.sudoku.solved"), "solved");
     return true;
   };
 
@@ -219,7 +204,7 @@ export type MazeStatus = "try" | "move" | "blocked" | "backtrack" | "solved";
 
 export interface MazeStep {
   codeLine: number;
-  note: string;
+  note: Note;
   maze: number[][];
   path: boolean[][];
   active?: [number, number];
@@ -241,7 +226,7 @@ export function mazeSteps(maze0: number[][]): MazeStep[] {
   const steps: MazeStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     status: MazeStatus,
     active?: [number, number]
   ) =>
@@ -255,24 +240,24 @@ export function mazeSteps(maze0: number[][]): MazeStep[] {
     });
 
   // Directions: down, right, up, left — codeLine matches each `if (solve(...))`.
-  const DIRS: [number, number, string, number][] = [
-    [1, 0, "down", 12],
-    [0, 1, "right", 13],
-    [-1, 0, "up", 14],
-    [0, -1, "left", 15],
+  const DIRS: [number, number, StepNoteKey, number][] = [
+    [1, 0, "n.maze.dir.down", 12],
+    [0, 1, "n.maze.dir.right", 13],
+    [-1, 0, "n.maze.dir.up", 14],
+    [0, -1, "n.maze.dir.left", 15],
   ];
 
   const solve = (r: number, c: number): boolean => {
     if (r === N - 1 && c === N - 1) {
       sol[r][c] = true;
-      snap(4, `Reached the exit (${r}, ${c})!`, "solved", [r, c]);
+      snap(4, msg("n.maze.exit", { r, c }), "solved", [r, c]);
       return true;
     }
     if (r < 0 || c < 0 || r >= N || c >= N) return false;
     if (maze[r][c] === 0 || sol[r][c]) {
       snap(
         9,
-        `(${r}, ${c}) is ${maze[r][c] === 0 ? "a wall" : "already on the path"} — dead end.`,
+        msg(maze[r][c] === 0 ? "n.maze.wall" : "n.maze.onPath", { r, c }),
         "blocked",
         [r, c]
       );
@@ -280,13 +265,13 @@ export function mazeSteps(maze0: number[][]): MazeStep[] {
     }
 
     sol[r][c] = true;
-    snap(11, `Step onto (${r}, ${c}).`, "move", [r, c]);
-    for (const [dr, dc, name, line] of DIRS) {
-      snap(line, `From (${r}, ${c}) try moving ${name}.`, "try", [r, c]);
+    snap(11, msg("n.maze.step", { r, c }), "move", [r, c]);
+    for (const [dr, dc, dirKey, line] of DIRS) {
+      snap(line, msg("n.maze.try", { r, c, dir: `@${dirKey}` }), "try", [r, c]);
       if (solve(r + dr, c + dc)) return true;
     }
     sol[r][c] = false;
-    snap(16, `All moves failed — backtrack off (${r}, ${c}).`, "backtrack", [r, c]);
+    snap(16, msg("n.maze.backtrack", { r, c }), "backtrack", [r, c]);
     return false;
   };
 
@@ -304,7 +289,7 @@ export type ChoiceStatus =
 
 export interface ChoiceStep {
   codeLine: number;
-  note: string;
+  note: Note;
   /** The partial candidate being built. */
   current: number[];
   /** Index within `current` to emphasise. */
@@ -321,7 +306,7 @@ export function subsetsSteps(a: number[]): ChoiceStep[] {
   const steps: ChoiceStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     status: ChoiceStatus,
     current: number[],
     highlight?: number
@@ -338,14 +323,14 @@ export function subsetsSteps(a: number[]): ChoiceStep[] {
   const rec = (i: number, cur: number[]) => {
     if (i === n) {
       results.push([...cur]);
-      snap(2, `Record subset {${cur.join(", ")}}.`, "complete", cur);
+      snap(2, msg("n.subsets.record", { set: cur.join(", ") }), "complete", cur);
       return;
     }
     cur.push(a[i]);
-    snap(5, `Include ${a[i]}.`, "add", cur, cur.length - 1);
+    snap(5, msg("n.subsets.include", { value: a[i] }), "add", cur, cur.length - 1);
     rec(i + 1, cur);
     cur.pop();
-    snap(7, `Backtrack — exclude ${a[i]}.`, "backtrack", cur);
+    snap(7, msg("n.subsets.exclude", { value: a[i] }), "backtrack", cur);
     rec(i + 1, cur);
   };
 
@@ -360,7 +345,7 @@ export function permutationsSteps(a: number[]): ChoiceStep[] {
   const steps: ChoiceStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     status: ChoiceStatus,
     fixed: number,
     highlight?: number
@@ -378,15 +363,15 @@ export function permutationsSteps(a: number[]): ChoiceStep[] {
   const rec = (k: number) => {
     if (k === n) {
       results.push([...arr]);
-      snap(2, `Record permutation [${arr.join(", ")}].`, "complete", n);
+      snap(2, msg("n.perms.record", { perm: arr.join(", ") }), "complete", n);
       return;
     }
     for (let i = k; i < n; i++) {
       [arr[k], arr[i]] = [arr[i], arr[k]];
-      snap(6, `Fix position ${k} = ${arr[k]}.`, "add", k + 1, k);
+      snap(6, msg("n.perms.fix", { k, value: arr[k] }), "add", k + 1, k);
       rec(k + 1);
       [arr[k], arr[i]] = [arr[i], arr[k]];
-      snap(8, `Undo — restore for the next choice at position ${k}.`, "backtrack", k);
+      snap(8, msg("n.perms.undo", { k }), "backtrack", k);
     }
   };
 

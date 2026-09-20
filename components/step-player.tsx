@@ -16,6 +16,7 @@ import {
   StepForward,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import type { Note } from "@/lib/simulations/note";
 
 /**
  * Shared playback engine for the "precomputed step list" visualizers
@@ -91,6 +92,7 @@ export const SpeedContext = createContext<{
   speed: number;
   setSpeed: (s: (typeof SPEEDS)[number]) => void;
 } | null>(null);
+
 
 export function SpeedSelect() {
   const ctx = useContext(SpeedContext);
@@ -169,7 +171,11 @@ export function PlaybackPanel({
 }: {
   player: StepPlayer;
   count: number;
-  note: string;
+  /**
+   * A generator's step note, or an already-translated string for panels whose
+   * caption comes from the UI dictionary rather than a step (compare mode).
+   */
+  note: Note | string;
   /** Tailwind bg-* class for the status dot, keyed to the step kind. */
   dotClass?: string;
   legend?: { label: string; dot: string }[];
@@ -177,7 +183,7 @@ export function PlaybackPanel({
   extra?: ReactNode;
   children: ReactNode;
 }) {
-  const { t } = useLang();
+  const { t, tn } = useLang();
   return (
     <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
       <div className="scrollbar-slim flex min-h-0 flex-1 items-center justify-center overflow-auto">
@@ -216,7 +222,9 @@ export function PlaybackPanel({
           <div className="min-w-0">
             <p className="flex items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
               <span className={`size-2 shrink-0 rounded-full ${dotClass}`} />
-              <span className="truncate">{note}</span>
+              <span className="truncate">
+                {typeof note === "string" ? note : tn(note)}
+              </span>
             </p>
             {legend && (
               <div className="mt-2 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">

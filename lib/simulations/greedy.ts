@@ -5,6 +5,8 @@
  * generator families — see .docs/PROGRESS.md).
  */
 
+import { msg, type Note } from "./note";
+
 // ── Activity Selection ──────────────────────────────────────────────────
 export interface Activity {
   start: number;
@@ -13,7 +15,7 @@ export interface Activity {
 
 export interface ActivityStep {
   codeLine: number;
-  note: string;
+  note: Note;
   /** Index (in the sorted list) being considered right now. */
   current: number | null;
   selected: number[];
@@ -34,7 +36,7 @@ export function activitySelectionSteps(input: Activity[]): ActivityResult {
   const rejected: number[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     current: number | null,
     lastFinish: number | null
   ) =>
@@ -47,13 +49,16 @@ export function activitySelectionSteps(input: Activity[]): ActivityResult {
       lastFinish,
     });
 
-  snap(0, "Activities are sorted by finish time — earliest finisher first.", null, null);
+  snap(0, msg("n.activity.sorted"), null, null);
 
   let lastFinish = activities[0].end;
   selected.push(0);
   snap(
     3,
-    `The earliest finisher [${activities[0].start}, ${activities[0].end}] is always safe — select it.`,
+    msg("n.activity.first", {
+      start: activities[0].start,
+      end: activities[0].end,
+    }),
     0,
     lastFinish
   );
@@ -62,20 +67,20 @@ export function activitySelectionSteps(input: Activity[]): ActivityResult {
     const a = activities[i];
     snap(
       5,
-      `Does [${a.start}, ${a.end}] start after the last finish (${lastFinish})?`,
+      msg("n.activity.ask", { start: a.start, end: a.end, last: lastFinish }),
       i,
       lastFinish
     );
     if (a.start >= lastFinish) {
       selected.push(i);
-      snap(6, `Yes — no overlap. Select [${a.start}, ${a.end}].`, i, lastFinish);
+      snap(6, msg("n.activity.take", { start: a.start, end: a.end }), i, lastFinish);
       lastFinish = a.end;
-      snap(7, `Move the frontier: last finish is now ${lastFinish}.`, i, lastFinish);
+      snap(7, msg("n.activity.frontier", { last: lastFinish }), i, lastFinish);
     } else {
       rejected.push(i);
       snap(
         5,
-        `No — it starts at ${a.start} < ${lastFinish}, so it overlaps. Reject it.`,
+        msg("n.activity.reject", { start: a.start, last: lastFinish }),
         i,
         lastFinish
       );
@@ -84,7 +89,10 @@ export function activitySelectionSteps(input: Activity[]): ActivityResult {
 
   snap(
     10,
-    `Done. Selected ${selected.length} of ${activities.length} activities — the maximum possible.`,
+    msg("n.activity.done", {
+      selected: selected.length,
+      total: activities.length,
+    }),
     null,
     lastFinish
   );
@@ -105,7 +113,7 @@ export interface FracTaken {
 
 export interface FracStep {
   codeLine: number;
-  note: string;
+  note: Note;
   current: number | null;
   taken: FracTaken[];
   remaining: number;
@@ -129,7 +137,7 @@ export function fractionalKnapsackSteps(
   const taken: FracTaken[] = [];
   let remaining = capacity;
   let total = 0;
-  const snap = (codeLine: number, note: string, current: number | null) =>
+  const snap = (codeLine: number, note: Note, current: number | null) =>
     steps.push({
       codeLine,
       note,
@@ -139,43 +147,51 @@ export function fractionalKnapsackSteps(
       total,
     });
 
-  snap(0, "Items are sorted by value/weight ratio — best value per kg first.", null);
-  snap(3, `Start with an empty bag: capacity ${capacity} remaining.`, null);
+  snap(0, msg("n.frac.sorted"), null);
+  snap(3, msg("n.frac.start", { capacity }), null);
 
   for (let i = 0; i < items.length && remaining > 0; i++) {
     const it = items[i];
     const ratio = (it.value / it.weight).toFixed(1);
     snap(
       5,
-      `Item ${i + 1} (w=${it.weight}, v=${it.value}, ratio ${ratio}): does it fit in the remaining ${remaining}?`,
+      msg("n.frac.ask", {
+        i: i + 1,
+        w: it.weight,
+        v: it.value,
+        ratio,
+        remaining,
+      }),
       i
     );
     if (it.weight <= remaining) {
       remaining -= it.weight;
       taken.push({ index: i, fraction: 1 });
-      snap(6, `It fits — take all of it. Remaining capacity: ${remaining}.`, i);
+      snap(6, msg("n.frac.whole", { remaining }), i);
       total += it.value;
-      snap(7, `Add its full value: total = ${total}.`, i);
+      snap(7, msg("n.frac.addWhole", { total: roundShow(total) }), i);
     } else {
       const frac = remaining / it.weight;
-      snap(
-        9,
-        `Only ${remaining} of ${it.weight} fits — take a ${remaining}/${it.weight} fraction.`,
-        i
-      );
+      snap(9, msg("n.frac.partial", { remaining, w: it.weight }), i);
       total += it.value * frac;
       taken.push({ index: i, fraction: frac });
       snap(
         10,
-        `Add the partial value ${it.value} × ${remaining}/${it.weight} = ${(it.value * frac).toFixed(1)} → total = ${roundShow(total)}.`,
+        msg("n.frac.addPartial", {
+          v: it.value,
+          remaining,
+          w: it.weight,
+          part: (it.value * frac).toFixed(1),
+          total: roundShow(total),
+        }),
         i
       );
       remaining = 0;
-      snap(11, "The bag is full.", i);
+      snap(11, msg("n.frac.full"), i);
     }
   }
 
-  snap(14, `Done. Maximum value in the bag: ${roundShow(total)}.`, null);
+  snap(14, msg("n.frac.done", { total: roundShow(total) }), null);
   return { items, capacity, steps };
 }
 
@@ -191,7 +207,7 @@ export interface Job {
 
 export interface JobStep {
   codeLine: number;
-  note: string;
+  note: Note;
   /** Index (in the sorted list) being placed right now. */
   current: number | null;
   /** 1-based hour being probed for a free slot. */
@@ -219,7 +235,7 @@ export function jobSequencingSteps(input: Job[]): JobResult {
   let total = 0;
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     current: number | null,
     probe: number | null
   ) =>
@@ -234,8 +250,8 @@ export function jobSequencingSteps(input: Job[]): JobResult {
       total,
     });
 
-  snap(0, "Jobs are sorted by profit — most profitable first.", null, null);
-  snap(4, `All ${maxDeadline} hours start free.`, null, null);
+  snap(0, msg("n.job.sorted"), null, null);
+  snap(4, msg("n.job.freeHours", { hours: maxDeadline }), null, null);
 
   for (let i = 0; i < jobs.length; i++) {
     const job = jobs[i];
@@ -243,32 +259,32 @@ export function jobSequencingSteps(input: Job[]): JobResult {
     for (let t = job.deadline; t >= 1; t--) {
       snap(
         9,
-        `Job ${job.id} (deadline ${job.deadline}, profit ${job.profit}): is hour ${t} free?`,
+        msg("n.job.ask", {
+          id: job.id,
+          deadline: job.deadline,
+          profit: job.profit,
+          t,
+        }),
         i,
         t
       );
       if (slots[t - 1] === null) {
         slots[t - 1] = i;
         scheduled.push(i);
-        snap(10, `Hour ${t} is free — schedule job ${job.id} there.`, i, t);
+        snap(10, msg("n.job.schedule", { t, id: job.id }), i, t);
         total += job.profit;
-        snap(11, `Add its profit: total = ${total}.`, i, t);
+        snap(11, msg("n.job.addProfit", { total }), i, t);
         placed = true;
         break;
       }
     }
     if (!placed) {
       skipped.push(i);
-      snap(
-        14,
-        `No free hour at or before job ${job.id}'s deadline — skip it.`,
-        i,
-        null
-      );
+      snap(14, msg("n.job.skip", { id: job.id }), i, null);
     }
   }
 
-  snap(16, `Done. Scheduled ${scheduled.length} jobs for a total profit of ${total}.`, null, null);
+  snap(16, msg("n.job.done", { count: scheduled.length, total }), null, null);
   return { jobs, maxDeadline, steps };
 }
 
@@ -286,7 +302,7 @@ export type HuffPhase = "init" | "pick" | "merge" | "code" | "done";
 
 export interface HuffStep {
   codeLine: number;
-  note: string;
+  note: Note;
   phase: HuffPhase;
   /** Every node created so far, keyed by id. */
   nodes: Record<number, HuffNode>;
@@ -317,7 +333,7 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
   const steps: HuffStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     phase: HuffPhase,
     highlight: number[]
   ) =>
@@ -331,12 +347,7 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
       codes: { ...codes },
     });
 
-  snap(
-    6,
-    `Start with ${roots.length} single-leaf trees, one per character.`,
-    "init",
-    []
-  );
+  snap(6, msg("n.huff.start", { count: roots.length }), "init", []);
 
   while (roots.length > 1) {
     // Two smallest roots (the forest is kept sorted by frequency).
@@ -345,7 +356,7 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
     const b = roots[1];
     snap(
       8,
-      `Pick the two lightest trees: ${label(nodes[a])} and ${label(nodes[b])}.`,
+      msg("n.huff.pick", { a: label(nodes[a]), b: label(nodes[b]) }),
       "pick",
       [a, b]
     );
@@ -361,19 +372,18 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
     nextId++;
     snap(
       10,
-      `Merge them under a new node of frequency ${nodes[merged.id].freq} (${nodes[a].freq} + ${nodes[b].freq}).`,
+      msg("n.huff.merge", {
+        sum: nodes[merged.id].freq,
+        fa: nodes[a].freq,
+        fb: nodes[b].freq,
+      }),
       "merge",
       [merged.id]
     );
-    snap(
-      15,
-      `The forest shrinks to ${roots.length} tree${roots.length > 1 ? "s" : ""}.`,
-      "merge",
-      [merged.id]
-    );
+    snap(15, msg("n.huff.shrink", { count: roots.length }), "merge", [merged.id]);
   }
 
-  snap(17, "One tree left — the Huffman tree is complete.", "merge", [roots[0]]);
+  snap(17, msg("n.huff.complete"), "merge", [roots[0]]);
 
   // Emit codes: DFS with left=0, right=1.
   const emit = (id: number, path: string) => {
@@ -382,7 +392,9 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
       codes[n.ch ?? "?"] = path || "0";
       snap(
         23,
-        `Leaf '${n.ch}' reached along ${path || "the root"} → code ${path || "0"}.`,
+        path
+          ? msg("n.huff.leaf", { ch: n.ch ?? "?", path, code: path })
+          : msg("n.huff.leafRoot", { ch: n.ch ?? "?", code: "0" }),
         "code",
         [id]
       );
@@ -395,14 +407,22 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
 
   snap(
     27,
-    `Done. Frequent characters got short codes: ${Object.entries(codes)
-      .map(([c, code]) => `${c}=${code}`)
-      .join(", ")}.`,
+    msg("n.huff.done", {
+      codes: Object.entries(codes)
+        .map(([c, code]) => `${c}=${code}`)
+        .join(", "),
+    }),
     "done",
     []
   );
   return { freqs: sorted, steps };
 }
 
-const label = (n: HuffNode): string =>
-  n.ch ? `'${n.ch}' (${n.freq})` : `internal (${n.freq})`;
+/**
+ * A forest root as a nested note, so "internal" is translated and each label
+ * carries its own values (the two picked roots may both be internal nodes).
+ */
+const label = (n: HuffNode): Note =>
+  n.ch
+    ? msg("n.huff.leafLabel", { ch: n.ch, freq: n.freq })
+    : msg("n.huff.internal", { freq: n.freq });

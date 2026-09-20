@@ -1,3 +1,4 @@
+import { msg } from "./note";
 import { makeRecorder } from "./sorting";
 import type { SimulationStep } from "./types";
 
@@ -15,19 +16,19 @@ export function linearSearchSteps(
   const w = { i: 0 };
   setWatch(w);
 
-  record("info", [], 0, `Scanning ${n} elements for ${target}.`);
+  record("info", [], 0, msg("n.linear.start", { n, target }));
 
   for (let i = 0; i < n; i++) {
     w.i = i;
-    record("probe", [i], 2, `Is arr[${i}] = ${arr[i]} equal to ${target}?`);
+    record("probe", [i], 2, msg("n.linear.probe", { index: i, value: arr[i], target }));
     if (arr[i] === target) {
       sorted.add(i);
-      record("found", [i], 3, `Match! ${target} is at index ${i}.`);
+      record("found", [i], 3, msg("n.linear.match", { target, index: i }));
       return steps;
     }
   }
 
-  record("info", [], 5, `${target} is not in the array — return -1.`);
+  record("info", [], 5, msg("n.linear.absent", { target }));
   return steps;
 }
 
@@ -48,7 +49,7 @@ export function binarySearchSteps(
 
   let lo = 0;
   let hi = n - 1;
-  record("info", [], 1, `Searching a sorted array of ${n} for ${target}.`, [lo, hi]);
+  record("info", [], 1, msg("n.binary.start", { n, target }), [lo, hi]);
 
   while (lo <= hi) {
     const mid = Math.floor(lo + (hi - lo) / 2);
@@ -59,38 +60,32 @@ export function binarySearchSteps(
       "probe",
       [mid],
       3,
-      `Window [${lo}..${hi}] — check the middle arr[${mid}] = ${arr[mid]}.`,
+      msg("n.binary.probe", { lo, hi, mid, value: arr[mid] }),
       [lo, hi]
     );
     if (arr[mid] === target) {
       sorted.add(mid);
-      record("found", [mid], 5, `Match! ${target} is at index ${mid}.`, [lo, hi]);
+      record("found", [mid], 5, msg("n.binary.match", { target, index: mid }), [lo, hi]);
       return steps;
     }
     if (arr[mid] < target) {
       lo = mid + 1;
       w.lo = lo;
-      record(
-        "compare",
-        [mid],
-        7,
-        `${arr[mid]} < ${target} — discard the left half.`,
-        [lo, hi]
-      );
+      record("compare", [mid], 7, msg("n.binary.right", { value: arr[mid], target }), [
+        lo,
+        hi,
+      ]);
     } else {
       hi = mid - 1;
       w.hi = hi;
-      record(
-        "compare",
-        [mid],
-        9,
-        `${arr[mid]} > ${target} — discard the right half.`,
-        [lo, hi]
-      );
+      record("compare", [mid], 9, msg("n.binary.left", { value: arr[mid], target }), [
+        lo,
+        hi,
+      ]);
     }
   }
 
-  record("info", [], 11, `Window is empty — ${target} is not present.`);
+  record("info", [], 11, msg("n.binary.empty", { target }));
   return steps;
 }
 
@@ -110,7 +105,7 @@ export function jumpSearchSteps(
   setWatch(w);
 
   if (n === 0) {
-    record("info", [], 16, "Empty array — nothing to search.");
+    record("info", [], 16, msg("n.jump.empty"));
     return steps;
   }
 
@@ -118,7 +113,7 @@ export function jumpSearchSteps(
   let prev = 0;
   let step = jump;
   w.step = step;
-  record("info", [], 1, `Sorted array of ${n} — jump size = ⌊√${n}⌋ = ${jump}.`, [0, n - 1]);
+  record("info", [], 1, msg("n.jump.start", { n, jump }), [0, n - 1]);
 
   while (arr[Math.min(step, n) - 1] < target) {
     const probe = Math.min(step, n) - 1;
@@ -126,7 +121,7 @@ export function jumpSearchSteps(
       "probe",
       [probe],
       3,
-      `Block end arr[${probe}] = ${arr[probe]} < ${target} — jump past this block.`,
+      msg("n.jump.blockEnd", { index: probe, value: arr[probe], target }),
       [prev, probe]
     );
     prev = step;
@@ -134,43 +129,43 @@ export function jumpSearchSteps(
     w.prev = prev;
     w.step = step;
     if (prev >= n) {
-      record("info", [], 7, `Jumped past the end — ${target} is not present.`);
+      record("info", [], 7, msg("n.jump.pastEnd", { target }));
       return steps;
     }
   }
 
   const blockEnd = Math.min(step, n) - 1;
-  record(
-    "info",
-    [],
-    9,
-    `Target may be in block [${prev}..${blockEnd}] — scan it linearly.`,
-    [prev, blockEnd]
-  );
+  record("info", [], 9, msg("n.jump.scanBlock", { lo: prev, hi: blockEnd }), [
+    prev,
+    blockEnd,
+  ]);
 
   while (arr[prev] < target) {
     record(
       "probe",
       [prev],
       9,
-      `arr[${prev}] = ${arr[prev]} < ${target} — step forward.`,
+      msg("n.jump.step", { index: prev, value: arr[prev], target }),
       [prev, blockEnd]
     );
     prev++;
     w.prev = prev;
     if (prev === Math.min(step, n)) {
-      record("info", [], 12, `Reached the block end — ${target} is not present.`);
+      record("info", [], 12, msg("n.jump.blockDone", { target }));
       return steps;
     }
   }
 
   if (arr[prev] === target) {
     sorted.add(prev);
-    record("found", [prev], 15, `Match! ${target} is at index ${prev}.`, [prev, blockEnd]);
+    record("found", [prev], 15, msg("n.jump.match", { target, index: prev }), [
+      prev,
+      blockEnd,
+    ]);
     return steps;
   }
 
-  record("info", [], 16, `${target} is not present — return -1.`);
+  record("info", [], 16, msg("n.jump.absent", { target }));
   return steps;
 }
 
@@ -191,19 +186,22 @@ export function interpolationSearchSteps(
 
   let lo = 0;
   let hi = n - 1;
-  record("info", [], 1, `Searching a sorted array of ${n} for ${target}.`, [lo, hi]);
+  record("info", [], 1, msg("n.interp.start", { n, target }), [lo, hi]);
 
   while (lo <= hi && target >= arr[lo] && target <= arr[hi]) {
     w.lo = lo;
     w.hi = hi;
     if (lo === hi) {
       w.pos = lo;
-      record("probe", [lo], 4, `Window is a single cell — check arr[${lo}] = ${arr[lo]}.`, [lo, hi]);
+      record("probe", [lo], 4, msg("n.interp.single", { index: lo, value: arr[lo] }), [
+        lo,
+        hi,
+      ]);
       if (arr[lo] === target) {
         sorted.add(lo);
-        record("found", [lo], 4, `Match! ${target} is at index ${lo}.`, [lo, hi]);
+        record("found", [lo], 4, msg("n.interp.match", { target, index: lo }), [lo, hi]);
       } else {
-        record("info", [], 5, `${arr[lo]} ≠ ${target} — not present.`);
+        record("info", [], 5, msg("n.interp.singleMiss", { value: arr[lo], target }));
       }
       return steps;
     }
@@ -218,7 +216,7 @@ export function interpolationSearchSteps(
         "found",
         [lo],
         8,
-        `All values in [${lo}..${hi}] equal ${arr[lo]} — match at index ${lo}.`,
+        msg("n.interp.flat", { lo, hi, value: arr[lo], index: lo }),
         [lo, hi]
       );
       return steps;
@@ -231,25 +229,31 @@ export function interpolationSearchSteps(
       "probe",
       [pos],
       9,
-      `Estimate pos = ${pos} from value ${target} in [${arr[lo]}..${arr[hi]}].`,
+      msg("n.interp.estimate", { pos, target, lo: arr[lo], hi: arr[hi] }),
       [lo, hi]
     );
     if (arr[pos] === target) {
       sorted.add(pos);
-      record("found", [pos], 12, `Match! ${target} is at index ${pos}.`, [lo, hi]);
+      record("found", [pos], 12, msg("n.interp.match", { target, index: pos }), [lo, hi]);
       return steps;
     }
     if (arr[pos] < target) {
       lo = pos + 1;
       w.lo = lo;
-      record("compare", [pos], 14, `${arr[pos]} < ${target} — search the right part.`, [lo, hi]);
+      record("compare", [pos], 14, msg("n.interp.right", { value: arr[pos], target }), [
+        lo,
+        hi,
+      ]);
     } else {
       hi = pos - 1;
       w.hi = hi;
-      record("compare", [pos], 16, `${arr[pos]} > ${target} — search the left part.`, [lo, hi]);
+      record("compare", [pos], 16, msg("n.interp.left", { value: arr[pos], target }), [
+        lo,
+        hi,
+      ]);
     }
   }
 
-  record("info", [], 18, `${target} is outside the remaining window — not present.`);
+  record("info", [], 18, msg("n.interp.outside", { target }));
   return steps;
 }

@@ -125,7 +125,7 @@ interface WorkspaceProps {
 }
 
 export default function Workspace({ category, algorithm }: WorkspaceProps) {
-  const { t, lang } = useLang();
+  const { t, tn, lang } = useLang();
   const codeLines = useMemo(() => algorithm.code.split("\n"), [algorithm.code]);
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
@@ -749,7 +749,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       <span
                         className={`size-2 shrink-0 rounded-full ${KIND_STYLES[step.kind].dot}`}
                       />
-                      <span className="truncate">{step.note}</span>
+                      <span className="truncate">{tn(step.note)}</span>
                     </p>
                     <div className="mt-2 flex items-center gap-2">
                       <input

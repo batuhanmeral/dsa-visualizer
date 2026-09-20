@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { msg, type Note } from "@/lib/simulations/note";
 import { SpeedSelect } from "./step-player";
 
 /**
@@ -34,7 +35,7 @@ import { SpeedSelect } from "./step-player";
 interface OpFrame {
   /** 0-based line of the algorithm's C code (must match lib/data.ts). */
   line: number;
-  note: string;
+  note: Note;
   /** State mutation applied exactly when this frame fires. */
   apply?: () => void;
 }
@@ -62,8 +63,7 @@ interface VizProps {
 
 // ── Shared code-walk runner ─────────────────────────────────────────────
 function useRunner(onLine: (line: number) => void, speed: number) {
-  const { t } = useLang();
-  const [note, setNote] = useState(() => t("ds.pickOp"));
+  const [note, setNote] = useState<Note>(() => msg("n.ds.pickOp"));
   const [busy, setBusy] = useState(false);
   const timers = useRef<number[]>([]);
   const speedRef = useRef(speed);
@@ -113,9 +113,10 @@ function VizShell({
 }: {
   children: ReactNode;
   controls: ReactNode;
-  note: string;
+  note: Note;
   busy: boolean;
 }) {
+  const { tn } = useLang();
   return (
     <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
       <div className="scrollbar-slim flex min-h-0 flex-1 items-center justify-center overflow-auto">
@@ -130,7 +131,7 @@ function VizShell({
                 busy ? "animate-pulse bg-emerald-500" : "bg-zinc-400"
               }`}
             />
-            <span className="truncate">{note}</span>
+            <span className="truncate">{tn(note)}</span>
           </p>
           <SpeedSelect />
         </div>
@@ -224,11 +225,11 @@ function StackViz({ speed, onLine }: VizProps) {
     if (v === null) return;
     const item = { id: nextId(), value: v };
     run([
-      { line: 7, note: `push(${v}): call.` },
-      { line: 8, note: "top == MAX - 1? No — room to spare." },
+      { line: 7, note: msg("n.stack.pushCall", { v }) },
+      { line: 8, note: msg("n.stack.room") },
       {
         line: 9,
-        note: `Store ${v} at the new top.`,
+        note: msg("n.stack.store", { v }),
         apply: () => setItems((s) => [...s, item]),
       },
     ]);
@@ -237,18 +238,18 @@ function StackViz({ speed, onLine }: VizProps) {
   const pop = () => {
     if (!items.length) {
       run([
-        { line: 12, note: "pop(): call." },
-        { line: 13, note: "top == -1 → stack empty, return -1." },
+        { line: 12, note: msg("n.stack.popCall") },
+        { line: 13, note: msg("n.stack.popEmpty") },
       ]);
       return;
     }
     const top = items[items.length - 1];
     run([
-      { line: 12, note: "pop(): call." },
-      { line: 13, note: "top == -1? No." },
+      { line: 12, note: msg("n.stack.popCall") },
+      { line: 13, note: msg("n.stack.notEmpty") },
       {
         line: 14,
-        note: `Return top ${top.value} and shrink the stack.`,
+        note: msg("n.stack.popReturn", { v: top.value }),
         apply: () => setItems((s) => s.slice(0, -1)),
       },
     ]);
@@ -277,7 +278,7 @@ function StackViz({ speed, onLine }: VizProps) {
             icon={Eraser}
             onClick={() => {
               setItems([]);
-              run([{ line: 4, note: "Stack cleared (top = -1)." }]);
+              run([{ line: 4, note: msg("n.stack.cleared") }]);
             }}
             disabled={busy}
           >
@@ -331,36 +332,36 @@ function QueueViz({ speed, onLine }: VizProps) {
     if (v === null) return;
     const item = { id: nextId(), value: v };
     run([
-      { line: 7, note: `enqueue(${v}): call.` },
-      { line: 8, note: "size == MAX? No — room left." },
-      { line: 9, note: "Advance rear (circular index)." },
+      { line: 7, note: msg("n.queue.enqueueCall", { v }) },
+      { line: 8, note: msg("n.queue.room") },
+      { line: 9, note: msg("n.queue.advanceRear") },
       {
         line: 10,
-        note: `Write ${v} at the rear.`,
+        note: msg("n.queue.write", { v }),
         apply: () => setItems((s) => [...s, item]),
       },
-      { line: 11, note: "size++." },
+      { line: 11, note: msg("n.queue.sizeUp") },
     ]);
   };
 
   const dequeue = () => {
     if (!items.length) {
       run([
-        { line: 14, note: "dequeue(): call." },
-        { line: 15, note: "size == 0 → queue empty, return -1." },
+        { line: 14, note: msg("n.queue.dequeueCall") },
+        { line: 15, note: msg("n.queue.dequeueEmpty") },
       ]);
       return;
     }
     const front = items[0];
     run([
-      { line: 14, note: "dequeue(): call." },
-      { line: 15, note: "size == 0? No." },
-      { line: 16, note: `Read front value ${front.value}.` },
-      { line: 17, note: "Advance front (circular index)." },
-      { line: 18, note: "size--." },
+      { line: 14, note: msg("n.queue.dequeueCall") },
+      { line: 15, note: msg("n.queue.notEmpty") },
+      { line: 16, note: msg("n.queue.readFront", { v: front.value }) },
+      { line: 17, note: msg("n.queue.advanceFront") },
+      { line: 18, note: msg("n.queue.sizeDown") },
       {
         line: 19,
-        note: `Return ${front.value}.`,
+        note: msg("n.queue.return", { v: front.value }),
         apply: () => setItems((s) => s.slice(1)),
       },
     ]);
@@ -389,7 +390,7 @@ function QueueViz({ speed, onLine }: VizProps) {
             icon={Eraser}
             onClick={() => {
               setItems([]);
-              run([{ line: 4, note: "Queue cleared (size = 0)." }]);
+              run([{ line: 4, note: msg("n.queue.cleared") }]);
             }}
             disabled={busy}
           >
@@ -446,13 +447,13 @@ function LinkedListViz({ speed, onLine }: VizProps) {
     if (v === null) return;
     const item = { id: nextId(), value: v };
     run([
-      { line: 5, note: `pushFront(${v}): call.` },
-      { line: 6, note: "Allocate a new node." },
-      { line: 7, note: `node->data = ${v}.` },
-      { line: 8, note: "node->next = current head." },
+      { line: 5, note: msg("n.list.pushCall", { v }) },
+      { line: 6, note: msg("n.list.allocate") },
+      { line: 7, note: msg("n.list.setData", { v }) },
+      { line: 8, note: msg("n.list.setNext") },
       {
         line: 9,
-        note: "Return the new node as head.",
+        note: msg("n.list.returnHead"),
         apply: () => {
           setCursor(null);
           setItems((s) => [item, ...s]);
@@ -464,21 +465,21 @@ function LinkedListViz({ speed, onLine }: VizProps) {
   const remove = () => {
     const v = clampInt(val);
     if (v === null) return;
-    const frames: OpFrame[] = [{ line: 12, note: `removeValue(${v}): call.` }];
+    const frames: OpFrame[] = [{ line: 12, note: msg("n.list.removeCall", { v }) }];
     let matched = false;
     for (let i = 0; i < items.length; i++) {
       const node = items[i];
       frames.push({
         line: 13,
-        note: i === 0 ? "head == NULL? No." : "Sub-list NULL? No.",
+        note: msg(i === 0 ? "n.list.headNotNull" : "n.list.subNotNull"),
         apply: () => setCursor(node.id),
       });
-      frames.push({ line: 14, note: `head->data ${node.value} == ${v}?` });
+      frames.push({ line: 14, note: msg("n.list.compare", { value: node.value, v }) });
       if (node.value === v) {
-        frames.push({ line: 15, note: "Match — save head->next." });
+        frames.push({ line: 15, note: msg("n.list.match") });
         frames.push({
           line: 16,
-          note: `free the node holding ${v}.`,
+          note: msg("n.list.free", { v }),
           apply: () => {
             setItems((s) => s.filter((x) => x.id !== node.id));
             setCursor(null);
@@ -487,12 +488,12 @@ function LinkedListViz({ speed, onLine }: VizProps) {
         matched = true;
         break;
       }
-      frames.push({ line: 19, note: "No match — recurse on the next node." });
+      frames.push({ line: 19, note: msg("n.list.recurse") });
     }
     if (!matched) {
       frames.push({
         line: 13,
-        note: `Reached NULL — ${v} is not in the list.`,
+        note: msg("n.list.absent", { v }),
         apply: () => setCursor(null),
       });
     }
@@ -523,7 +524,7 @@ function LinkedListViz({ speed, onLine }: VizProps) {
             onClick={() => {
               setItems([]);
               setCursor(null);
-              run([{ line: 13, note: "List cleared (head = NULL)." }]);
+              run([{ line: 13, note: msg("n.list.cleared") }]);
             }}
             disabled={busy}
           >
@@ -589,27 +590,25 @@ function HashTableViz({ speed, onLine }: VizProps) {
     const collided = buckets[b].length > 0;
     const item = { id: nextId(), value: k };
     run([
-      { line: 13, note: `insert(${k}): call.` },
+      { line: 13, note: msg("n.hash.insertCall", { k }) },
       {
         line: 14,
-        note: `hash(${k}) = ${k} % ${BUCKETS} = ${b}.`,
+        note: msg("n.hash.hash", { k, buckets: BUCKETS, b }),
         apply: () => {
           setFlash(null);
           setCursor(null);
           setActiveBucket(b);
         },
       },
-      { line: 15, note: "Allocate a new entry." },
-      { line: 16, note: `entry->key = ${k}.` },
+      { line: 15, note: msg("n.hash.allocate") },
+      { line: 16, note: msg("n.hash.setKey", { k }) },
       {
         line: 17,
-        note: collided
-          ? "Bucket occupied — chain in front (collision)."
-          : "Bucket empty — no collision.",
+        note: msg(collided ? "n.hash.collision" : "n.hash.noCollision"),
       },
       {
         line: 18,
-        note: `Store entry at bucket ${b}.`,
+        note: msg("n.hash.store", { b }),
         apply: () =>
           setBuckets((bs) =>
             bs.map((chain, i) => (i === b ? [item, ...chain] : chain))
@@ -624,10 +623,10 @@ function HashTableViz({ speed, onLine }: VizProps) {
     const b = k % BUCKETS;
     const chain = buckets[b];
     const frames: OpFrame[] = [
-      { line: 21, note: `contains(${k}): call.` },
+      { line: 21, note: msg("n.hash.containsCall", { k }) },
       {
         line: 22,
-        note: `Walk bucket hash(${k}) = ${b}.`,
+        note: msg("n.hash.walk", { k, b }),
         apply: () => {
           setFlash(null);
           setCursor(null);
@@ -639,14 +638,14 @@ function HashTableViz({ speed, onLine }: VizProps) {
     for (const entry of chain) {
       frames.push({
         line: 22,
-        note: `Visit entry ${entry.value}.`,
+        note: msg("n.hash.visit", { value: entry.value }),
         apply: () => setCursor(entry.id),
       });
-      frames.push({ line: 23, note: `${entry.value} == ${k}?` });
+      frames.push({ line: 23, note: msg("n.hash.compare", { value: entry.value, k }) });
       if (entry.value === k) {
         frames.push({
           line: 23,
-          note: `Found ${k} — return 1.`,
+          note: msg("n.hash.found", { k }),
           apply: () => setFlash("found"),
         });
         matched = true;
@@ -656,7 +655,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
     if (!matched) {
       frames.push({
         line: 24,
-        note: `${k} not in bucket ${b} — return 0.`,
+        note: msg("n.hash.missing", { k, b }),
         apply: () => {
           setCursor(null);
           setFlash("missing");
@@ -692,7 +691,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
               setActiveBucket(null);
               setCursor(null);
               setFlash(null);
-              run([{ line: 7, note: "Table cleared (all buckets empty)." }]);
+              run([{ line: 7, note: msg("n.hash.cleared") }]);
             }}
             disabled={busy}
           >

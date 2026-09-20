@@ -4,9 +4,11 @@
  * `codeLine` values are 0-based and MUST match the C code in lib/data.ts.
  */
 
+import { msg, type Note } from "./note";
+
 export interface DPStep {
   codeLine: number;
-  note: string;
+  note: Note;
   /** Full table snapshot; `null` = not yet computed. */
   table: (number | null)[][];
   /** Cell being written this step. */
@@ -37,7 +39,7 @@ export function lcsSteps(aRaw: string, bRaw: string): LCSResult {
   const steps: DPStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     active: [number, number] | undefined,
     deps: [number, number][],
     match?: boolean
@@ -54,19 +56,16 @@ export function lcsSteps(aRaw: string, bRaw: string): LCSResult {
   for (let i = 0; i <= m; i++) {
     for (let j = 0; j <= n; j++) {
       if (i === 0 || j === 0) {
-        snap(8, `Row ${i}, col ${j}: an empty string has no subsequence.`, [
-          i,
-          j,
-        ], []);
+        snap(8, msg("n.lcs.base", { i, j }), [i, j], []);
         dp[i][j] = 0;
-        snap(9, `Base case → dp[${i}][${j}] = 0.`, [i, j], []);
+        snap(9, msg("n.lcs.baseSet", { i, j }), [i, j], []);
       } else {
         const ca = a[i - 1];
         const cb = b[j - 1];
         const isMatch = ca === cb;
         snap(
           10,
-          `Compare a[${i - 1}]='${ca}' with b[${j - 1}]='${cb}'.`,
+          msg("n.lcs.compare", { i: i - 1, ca, j: j - 1, cb }),
           [i, j],
           [],
           isMatch
@@ -76,9 +75,7 @@ export function lcsSteps(aRaw: string, bRaw: string): LCSResult {
           dp[i][j] = val;
           snap(
             11,
-            `Match! Extend the diagonal: dp[${i}][${j}] = dp[${i - 1}][${
-              j - 1
-            }] + 1 = ${val}.`,
+            msg("n.lcs.match", { i, j, pi: i - 1, pj: j - 1, value: val }),
             [i, j],
             [[i - 1, j - 1]],
             true
@@ -90,7 +87,7 @@ export function lcsSteps(aRaw: string, bRaw: string): LCSResult {
           dp[i][j] = val;
           snap(
             13,
-            `No match — carry the best neighbour: max(${up}, ${left}) = ${val}.`,
+            msg("n.lcs.noMatch", { up, left, value: val }),
             [i, j],
             [
               [i - 1, j],
@@ -103,12 +100,7 @@ export function lcsSteps(aRaw: string, bRaw: string): LCSResult {
     }
   }
 
-  snap(
-    16,
-    `Done. The longest common subsequence of "${a}" and "${b}" has length ${dp[m][n]}.`,
-    [m, n],
-    []
-  );
+  snap(16, msg("n.lcs.done", { a, b, value: dp[m][n] ?? 0 }), [m, n], []);
   return { a, b, steps };
 }
 
@@ -135,7 +127,7 @@ export function knapsackSteps(
   const steps: DPStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     active: [number, number] | undefined,
     deps: [number, number][]
   ) =>
@@ -151,10 +143,7 @@ export function knapsackSteps(
     for (let c = 0; c <= W; c++) {
       if (i === 0 || c === 0) {
         dp[i][c] = 0;
-        snap(8, `Base case (no items or no capacity) → dp[${i}][${c}] = 0.`, [
-          i,
-          c,
-        ], []);
+        snap(8, msg("n.knap.base", { i, c }), [i, c], []);
       } else {
         const w = items[i - 1].weight;
         const v = items[i - 1].value;
@@ -163,7 +152,7 @@ export function knapsackSteps(
           dp[i][c] = val;
           snap(
             10,
-            `Item ${i} (w=${w}) is heavier than capacity ${c} — skip it: dp[${i}][${c}] = ${val}.`,
+            msg("n.knap.tooHeavy", { i, w, c, value: val }),
             [i, c],
             [[i - 1, c]]
           );
@@ -174,9 +163,14 @@ export function knapsackSteps(
           dp[i][c] = val;
           snap(
             13,
-            `Item ${i}: skip=${skip} vs take=${take} (${
-              dp[i - 1][c - w] ?? 0
-            }+${v}). Best = ${val}.`,
+            msg("n.knap.choose", {
+              i,
+              skip,
+              take,
+              prev: dp[i - 1][c - w] ?? 0,
+              v,
+              value: val,
+            }),
             [i, c],
             [
               [i - 1, c],
@@ -188,12 +182,7 @@ export function knapsackSteps(
     }
   }
 
-  snap(
-    16,
-    `Done. Max value within capacity ${W} is ${dp[n][W]}.`,
-    [n, W],
-    []
-  );
+  snap(16, msg("n.knap.done", { W, value: dp[n][W] ?? 0 }), [n, W], []);
   return { items, capacity: W, steps };
 }
 
@@ -209,7 +198,7 @@ export function editDistanceSteps(aRaw: string, bRaw: string): LCSResult {
   const steps: DPStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     active: [number, number] | undefined,
     deps: [number, number][],
     match?: boolean
@@ -226,35 +215,35 @@ export function editDistanceSteps(aRaw: string, bRaw: string): LCSResult {
   for (let i = 0; i <= m; i++) {
     for (let j = 0; j <= n; j++) {
       if (i === 0) {
-        snap(11, `Turning "" into the first ${j} of "${b}" needs ${j} inserts.`, [i, j], []);
+        snap(11, msg("n.edit.baseRow", { j, b }), [i, j], []);
         dp[i][j] = j;
-        snap(12, `Base row → dp[0][${j}] = ${j}.`, [i, j], []);
+        snap(12, msg("n.edit.baseRowSet", { j }), [i, j], []);
       } else if (j === 0) {
-        snap(13, `Turning the first ${i} of "${a}" into "" needs ${i} deletes.`, [i, j], []);
+        snap(13, msg("n.edit.baseCol", { i, a }), [i, j], []);
         dp[i][j] = i;
-        snap(14, `Base column → dp[${i}][0] = ${i}.`, [i, j], []);
+        snap(14, msg("n.edit.baseColSet", { i }), [i, j], []);
       } else {
         const ca = a[i - 1];
         const cb = b[j - 1];
         if (ca === cb) {
           const val = dp[i - 1][j - 1] ?? 0;
-          snap(15, `a[${i - 1}]='${ca}' == b[${j - 1}]='${cb}' — no edit needed.`, [i, j], [], true);
+          snap(15, msg("n.edit.same", { i: i - 1, ca, j: j - 1, cb }), [i, j], [], true);
           dp[i][j] = val;
-          snap(16, `Carry the diagonal: dp[${i}][${j}] = dp[${i - 1}][${j - 1}] = ${val}.`, [i, j], [[i - 1, j - 1]], true);
+          snap(16, msg("n.edit.carry", { i, j, pi: i - 1, pj: j - 1, value: val }), [i, j], [[i - 1, j - 1]], true);
         } else {
           const rep = dp[i - 1][j - 1] ?? 0;
           const del = dp[i - 1][j] ?? 0;
           const ins = dp[i][j - 1] ?? 0;
           const val = 1 + Math.min(rep, del, ins);
-          snap(17, `'${ca}' != '${cb}' — take 1 + the cheapest edit.`, [i, j], [], false);
+          snap(17, msg("n.edit.differ", { ca, cb }), [i, j], [], false);
           dp[i][j] = val;
-          snap(18, `1 + min(replace ${rep}, delete ${del}, insert ${ins}) = ${val}.`, [i, j], [[i - 1, j - 1], [i - 1, j], [i, j - 1]], false);
+          snap(18, msg("n.edit.min", { rep, del, ins, value: val }), [i, j], [[i - 1, j - 1], [i - 1, j], [i, j - 1]], false);
         }
       }
     }
   }
 
-  snap(22, `Done. Edit distance between "${a}" and "${b}" is ${dp[m][n]}.`, [m, n], []);
+  snap(22, msg("n.edit.done", { a, b, value: dp[m][n] ?? 0 }), [m, n], []);
   return { a, b, steps };
 }
 
@@ -276,7 +265,7 @@ export function coinChangeSteps(coins: number[], amount: number): CoinResult {
   const show = (v: number) => (v >= COIN_INF ? "∞" : v);
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     active: [number, number] | undefined,
     deps: [number, number][]
   ) =>
@@ -291,27 +280,27 @@ export function coinChangeSteps(coins: number[], amount: number): CoinResult {
   for (let i = 0; i <= n; i++) {
     for (let a = 0; a <= amount; a++) {
       if (a === 0) {
-        snap(9, `Amount 0 costs nothing.`, [i, a], []);
+        snap(9, msg("n.coin.zero"), [i, a], []);
         dp[i][a] = 0;
-        snap(10, `dp[${i}][0] = 0.`, [i, a], []);
+        snap(10, msg("n.coin.zeroSet", { i }), [i, a], []);
       } else if (i === 0) {
-        snap(11, `No coins available for amount ${a}.`, [i, a], []);
+        snap(11, msg("n.coin.noCoins", { a }), [i, a], []);
         dp[i][a] = COIN_INF;
-        snap(12, `Unreachable → dp[0][${a}] = ∞.`, [i, a], []);
+        snap(12, msg("n.coin.unreachable", { a }), [i, a], []);
       } else {
         const coin = coins[i - 1];
         if (coin > a) {
           const val = dp[i - 1][a] ?? COIN_INF;
-          snap(13, `Coin ${coin} > amount ${a} — can't use it.`, [i, a], []);
+          snap(13, msg("n.coin.tooBig", { coin, a }), [i, a], []);
           dp[i][a] = val;
-          snap(14, `Inherit above: dp[${i}][${a}] = ${show(val)}.`, [i, a], [[i - 1, a]]);
+          snap(14, msg("n.coin.inherit", { i, a, value: show(val) }), [i, a], [[i - 1, a]]);
         } else {
           const skip = dp[i - 1][a] ?? COIN_INF;
           const take = (dp[i][a - coin] ?? COIN_INF) + 1;
           const val = Math.min(skip, take);
-          snap(15, `Use coin ${coin}? skip=${show(skip)} vs take=${show(take)}.`, [i, a], []);
+          snap(15, msg("n.coin.ask", { coin, skip: show(skip), take: show(take) }), [i, a], []);
           dp[i][a] = val;
-          snap(16, `dp[${i}][${a}] = min(${show(skip)}, ${show(take)}) = ${show(val)}.`, [i, a], [[i - 1, a], [i, a - coin]]);
+          snap(16, msg("n.coin.min", { i, a, skip: show(skip), take: show(take), value: show(val) }), [i, a], [[i - 1, a], [i, a - coin]]);
         }
       }
     }
@@ -321,8 +310,8 @@ export function coinChangeSteps(coins: number[], amount: number): CoinResult {
   snap(
     20,
     best >= COIN_INF
-      ? `Done. Amount ${amount} cannot be made from these coins.`
-      : `Done. Minimum coins for ${amount} is ${best}.`,
+      ? msg("n.coin.impossible", { amount })
+      : msg("n.coin.done", { amount, value: best }),
     [n, amount],
     []
   );
@@ -353,7 +342,7 @@ export function floydWarshallSteps(graph: number[][] = FW_GRAPH): FloydResult {
     v === null || v >= FW_INF ? "∞" : String(v);
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     k: number | undefined,
     active: [number, number] | undefined,
     deps: [number, number][]
@@ -367,10 +356,10 @@ export function floydWarshallSteps(graph: number[][] = FW_GRAPH): FloydResult {
       k,
     });
 
-  snap(3, `Start from the edge matrix: dist[i][j] = direct edge (∞ = none).`, undefined, undefined, []);
+  snap(3, msg("n.floyd.start"), undefined, undefined, []);
 
   for (let k = 0; k < V; k++) {
-    snap(4, `Round k = ${k}: may any pair improve by stopping over at node ${k}?`, k, undefined, []);
+    snap(4, msg("n.floyd.round", { k }), k, undefined, []);
     for (let i = 0; i < V; i++) {
       for (let j = 0; j < V; j++) {
         // i==j never improves; legs touching k are the identity — skip the noise.
@@ -381,7 +370,7 @@ export function floydWarshallSteps(graph: number[][] = FW_GRAPH): FloydResult {
         if (ik >= FW_INF || kj >= FW_INF) {
           snap(
             7,
-            `dist[${i}][${k}] + dist[${k}][${j}] = ${show(ik)} + ${show(kj)} — no path through ${k}.`,
+            msg("n.floyd.noPath", { i, k, j, ik: show(ik), kj: show(kj) }),
             k,
             [i, j],
             [
@@ -393,7 +382,15 @@ export function floydWarshallSteps(graph: number[][] = FW_GRAPH): FloydResult {
         }
         snap(
           7,
-          `Via ${k}: ${show(ik)} + ${show(kj)} = ${ik + kj} vs current dist[${i}][${j}] = ${show(ij)}.`,
+          msg("n.floyd.via", {
+            k,
+            ik: show(ik),
+            kj: show(kj),
+            sum: ik + kj,
+            i,
+            j,
+            ij: show(ij),
+          }),
           k,
           [i, j],
           [
@@ -405,7 +402,7 @@ export function floydWarshallSteps(graph: number[][] = FW_GRAPH): FloydResult {
           dist[i][j] = ik + kj;
           snap(
             8,
-            `Shorter — dist[${i}][${j}] = ${ik + kj} (through node ${k}).`,
+            msg("n.floyd.update", { i, j, sum: ik + kj, k }),
             k,
             [i, j],
             [
@@ -418,7 +415,7 @@ export function floydWarshallSteps(graph: number[][] = FW_GRAPH): FloydResult {
     }
   }
 
-  snap(13, `Done. dist[i][j] is now the shortest path between every pair.`, undefined, undefined, []);
+  snap(13, msg("n.floyd.done"), undefined, undefined, []);
   return { size: V, steps };
 }
 
@@ -433,16 +430,16 @@ export function fibonacciSteps(n: number): FibResult {
   const steps: DPStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     active: [number, number] | undefined,
     deps: [number, number][]
   ) => steps.push({ codeLine, note, table: [row.slice()], active, deps });
 
   row[0] = 0;
-  snap(3, `Base case: dp[0] = 0.`, [0, 0], []);
+  snap(3, msg("n.fib.base0"), [0, 0], []);
   if (n >= 1) {
     row[1] = 1;
-    snap(4, `Base case: dp[1] = 1.`, [0, 1], []);
+    snap(4, msg("n.fib.base1"), [0, 1], []);
   }
   for (let i = 2; i <= n; i++) {
     const a = row[i - 1] ?? 0;
@@ -450,12 +447,12 @@ export function fibonacciSteps(n: number): FibResult {
     row[i] = a + b;
     snap(
       6,
-      `dp[${i}] = dp[${i - 1}] + dp[${i - 2}] = ${a} + ${b} = ${a + b}.`,
+      msg("n.fib.step", { i, a: i - 1, b: i - 2, va: a, vb: b, sum: a + b }),
       [0, i],
       [[0, i - 1], [0, i - 2]]
     );
   }
-  snap(7, `Done. The ${n}th Fibonacci number is ${row[n]}.`, [0, n], []);
+  snap(7, msg("n.fib.done", { n, value: row[n] ?? 0 }), [0, n], []);
   return { n, steps };
 }
 
@@ -473,7 +470,7 @@ export function kadaneSteps(input: number[]): KadaneResult {
   const steps: DPStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     active: [number, number] | undefined,
     deps: [number, number][]
   ) => steps.push({ codeLine, note, table: [row.slice()], active, deps });
@@ -481,32 +478,32 @@ export function kadaneSteps(input: number[]): KadaneResult {
   let cur = a[0];
   let best = a[0];
   row[0] = a[0];
-  snap(1, `Start: best = cur = a[0] = ${a[0]}.`, [0, 0], []);
+  snap(1, msg("n.kadane.start", { value: a[0] }), [0, 0], []);
 
   for (let i = 1; i < n; i++) {
     const extend = cur + a[i];
     snap(
       4,
-      `Extend the run (${cur} + ${a[i]} = ${extend}) or restart at ${a[i]}?`,
+      msg("n.kadane.ask", { cur, value: a[i], sum: extend }),
       [0, i],
       [[0, i - 1]]
     );
     if (extend > a[i]) {
       cur = extend;
       row[i] = cur;
-      snap(5, `Extend — the prefix helps: cur = ${cur}.`, [0, i], [[0, i - 1]]);
+      snap(5, msg("n.kadane.extend", { cur }), [0, i], [[0, i - 1]]);
     } else {
       cur = a[i];
       row[i] = cur;
-      snap(7, `Restart — the prefix only drags the sum down: cur = ${cur}.`, [0, i], []);
+      snap(7, msg("n.kadane.restart", { cur }), [0, i], []);
     }
     if (cur > best) {
       best = cur;
-      snap(9, `New best subarray sum: ${best}.`, [0, i], []);
+      snap(9, msg("n.kadane.newBest", { best }), [0, i], []);
     }
   }
 
-  snap(11, `Done. Maximum subarray sum is ${best}.`, undefined, []);
+  snap(11, msg("n.kadane.done", { best }), undefined, []);
   return { values: a, steps };
 }
 
@@ -523,7 +520,7 @@ export function lisSteps(input: number[]): LISResult {
   const steps: DPStep[] = [];
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     active: [number, number] | undefined,
     deps: [number, number][]
   ) => steps.push({ codeLine, note, table: [dp.slice()], active, deps });
@@ -531,22 +528,22 @@ export function lisSteps(input: number[]): LISResult {
   let best = 0;
   for (let i = 0; i < n; i++) {
     dp[i] = 1;
-    snap(4, `dp[${i}] = 1 — value ${a[i]} on its own.`, [0, i], []);
+    snap(4, msg("n.lis.init", { i, value: a[i] }), [0, i], []);
     for (let j = 0; j < i; j++) {
       snap(
         6,
-        `Can ${a[i]} extend the run ending at ${a[j]}? (${a[j]} < ${a[i]}?)`,
+        msg("n.lis.ask", { value: a[i], prev: a[j] }),
         [0, i],
         [[0, j]]
       );
       if (a[j] < a[i] && (dp[j] ?? 0) + 1 > (dp[i] ?? 0)) {
         dp[i] = (dp[j] ?? 0) + 1;
-        snap(7, `Yes — dp[${i}] = dp[${j}] + 1 = ${dp[i]}.`, [0, i], [[0, j]]);
+        snap(7, msg("n.lis.extend", { i, j, value: dp[i] ?? 0 }), [0, i], [[0, j]]);
       }
     }
     if ((dp[i] ?? 0) > best) best = dp[i] ?? 0;
-    snap(9, `Longest increasing subsequence so far: ${best}.`, [0, i], []);
+    snap(9, msg("n.lis.best", { best }), [0, i], []);
   }
-  snap(11, `Done. The longest increasing subsequence has length ${best}.`, undefined, []);
+  snap(11, msg("n.lis.done", { best }), undefined, []);
   return { values: a, steps };
 }

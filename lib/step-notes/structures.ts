@@ -1,0 +1,123 @@
+/**
+ * Step notes for the operation-driven data-structure walkthroughs
+ * (`components/data-structure-viz.tsx`). These used to be inline English
+ * strings, which left the Turkish UI narrating stack/queue/list/table
+ * operations in English.
+ */
+export const en = {
+  "n.ds.pickOp": "Pick an operation to walk through the code.",
+
+  // Stack
+  "n.stack.pushCall": "push({v}): call.",
+  "n.stack.room": "top == MAX - 1? No — room to spare.",
+  "n.stack.store": "Store {v} at the new top.",
+  "n.stack.popCall": "pop(): call.",
+  "n.stack.popEmpty": "top == -1 → stack empty, return -1.",
+  "n.stack.notEmpty": "top == -1? No.",
+  "n.stack.popReturn": "Return top {v} and shrink the stack.",
+  "n.stack.cleared": "Stack cleared (top = -1).",
+
+  // Queue
+  "n.queue.enqueueCall": "enqueue({v}): call.",
+  "n.queue.room": "size == MAX? No — room left.",
+  "n.queue.advanceRear": "Advance rear (circular index).",
+  "n.queue.write": "Write {v} at the rear.",
+  "n.queue.sizeUp": "size++.",
+  "n.queue.dequeueCall": "dequeue(): call.",
+  "n.queue.dequeueEmpty": "size == 0 → queue empty, return -1.",
+  "n.queue.notEmpty": "size == 0? No.",
+  "n.queue.readFront": "Read front value {v}.",
+  "n.queue.advanceFront": "Advance front (circular index).",
+  "n.queue.sizeDown": "size--.",
+  "n.queue.return": "Return {v}.",
+  "n.queue.cleared": "Queue cleared (size = 0).",
+
+  // Linked list
+  "n.list.pushCall": "pushFront({v}): call.",
+  "n.list.allocate": "Allocate a new node.",
+  "n.list.setData": "node->data = {v}.",
+  "n.list.setNext": "node->next = current head.",
+  "n.list.returnHead": "Return the new node as head.",
+  "n.list.removeCall": "removeValue({v}): call.",
+  "n.list.headNotNull": "head == NULL? No.",
+  "n.list.subNotNull": "Sub-list NULL? No.",
+  "n.list.compare": "head->data {value} == {v}?",
+  "n.list.match": "Match — save head->next.",
+  "n.list.free": "free the node holding {v}.",
+  "n.list.recurse": "No match — recurse on the next node.",
+  "n.list.absent": "Reached NULL — {v} is not in the list.",
+  "n.list.cleared": "List cleared (head = NULL).",
+
+  // Hash table
+  "n.hash.insertCall": "insert({k}): call.",
+  "n.hash.hash": "hash({k}) = {k} % {buckets} = {b}.",
+  "n.hash.allocate": "Allocate a new entry.",
+  "n.hash.setKey": "entry->key = {k}.",
+  "n.hash.collision": "Bucket occupied — chain in front (collision).",
+  "n.hash.noCollision": "Bucket empty — no collision.",
+  "n.hash.store": "Store entry at bucket {b}.",
+  "n.hash.containsCall": "contains({k}): call.",
+  "n.hash.walk": "Walk bucket hash({k}) = {b}.",
+  "n.hash.visit": "Visit entry {value}.",
+  "n.hash.compare": "{value} == {k}?",
+  "n.hash.found": "Found {k} — return 1.",
+  "n.hash.missing": "{k} not in bucket {b} — return 0.",
+  "n.hash.cleared": "Table cleared (all buckets empty).",
+} as const;
+
+export const tr: Partial<Record<keyof typeof en, string>> = {
+  "n.ds.pickOp": "Kodu adım adım izlemek için bir işlem seçin.",
+
+  "n.stack.pushCall": "push({v}): çağrı.",
+  "n.stack.room": "top == MAX - 1? Hayır — yer var.",
+  "n.stack.store": "{v}, yeni tepeye yazılıyor.",
+  "n.stack.popCall": "pop(): çağrı.",
+  "n.stack.popEmpty": "top == -1 → yığın boş, -1 döndürülüyor.",
+  "n.stack.notEmpty": "top == -1? Hayır.",
+  "n.stack.popReturn": "Tepedeki {v} döndürülüyor ve yığın küçülüyor.",
+  "n.stack.cleared": "Yığın temizlendi (top = -1).",
+
+  "n.queue.enqueueCall": "enqueue({v}): çağrı.",
+  "n.queue.room": "size == MAX? Hayır — yer var.",
+  "n.queue.advanceRear": "rear ilerletiliyor (dairesel indeks).",
+  "n.queue.write": "{v}, kuyruğun sonuna yazılıyor.",
+  "n.queue.sizeUp": "size++.",
+  "n.queue.dequeueCall": "dequeue(): çağrı.",
+  "n.queue.dequeueEmpty": "size == 0 → kuyruk boş, -1 döndürülüyor.",
+  "n.queue.notEmpty": "size == 0? Hayır.",
+  "n.queue.readFront": "Baştaki değer {v} okunuyor.",
+  "n.queue.advanceFront": "front ilerletiliyor (dairesel indeks).",
+  "n.queue.sizeDown": "size--.",
+  "n.queue.return": "{v} döndürülüyor.",
+  "n.queue.cleared": "Kuyruk temizlendi (size = 0).",
+
+  "n.list.pushCall": "pushFront({v}): çağrı.",
+  "n.list.allocate": "Yeni bir düğüm ayrılıyor.",
+  "n.list.setData": "node->data = {v}.",
+  "n.list.setNext": "node->next = mevcut head.",
+  "n.list.returnHead": "Yeni düğüm head olarak döndürülüyor.",
+  "n.list.removeCall": "removeValue({v}): çağrı.",
+  "n.list.headNotNull": "head == NULL? Hayır.",
+  "n.list.subNotNull": "Alt liste NULL? Hayır.",
+  "n.list.compare": "head->data {value} == {v}?",
+  "n.list.match": "Eşleşme — head->next saklanıyor.",
+  "n.list.free": "{v} değerini tutan düğüm serbest bırakılıyor.",
+  "n.list.recurse": "Eşleşme yok — sonraki düğümde özyinelenir.",
+  "n.list.absent": "NULL'a ulaşıldı — {v} listede yok.",
+  "n.list.cleared": "Liste temizlendi (head = NULL).",
+
+  "n.hash.insertCall": "insert({k}): çağrı.",
+  "n.hash.hash": "hash({k}) = {k} % {buckets} = {b}.",
+  "n.hash.allocate": "Yeni bir kayıt ayrılıyor.",
+  "n.hash.setKey": "entry->key = {k}.",
+  "n.hash.collision": "Kova dolu — öne zincirleniyor (çakışma).",
+  "n.hash.noCollision": "Kova boş — çakışma yok.",
+  "n.hash.store": "Kayıt {b} numaralı kovaya yazılıyor.",
+  "n.hash.containsCall": "contains({k}): çağrı.",
+  "n.hash.walk": "hash({k}) = {b} kovası taranıyor.",
+  "n.hash.visit": "{value} kaydı inceleniyor.",
+  "n.hash.compare": "{value} == {k}?",
+  "n.hash.found": "{k} bulundu — 1 döndürülüyor.",
+  "n.hash.missing": "{k}, {b} numaralı kovada yok — 0 döndürülüyor.",
+  "n.hash.cleared": "Tablo temizlendi (tüm kovalar boş).",
+};

@@ -4,6 +4,8 @@
  * `codeLine` values are 0-based and MUST match the C code in lib/data.ts.
  */
 
+import { msg, type Note } from "./note";
+
 export interface GraphNode {
   id: number;
   /** Position in the SVG viewBox (0..VIEW_W, 0..VIEW_H). */
@@ -25,7 +27,7 @@ export interface Graph {
 
 export interface GraphStep {
   codeLine: number;
-  note: string;
+  note: Note;
   /** Nodes fully processed (dequeued / finalised / added to MST). */
   visited: number[];
   /** Nodes discovered but still pending — queue / stack / open set. */
@@ -127,7 +129,7 @@ export function bfsSteps(g: Graph, start: number): GraphStep[] {
   let current: number | null = null;
   let edge: [number, number] | undefined;
 
-  const snap = (codeLine: number, note: string) =>
+  const snap = (codeLine: number, note: Note) =>
     steps.push({
       codeLine,
       note,
@@ -140,37 +142,39 @@ export function bfsSteps(g: Graph, start: number): GraphStep[] {
 
   visited[start] = true;
   queue.push(start);
-  snap(6, `Mark source ${start} as visited.`);
-  snap(7, `Enqueue ${start}. Queue: [${queue.join(", ")}].`);
+  snap(6, msg("n.bfs.markSource", { node: start }));
+  snap(7, msg("n.bfs.enqueueSource", { node: start, queue: queue.join(", ") }));
 
   while (queue.length) {
-    snap(9, `Queue not empty — keep exploring.`);
+    snap(9, msg("n.bfs.notEmpty"));
     current = queue.shift()!;
     order.push(current);
     edge = undefined;
-    snap(10, `Dequeue ${current} — it is next in FIFO order.`);
-    snap(11, `Visit ${current}. Output: ${order.join(" → ")}.`);
+    snap(10, msg("n.bfs.dequeue", { node: current }));
+    snap(11, msg("n.bfs.visit", { node: current, order: order.join(" → ") }));
 
     for (let v = 0; v < V; v++) {
       if (!m[current][v]) continue;
       edge = [current, v];
       snap(
         13,
-        `Look at neighbour ${v} of ${current}` +
-          (visited[v] ? " — already visited, skip." : " — undiscovered.")
+        msg(visited[v] ? "n.bfs.neighbourSeen" : "n.bfs.neighbourNew", {
+          to: v,
+          from: current,
+        })
       );
       if (!visited[v]) {
         visited[v] = true;
-        snap(14, `Mark ${v} as visited.`);
+        snap(14, msg("n.bfs.mark", { node: v }));
         queue.push(v);
-        snap(15, `Enqueue ${v}. Queue: [${queue.join(", ")}].`);
+        snap(15, msg("n.bfs.enqueue", { node: v, queue: queue.join(", ") }));
       }
     }
     edge = undefined;
   }
 
   current = null;
-  snap(9, `Queue empty — BFS complete. Order: ${order.join(" → ")}.`);
+  snap(9, msg("n.bfs.done", { order: order.join(" → ") }));
   return steps;
 }
 
@@ -184,7 +188,7 @@ export function dfsSteps(g: Graph, start: number): GraphStep[] {
   const steps: GraphStep[] = [];
   let edge: [number, number] | undefined;
 
-  const snap = (codeLine: number, note: string, current: number | null) =>
+  const snap = (codeLine: number, note: Note, current: number | null) =>
     steps.push({
       codeLine,
       note,
@@ -200,33 +204,35 @@ export function dfsSteps(g: Graph, start: number): GraphStep[] {
     visited[u] = true;
     order.push(u);
     edge = undefined;
-    snap(3, `Enter dfs(${u}) — mark ${u} visited.`, u);
-    snap(4, `Visit ${u}. Output: ${order.join(" → ")}.`, u);
+    snap(3, msg("n.dfs.enter", { node: u }), u);
+    snap(4, msg("n.dfs.visit", { node: u, order: order.join(" → ") }), u);
 
     for (let v = 0; v < V; v++) {
       if (!m[u][v]) continue;
       edge = [u, v];
       snap(
         6,
-        `Neighbour ${v} of ${u}` +
-          (visited[v] ? " — already visited, skip." : " — dive in."),
+        msg(visited[v] ? "n.dfs.neighbourSeen" : "n.dfs.neighbourNew", {
+          to: v,
+          from: u,
+        }),
         u
       );
       if (!visited[v]) {
-        snap(7, `Recurse: dfs(${v}).`, u);
+        snap(7, msg("n.dfs.recurse", { node: v }), u);
         visit(v);
         edge = [u, v];
-        snap(6, `Back in dfs(${u}); continue its neighbours.`, u);
+        snap(6, msg("n.dfs.back", { node: u }), u);
       }
     }
     stack.pop();
     edge = undefined;
     const parent = stack.length ? stack[stack.length - 1] : null;
-    snap(9, `dfs(${u}) returns — backtrack.`, parent);
+    snap(9, msg("n.dfs.return", { node: u }), parent);
   };
 
   visit(start);
-  steps[steps.length - 1].note = `DFS complete. Order: ${order.join(" → ")}.`;
+  steps[steps.length - 1].note = msg("n.dfs.done", { order: order.join(" → ") });
   return steps;
 }
 
@@ -246,7 +252,7 @@ export function dijkstraSteps(g: Graph, src: number): GraphStep[] {
     for (let i = 0; i < V; i++) if (dist[i] < INF) out[i] = dist[i];
     return out;
   };
-  const snap = (codeLine: number, note: string) =>
+  const snap = (codeLine: number, note: Note) =>
     steps.push({
       codeLine,
       note,
@@ -258,9 +264,9 @@ export function dijkstraSteps(g: Graph, src: number): GraphStep[] {
       order: order.slice(),
     });
 
-  snap(5, `Initialise every distance to ∞.`);
+  snap(5, msg("n.dijkstra.init"));
   dist[src] = 0;
-  snap(6, `Distance to source ${src} is 0.`);
+  snap(6, msg("n.dijkstra.source", { node: src }));
 
   for (let count = 0; count < V - 1; count++) {
     let u = -1;
@@ -270,10 +276,10 @@ export function dijkstraSteps(g: Graph, src: number): GraphStep[] {
 
     current = u;
     edge = undefined;
-    snap(12, `Nearest unvisited node is ${u} (distance ${dist[u]}).`);
+    snap(12, msg("n.dijkstra.pick", { node: u, dist: dist[u] }));
     visited[u] = true;
     order.push(u);
-    snap(13, `Lock in ${u} — its shortest distance is final.`);
+    snap(13, msg("n.dijkstra.lock", { node: u }));
 
     for (let v = 0; v < V; v++) {
       if (!m[u][v] || visited[v]) continue;
@@ -281,13 +287,18 @@ export function dijkstraSteps(g: Graph, src: number): GraphStep[] {
       const relaxed = dist[u] + m[u][v];
       snap(
         16,
-        `Edge ${u}→${v} (weight ${m[u][v]}): ${dist[u]} + ${m[u][v]} = ${relaxed} vs ${
-          dist[v] === INF ? "∞" : dist[v]
-        }.`
+        msg("n.dijkstra.relax", {
+          from: u,
+          to: v,
+          w: m[u][v],
+          du: dist[u],
+          sum: relaxed,
+          dv: dist[v] === INF ? "@n.graph.inf" : dist[v],
+        })
       );
       if (relaxed < dist[v]) {
         dist[v] = relaxed;
-        snap(18, `Shorter — update dist[${v}] = ${relaxed}.`);
+        snap(18, msg("n.dijkstra.update", { to: v, value: relaxed }));
       }
     }
     edge = undefined;
@@ -298,7 +309,7 @@ export function dijkstraSteps(g: Graph, src: number): GraphStep[] {
   const summary = g.nodes
     .map((n) => `${n.id}:${dist[n.id] === INF ? "∞" : dist[n.id]}`)
     .join("  ");
-  snap(20, `Done. Distances from ${src} → ${summary}.`);
+  snap(20, msg("n.dijkstra.done", { src, summary }));
   return steps;
 }
 
@@ -322,7 +333,7 @@ export function bellmanFordSteps(g: Graph, src: number): GraphStep[] {
       number,
       number,
     ][];
-  const snap = (codeLine: number, note: string) =>
+  const snap = (codeLine: number, note: Note) =>
     steps.push({
       codeLine,
       note,
@@ -335,9 +346,9 @@ export function bellmanFordSteps(g: Graph, src: number): GraphStep[] {
       order: [],
     });
 
-  snap(4, `Initialise every distance to ∞.`);
+  snap(4, msg("n.bellman.init"));
   dist[src] = 0;
-  snap(5, `Distance to source ${src} is 0.`);
+  snap(5, msg("n.bellman.source", { node: src }));
 
   for (let pass = 1; pass < V; pass++) {
     let changed = false;
@@ -350,22 +361,28 @@ export function bellmanFordSteps(g: Graph, src: number): GraphStep[] {
         const relaxed = dist[u] + m[u][v];
         snap(
           12,
-          `Pass ${pass}: relax ${u}→${v} (w ${m[u][v]}): ${dist[u]} + ${m[u][v]} = ${relaxed} vs ${
-            dist[v] === INF ? "∞" : dist[v]
-          }.`
+          msg("n.bellman.relax", {
+            pass,
+            from: u,
+            to: v,
+            w: m[u][v],
+            du: dist[u],
+            sum: relaxed,
+            dv: dist[v] === INF ? "@n.graph.inf" : dist[v],
+          })
         );
         if (relaxed < dist[v]) {
           dist[v] = relaxed;
           pred[v] = u;
           changed = true;
-          snap(13, `Shorter — update dist[${v}] = ${relaxed}.`);
+          snap(13, msg("n.bellman.update", { to: v, value: relaxed }));
         }
       }
     }
     current = null;
     edge = undefined;
     if (!changed) {
-      snap(7, `Pass ${pass} changed nothing — distances have converged.`);
+      snap(7, msg("n.bellman.converged", { pass }));
       break;
     }
   }
@@ -375,7 +392,7 @@ export function bellmanFordSteps(g: Graph, src: number): GraphStep[] {
   const summary = g.nodes
     .map((n) => `${n.id}:${dist[n.id] === INF ? "∞" : dist[n.id]}`)
     .join("  ");
-  snap(17, `Done. Distances from ${src} → ${summary}.`);
+  snap(17, msg("n.bellman.done", { src, summary }));
   return steps;
 }
 
@@ -395,7 +412,7 @@ export function topoSortSteps(g: Graph): GraphStep[] {
     for (let i = 0; i < V; i++) b[i] = String(indeg[i]);
     return b;
   };
-  const snap = (codeLine: number, note: string) =>
+  const snap = (codeLine: number, note: Note) =>
     steps.push({
       codeLine,
       note,
@@ -409,25 +426,28 @@ export function topoSortSteps(g: Graph): GraphStep[] {
 
   for (let u = 0; u < V; u++)
     for (let v = 0; v < V; v++) if (m[u][v]) indeg[v]++;
-  snap(6, `Count in-degrees (badge under each node).`);
+  snap(6, msg("n.topo.indegrees"));
 
   for (let v = 0; v < V; v++) if (indeg[v] === 0) queue.push(v);
-  snap(10, `Seed the queue with in-degree-0 nodes: [${queue.join(", ")}].`);
+  snap(10, msg("n.topo.seed", { queue: queue.join(", ") }));
 
   while (queue.length) {
     current = queue.shift()!;
     order.push(current);
     edge = undefined;
-    snap(13, `Dequeue ${current}.`);
-    snap(14, `Emit ${current}. Order: ${order.join(" → ")}.`);
+    snap(13, msg("n.topo.dequeue", { node: current }));
+    snap(14, msg("n.topo.emit", { node: current, order: order.join(" → ") }));
     for (let v = 0; v < V; v++) {
       if (!m[current][v]) continue;
       edge = [current, v];
       indeg[v]--;
       snap(
         16,
-        `Remove edge ${current}→${v}; in-degree of ${v} is now ${indeg[v]}` +
-          (indeg[v] === 0 ? " — ready." : ".")
+        msg(indeg[v] === 0 ? "n.topo.removeReady" : "n.topo.remove", {
+          from: current,
+          to: v,
+          indeg: indeg[v],
+        })
       );
       if (indeg[v] === 0) queue.push(v);
     }
@@ -435,7 +455,7 @@ export function topoSortSteps(g: Graph): GraphStep[] {
   }
 
   current = null;
-  snap(19, `Done. Topological order: ${order.join(" → ")}.`);
+  snap(19, msg("n.topo.done", { order: order.join(" → ") }));
   return steps;
 }
 
@@ -462,7 +482,7 @@ export function primSteps(g: Graph, start: number): GraphStep[] {
       .map((v) => [parent[v], v] as [number, number]);
   const weight = () =>
     treeEdges().reduce((s, [a, b]) => s + m[a][b], 0);
-  const snap = (codeLine: number, note: string) =>
+  const snap = (codeLine: number, note: Note) =>
     steps.push({
       codeLine,
       note,
@@ -478,7 +498,7 @@ export function primSteps(g: Graph, start: number): GraphStep[] {
     });
 
   key[start] = 0;
-  snap(7, `Start from ${start}: key[${start}] = 0, all others ∞.`);
+  snap(7, msg("n.prim.start", { node: start }));
 
   for (let count = 0; count < V; count++) {
     let u = -1;
@@ -493,8 +513,14 @@ export function primSteps(g: Graph, start: number): GraphStep[] {
     snap(
       14,
       parent[u] >= 0
-        ? `Add ${u} via edge ${parent[u]}–${u} (w ${m[parent[u]][u]}). MST weight ${weight()}.`
-        : `Add start node ${u} to the MST.`
+        ? msg("n.prim.add", {
+            node: u,
+            from: parent[u],
+            to: u,
+            w: m[parent[u]][u],
+            weight: weight(),
+          })
+        : msg("n.prim.addStart", { node: u })
     );
 
     for (let v = 0; v < V; v++) {
@@ -502,14 +528,17 @@ export function primSteps(g: Graph, start: number): GraphStep[] {
       edge = [u, v];
       snap(
         17,
-        `Edge ${u}–${v} (w ${m[u][v]}) vs current key[${v}] = ${
-          key[v] === INF ? "∞" : key[v]
-        }.`
+        msg("n.prim.consider", {
+          from: u,
+          to: v,
+          w: m[u][v],
+          key: key[v] === INF ? "@n.graph.inf" : key[v],
+        })
       );
       if (m[u][v] < key[v]) {
         key[v] = m[u][v];
         parent[v] = u;
-        snap(19, `Cheaper — key[${v}] = ${m[u][v]}, parent = ${u}.`);
+        snap(19, msg("n.prim.cheaper", { to: v, w: m[u][v], from: u }));
       }
     }
     edge = undefined;
@@ -517,7 +546,7 @@ export function primSteps(g: Graph, start: number): GraphStep[] {
 
   current = null;
   edge = undefined;
-  snap(22, `Done. Minimum spanning tree weight is ${weight()}.`);
+  snap(22, msg("n.prim.done", { weight: weight() }));
   return steps;
 }
 
@@ -547,7 +576,7 @@ export function kruskalSteps(g: Graph): GraphStep[] {
     );
     return s + (e?.weight ?? 0);
   }, 0);
-  const snap = (codeLine: number, note: string) =>
+  const snap = (codeLine: number, note: Note) =>
     steps.push({
       codeLine,
       note,
@@ -561,34 +590,42 @@ export function kruskalSteps(g: Graph): GraphStep[] {
       order: [],
     });
 
-  snap(9, `Put each node in its own set (badge = set root).`);
+  snap(9, msg("n.kruskal.makeSets"));
   snap(
     10,
-    `Sort edges by weight: ${sorted
-      .map((e) => `${e.from}–${e.to}(${e.weight})`)
-      .join(", ")}.`
+    msg("n.kruskal.sorted", {
+      edges: sorted
+        .map((e) => `${e.from}–${e.to}(${e.weight})`)
+        .join(", "),
+    })
   );
 
   for (const e of sorted) {
     edge = [e.from, e.to];
     const a = find(e.from);
     const b = find(e.to);
-    snap(13, `Edge ${e.from}–${e.to} (w ${e.weight}): roots ${a} and ${b}.`);
+    snap(
+      13,
+      msg("n.kruskal.consider", {
+        from: e.from,
+        to: e.to,
+        w: e.weight,
+        ra: a,
+        rb: b,
+      })
+    );
     if (a !== b) {
       parent[a] = b;
       tree.push([e.from, e.to]);
-      snap(
-        16,
-        `Different sets — union them and keep the edge. MST weight ${weight()}.`
-      );
+      snap(16, msg("n.kruskal.keep", { weight: weight() }));
     } else {
       rejected.push([e.from, e.to]);
-      snap(15, `Same set — this edge would form a cycle, skip it.`);
+      snap(15, msg("n.kruskal.cycle"));
     }
   }
 
   edge = undefined;
-  snap(18, `Done. Minimum spanning tree weight is ${weight()}.`);
+  snap(18, msg("n.kruskal.done", { weight: weight() }));
   return steps;
 }
 
@@ -628,7 +665,7 @@ export function aStarSteps(g: Graph, src: number, goal = 5): GraphStep[] {
   };
   const snap = (
     codeLine: number,
-    note: string,
+    note: Note,
     tree: [number, number][] = []
   ) =>
     steps.push({
@@ -648,7 +685,7 @@ export function aStarSteps(g: Graph, src: number, goal = 5): GraphStep[] {
 
   gscore[src] = 0;
   f[src] = h[src];
-  snap(8, `Goal is ${goal}. g[${src}] = 0, f[${src}] = h = ${h[src]}.`);
+  snap(8, msg("n.astar.start", { goal, src, h: h[src] }));
 
   for (let count = 0; count < V; count++) {
     let u = -1;
@@ -658,13 +695,17 @@ export function aStarSteps(g: Graph, src: number, goal = 5): GraphStep[] {
 
     current = u;
     edge = undefined;
-    snap(14, `Lowest f is node ${u} (g ${gscore[u]} + h ${h[u]} = ${f[u]}).`, pathTo(u));
+    snap(
+      14,
+      msg("n.astar.pick", { node: u, g: gscore[u], h: h[u], f: f[u] }),
+      pathTo(u)
+    );
     if (u === goal) {
-      snap(15, `Reached the goal ${goal}! Shortest cost = ${gscore[u]}.`, pathTo(u));
+      snap(15, msg("n.astar.reached", { goal, cost: gscore[u] }), pathTo(u));
       break;
     }
     closed[u] = true;
-    snap(16, `Close ${u} — its best cost is settled.`, pathTo(u));
+    snap(16, msg("n.astar.close", { node: u }), pathTo(u));
 
     for (let v = 0; v < V; v++) {
       if (!m[u][v]) continue;
@@ -672,16 +713,21 @@ export function aStarSteps(g: Graph, src: number, goal = 5): GraphStep[] {
       const tentative = gscore[u] + m[u][v];
       snap(
         19,
-        `Edge ${u}→${v} (w ${m[u][v]}): g ${gscore[u]} + ${m[u][v]} = ${tentative} vs ${
-          gscore[v] === INF ? "∞" : gscore[v]
-        }.`,
+        msg("n.astar.relax", {
+          from: u,
+          to: v,
+          w: m[u][v],
+          g: gscore[u],
+          sum: tentative,
+          gv: gscore[v] === INF ? "@n.graph.inf" : gscore[v],
+        }),
         pathTo(u)
       );
       if (tentative < gscore[v]) {
         gscore[v] = tentative;
         f[v] = tentative + h[v];
         pred[v] = u;
-        snap(21, `Better — g[${v}] = ${tentative}, f[${v}] = ${f[v]}.`, pathTo(v));
+        snap(21, msg("n.astar.better", { to: v, g: tentative, f: f[v] }), pathTo(v));
       }
     }
     edge = undefined;

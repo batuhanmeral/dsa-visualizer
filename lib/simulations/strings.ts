@@ -4,6 +4,8 @@
 // scrubs through them. `codeLine` is the 0-based line into the matching C
 // snippet in `lib/data.ts`.
 
+import { msg, type Note } from "./note";
+
 export type Tone =
   | "idle"
   | "active" // pointer currently under inspection
@@ -32,7 +34,7 @@ export interface StrVar {
 
 export interface StringStep {
   codeLine: number;
-  note: string;
+  note: Note;
   tracks: Track[];
   vars?: StrVar[];
   status: Tone;
@@ -63,7 +65,7 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
 
   const emitBuild = (
     codeLine: number,
-    note: string,
+    note: Note,
     i: number,
     len: number,
     status: Tone
@@ -82,25 +84,25 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
 
   // Phase 1 — build the longest-proper-prefix-suffix table.
   shown[0] = 0;
-  emitBuild(2, "lps[0] = 0 — a single character has no proper prefix", 0, 0, "window");
+  emitBuild(2, msg("n.kmp.lps0"), 0, 0, "window");
   let len = 0;
   let i = 1;
   while (i < m) {
-    emitBuild(4, `Compare p[${i}]='${p[i]}' with p[${len}]='${p[len]}'`, i, len, "active");
+    emitBuild(4, msg("n.kmp.compare", { i, pi: p[i], len, pl: p[len] }), i, len, "active");
     if (p[i] === p[len]) {
       len++;
       lps[i] = len;
       shown[i] = len;
-      emitBuild(5, `Match — extend prefix, lps[${i}] = ${len}`, i, len - 1, "match");
+      emitBuild(5, msg("n.kmp.extend", { i, len }), i, len - 1, "match");
       i++;
     } else if (len > 0) {
       const from = len - 1;
       len = lps[from];
-      emitBuild(7, `Mismatch — fall back to len = lps[${from}] = ${len}`, i, len, "mismatch");
+      emitBuild(7, msg("n.kmp.fallback", { from, len }), i, len, "mismatch");
     } else {
       lps[i] = 0;
       shown[i] = 0;
-      emitBuild(9, `Mismatch with len 0 — lps[${i}] = 0`, i, len, "mismatch");
+      emitBuild(9, msg("n.kmp.zero", { i }), i, len, "mismatch");
       i++;
     }
   }
@@ -120,7 +122,7 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
   };
   const emitSearch = (
     codeLine: number,
-    note: string,
+    note: Note,
     ti: number,
     pj: number,
     status: Tone
@@ -140,30 +142,32 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
   i = 0;
   let j = 0;
   while (i < n) {
-    emitSearch(21, `Compare t[${i}]='${t[i]}' with p[${j}]='${p[j]}'`, i, j, "active");
+    emitSearch(21, msg("n.kmp.scan", { i, ti: t[i], j, pj: p[j] }), i, j, "active");
     if (t[i] === p[j]) {
       i++;
       j++;
       if (j === m) {
         const start = i - j;
         for (let k = start; k < i; k++) matched[k] = true;
-        emitSearch(24, `Full match found at index ${start}`, i - 1, j - 1, "done");
+        emitSearch(24, msg("n.kmp.hit", { start }), i - 1, j - 1, "done");
         j = lps[j - 1];
-        emitSearch(25, `Continue — shift j to lps[m-1] = ${j}`, i, j, "window");
+        emitSearch(25, msg("n.kmp.continue", { j }), i, j, "window");
       } else {
-        emitSearch(22, `Match — advance both pointers`, i - 1, j - 1, "match");
+        emitSearch(22, msg("n.kmp.advance"), i - 1, j - 1, "match");
       }
     } else if (j > 0) {
       j = lps[j - 1];
-      emitSearch(28, `Mismatch — reuse table, j = lps[j-1] = ${j}`, i, j, "mismatch");
+      emitSearch(28, msg("n.kmp.reuse", { j }), i, j, "mismatch");
     } else {
       i++;
-      emitSearch(30, `Mismatch with j = 0 — advance i`, i - 1, 0, "mismatch");
+      emitSearch(30, msg("n.kmp.advanceI"), i - 1, 0, "mismatch");
     }
   }
   steps.push({
     codeLine: 20,
-    note: `Scan complete — ${matched.filter(Boolean).length > 0 ? "pattern located" : "pattern not present"}`,
+    note: msg(
+      matched.filter(Boolean).length > 0 ? "n.str.located" : "n.str.absent"
+    ),
     status: "done",
     tracks: searchTracks(-1, -1),
   });
@@ -210,7 +214,7 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
   const short = (h: number) => String(h % 100000);
   steps.push({
     codeLine: 6,
-    note: `Precompute pattern hash and hash of the first window`,
+    note: msg("n.rk.precompute"),
     status: "window",
     tracks: tracks(0, 0, false),
     vars: [
@@ -223,7 +227,11 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
     const equalHash = ph === th;
     steps.push({
       codeLine: 12,
-      note: `Window at ${i}: compare hashes ${short(th)} vs ${short(ph)}${equalHash ? " — equal" : " — differ"}`,
+      note: msg(equalHash ? "n.rk.equal" : "n.rk.differ", {
+        i,
+        th: short(th),
+        ph: short(ph),
+      }),
       status: equalHash ? "match" : "window",
       tracks: tracks(i, 0, false),
       vars: [
@@ -238,7 +246,7 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
         k++;
         steps.push({
           codeLine: 14,
-          note: `Hash hit — verifying characters (${k}/${m})`,
+          note: msg("n.rk.verify", { k, m }),
           status: "active",
           tracks: tracks(i, k, false),
         });
@@ -247,14 +255,14 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
         for (let q = i; q < i + m; q++) matched[q] = true;
         steps.push({
           codeLine: 15,
-          note: `Confirmed match at index ${i}`,
+          note: msg("n.rk.confirmed", { i }),
           status: "done",
           tracks: tracks(i, m, true),
         });
       } else {
         steps.push({
           codeLine: 14,
-          note: `Spurious hit — characters differ at offset ${k}`,
+          note: msg("n.rk.spurious", { k }),
           status: "mismatch",
           tracks: tracks(i, k + 1, false),
         });
@@ -267,7 +275,7 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
       th = ((th % RK_MOD) + RK_MOD) % RK_MOD;
       steps.push({
         codeLine: 18,
-        note: `Roll the hash forward: drop '${t[i]}', add '${t[i + m]}'`,
+        note: msg("n.rk.roll", { out: t[i], in: t[i + m] }),
         status: "window",
         tracks: tracks(i + 1, 0, false),
         vars: [
@@ -279,7 +287,9 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
   }
   steps.push({
     codeLine: 11,
-    note: `Scan complete — ${matched.filter(Boolean).length > 0 ? "pattern located" : "pattern not present"}`,
+    note: msg(
+      matched.filter(Boolean).length > 0 ? "n.str.located" : "n.str.absent"
+    ),
     status: "done",
     tracks: tracks(-1, 0, false),
   });
@@ -306,7 +316,7 @@ export function zSteps(text: string): StringStep[] {
   };
   const emit = (
     codeLine: number,
-    note: string,
+    note: Note,
     i: number,
     l: number,
     r: number,
@@ -330,31 +340,31 @@ export function zSteps(text: string): StringStep[] {
   shown[0] = n;
   let l = 0;
   let r = 0;
-  emit(1, "z[0] = n by definition", 0, 0, 0, "window");
+  emit(1, msg("n.z.first"), 0, 0, 0, "window");
   for (let i = 1; i < n; i++) {
     if (i < r) {
       z[i] = Math.min(r - i, z[i - l]);
       shown[i] = z[i];
-      emit(5, `Inside [l,r): seed z[${i}] = min(${r - i}, z[${i - l}]) = ${z[i]}`, i, l, r, "match", [i - l]);
+      emit(5, msg("n.z.seed", { i, a: r - i, b: i - l, value: z[i] }), i, l, r, "match", [i - l]);
     } else {
       shown[i] = 0;
     }
     while (i + z[i] < n && s[z[i]] === s[i + z[i]]) {
       z[i]++;
       shown[i] = z[i];
-      emit(8, `Extend match: s[${z[i] - 1}]='${s[z[i] - 1]}' == s[${i + z[i] - 1}]`, i, l, r, "active", [z[i] - 1]);
+      emit(8, msg("n.z.extend", { a: z[i] - 1, ca: s[z[i] - 1], b: i + z[i] - 1 }), i, l, r, "active", [z[i] - 1]);
     }
     shown[i] = z[i];
-    emit(8, `z[${i}] = ${z[i]}`, i, l, r, z[i] > 0 ? "match" : "mismatch");
+    emit(8, msg("n.z.value", { i, value: z[i] }), i, l, r, z[i] > 0 ? "match" : "mismatch");
     if (i + z[i] > r) {
       l = i;
       r = i + z[i];
-      emit(11, `New rightmost window [${l}, ${r})`, i, l, r, "window");
+      emit(11, msg("n.z.window", { l, r }), i, l, r, "window");
     }
   }
   steps.push({
     codeLine: 14,
-    note: "Z-array complete",
+    note: msg("n.z.done"),
     status: "done",
     tracks: [track(-1, -1, -1, [])],
   });
@@ -395,7 +405,7 @@ export function manacherSteps(text: string): StringStep[] {
   };
   const emit = (
     codeLine: number,
-    note: string,
+    note: Note,
     i: number,
     c: number,
     r: number,
@@ -419,28 +429,28 @@ export function manacherSteps(text: string): StringStep[] {
   let r = 0;
   let best = 0;
   let bestCenter = 0;
-  emit(2, "Center c and right edge r start at 0", 0, 0, 0, "window");
+  emit(2, msg("n.man.start"), 0, 0, 0, "window");
   for (let i = 1; i < n - 1; i++) {
     if (i < r) {
       const mirror = 2 * c - i;
       p[i] = Math.min(r - i, p[mirror]);
       shown[i] = p[i];
-      emit(5, `Inside window: mirror p[${i}] from p[${mirror}] → ${p[i]}`, i, c, r, "match", [mirror]);
+      emit(5, msg("n.man.mirror", { i, mirror, value: p[i] }), i, c, r, "match", [mirror]);
     } else {
       shown[i] = 0;
     }
     while (t[i + p[i] + 1] === t[i - p[i] - 1]) {
       p[i]++;
       shown[i] = p[i];
-      emit(7, `Expand: '${t[i + p[i]]}' == '${t[i - p[i]]}'`, i, c, r, "active");
+      emit(7, msg("n.man.expand", { a: t[i + p[i]], b: t[i - p[i]] }), i, c, r, "active");
     }
     shown[i] = p[i];
     if (i + p[i] > r) {
       c = i;
       r = i + p[i];
-      emit(10, `New center c=${c}, right edge r=${r}`, i, c, r, "window");
+      emit(10, msg("n.man.center", { c, r }), i, c, r, "window");
     } else {
-      emit(7, `p[${i}] = ${p[i]}`, i, c, r, p[i] > 0 ? "match" : "mismatch");
+      emit(7, msg("n.man.value", { i, value: p[i] }), i, c, r, p[i] > 0 ? "match" : "mismatch");
     }
     if (p[i] > best) {
       best = p[i];
@@ -451,7 +461,7 @@ export function manacherSteps(text: string): StringStep[] {
   const start = Math.floor((bestCenter - best) / 2);
   emit(
     14,
-    `Longest palindrome: "${raw.slice(start, start + best)}" (length ${best})`,
+    msg("n.man.done", { pal: raw.slice(start, start + best), len: best }),
     bestCenter,
     bestCenter,
     r,
@@ -472,7 +482,7 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
   // Phase 1 — last-occurrence ("bad character") table over the pattern.
   const last = new Map<string, number>();
   const shown: (number | null)[] = new Array(m).fill(null);
-  const emitBuild = (codeLine: number, note: string, i: number, status: Tone) => {
+  const emitBuild = (codeLine: number, note: Note, i: number, status: Tone) => {
     const tones = idle(m);
     tones[i] = "active";
     const arrTones = idle(m);
@@ -493,8 +503,8 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
     emitBuild(
       5,
       prev === undefined
-        ? `last['${p[i]}'] = ${i} — rightmost occurrence so far`
-        : `last['${p[i]}'] = ${i} — overwrites ${prev}`,
+        ? msg("n.bm.lastNew", { ch: p[i], i })
+        : msg("n.bm.lastOver", { ch: p[i], i, prev }),
       i,
       "window"
     );
@@ -518,7 +528,7 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
   };
   const emitSearch = (
     codeLine: number,
-    note: string,
+    note: Note,
     s: number,
     j: number,
     status: Tone,
@@ -539,25 +549,25 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
   let s = 0;
   while (s <= n - m) {
     let j = m - 1;
-    emitSearch(15, `Align pattern at s = ${s}; compare right to left`, s, j, "window", "active");
+    emitSearch(15, msg("n.bm.align", { s }), s, j, "window", "active");
     while (j >= 0 && p[j] === t[s + j]) {
-      emitSearch(16, `p[${j}]='${p[j]}' == t[${s + j}]='${t[s + j]}'`, s, j, "match", "match");
+      emitSearch(16, msg("n.bm.match", { j, pj: p[j], ti: s + j, tv: t[s + j] }), s, j, "match", "match");
       j--;
     }
     if (j < 0) {
       for (let k = 0; k < m; k++) matched[s + k] = true;
-      emitSearch(19, `Full match at index ${s}`, s, -1, "done");
+      emitSearch(19, msg("n.bm.full", { s }), s, -1, "done");
       s += 1;
     } else {
       const bad = t[s + j];
-      emitSearch(16, `Mismatch: p[${j}]='${p[j]}' != t[${s + j}]='${bad}'`, s, j, "mismatch", "mismatch");
+      emitSearch(16, msg("n.bm.mismatch", { j, pj: p[j], ti: s + j, bad }), s, j, "mismatch", "mismatch");
       const lo = last.get(bad) ?? -1;
       const shift = Math.max(1, j - lo);
       emitSearch(
         23,
         lo === -1
-          ? `'${bad}' is not in the pattern — jump past it (shift ${shift})`
-          : `last['${bad}'] = ${lo} — align it under the mismatch (shift ${shift})`,
+          ? msg("n.bm.jumpPast", { bad, shift })
+          : msg("n.bm.alignUnder", { bad, lo, shift }),
         s,
         j,
         "active"
@@ -565,10 +575,9 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
       s += shift;
     }
   }
-  const totalMatches = matched.filter(Boolean).length / m;
   steps.push({
     codeLine: 25,
-    note: `Done — ${totalMatches} match${totalMatches === 1 ? "" : "es"} found`,
+    note: msg("n.bm.done", { count: matched.filter(Boolean).length / m }),
     status: "done",
     tracks: searchTracks(n, -1),
   });

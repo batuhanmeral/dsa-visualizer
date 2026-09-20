@@ -68,7 +68,7 @@ function Racer({
   /** "win" | "lose" | "tie" once the race ends, else null. */
   outcome: "win" | "lose" | "tie" | null;
 }) {
-  const { t } = useLang();
+  const { t, tn } = useLang();
   const clamped = Math.min(index, steps.length - 1);
   const step = steps[clamped];
   const done = index >= steps.length - 1;
@@ -110,7 +110,7 @@ function Racer({
       </div>
 
       <p className="mt-2.5 truncate text-[11px] text-zinc-500 dark:text-zinc-400">
-        {step.note}
+        {tn(step.note)}
       </p>
 
       {activeStats.length > 0 && (

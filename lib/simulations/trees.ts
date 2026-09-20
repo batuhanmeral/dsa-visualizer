@@ -4,6 +4,8 @@
 // position changes. `codeLine` is the 0-based line into the C snippet in
 // `lib/data.ts`.
 
+import { msg, type Note } from "./note";
+
 export type NodeTone =
   | "idle"
   | "current" // node being visited right now
@@ -41,7 +43,7 @@ export interface ArrayView {
 
 export interface TreeStep {
   codeLine: number;
-  note: string;
+  note: Note;
   nodes: VizNode[];
   edges: VizEdge[];
   cols: number;
@@ -88,7 +90,7 @@ function snapshot(
   tones: Map<string, NodeTone>,
   activeEdges: Set<string>,
   codeLine: number,
-  note: string,
+  note: Note,
   vars?: { label: string; value: string }[]
 ): TreeStep {
   const { pos, cols, depth } = layout(root);
@@ -132,7 +134,7 @@ export function bstSteps(
 
   const emit = (
     codeLine: number,
-    note: string,
+    note: Note,
     tones: Map<string, NodeTone>,
     vars?: { label: string; value: string }[]
   ) => steps.push(snapshot(root, tones, new Set(), codeLine, note, vars));
@@ -142,7 +144,7 @@ export function bstSteps(
     if (!root) {
       root = mk(key);
       const t = new Map<string, NodeTone>([[root.id, "insert"]]);
-      emit(7, `Tree empty — ${key} becomes the root`, t);
+      emit(7, msg("n.bst.root", { key }), t);
       continue;
     }
     let cur: BNode | null = root;
@@ -150,14 +152,14 @@ export function bstSteps(
     while (cur) {
       const t = new Map(walked);
       t.set(cur.id, "compare");
-      emit(8, `Insert ${key}: compare with ${cur.key}`, t);
+      emit(8, msg("n.bst.insertCompare", { key, node: cur.key }), t);
       walked.set(cur.id, "path");
       if (key < cur.key) {
         if (!cur.left) {
           cur.left = mk(key);
           const t2 = new Map(walked);
           t2.set(cur.left.id, "insert");
-          emit(9, `${key} < ${cur.key} — insert as left child`, t2);
+          emit(9, msg("n.bst.insertLeft", { key, node: cur.key }), t2);
           break;
         }
         cur = cur.left;
@@ -166,17 +168,17 @@ export function bstSteps(
           cur.right = mk(key);
           const t2 = new Map(walked);
           t2.set(cur.right.id, "insert");
-          emit(11, `${key} > ${cur.key} — insert as right child`, t2);
+          emit(11, msg("n.bst.insertRight", { key, node: cur.key }), t2);
           break;
         }
         cur = cur.right;
       } else {
-        emit(12, `${key} already present — no change`, walked);
+        emit(12, msg("n.bst.duplicate", { key }), walked);
         break;
       }
     }
   }
-  emit(12, `Built the BST from [${insertSeq.join(", ")}]`, new Map());
+  emit(12, msg("n.bst.built", { seq: insertSeq.join(", ") }), new Map());
 
   // Search phase.
   {
@@ -186,20 +188,20 @@ export function bstSteps(
     while (cur) {
       const t = new Map(walked);
       t.set(cur.id, "compare");
-      emit(16, `Search ${searchKey}: at ${cur.key}`, t);
+      emit(16, msg("n.bst.searchAt", { key: searchKey, node: cur.key }), t);
       if (cur.key === searchKey) {
         const t2 = new Map(walked);
         t2.set(cur.id, "found");
-        emit(19, `Found ${searchKey}`, t2);
+        emit(19, msg("n.bst.found", { key: searchKey }), t2);
         found = true;
         break;
       }
       walked.set(cur.id, "path");
       const goLeft = searchKey < cur.key;
       cur = goLeft ? cur.left : cur.right;
-      emit(17, `${searchKey} ${goLeft ? "<" : ">"} node — move ${goLeft ? "left" : "right"}`, new Map(walked));
+      emit(17, msg(goLeft ? "n.bst.moveLeft" : "n.bst.moveRight", { key: searchKey }), new Map(walked));
     }
-    if (!found) emit(19, `${searchKey} not in the tree`, new Map());
+    if (!found) emit(19, msg("n.bst.notFound", { key: searchKey }), new Map());
   }
 
   // Delete phase.
@@ -210,12 +212,12 @@ export function bstSteps(
   };
   const del = (n: BNode | null, key: number, walked: Map<string, NodeTone>): BNode | null => {
     if (!n) {
-      emit(23, `${key} not found — nothing to delete`, new Map(walked));
+      emit(23, msg("n.bst.delMissing", { key }), new Map(walked));
       return null;
     }
     const t = new Map(walked);
     t.set(n.id, "compare");
-    emit(24, `Delete ${key}: at ${n.key}`, t);
+    emit(24, msg("n.bst.delAt", { key, node: n.key }), t);
     if (key < n.key) {
       walked.set(n.id, "path");
       n.left = del(n.left, key, walked);
@@ -225,21 +227,21 @@ export function bstSteps(
     } else {
       const tr = new Map(walked);
       tr.set(n.id, "remove");
-      emit(28, `Found ${key} — remove this node`, tr);
+      emit(28, msg("n.bst.delFound", { key }), tr);
       if (!n.left) return n.right;
       if (!n.right) return n.left;
       const succ = minNode(n.right);
       const ts = new Map(walked);
       ts.set(n.id, "remove");
       ts.set(succ.id, "current");
-      emit(31, `Two children — copy successor ${succ.key} up`, ts);
+      emit(31, msg("n.bst.delSuccessor", { succ: succ.key }), ts);
       n.key = succ.key;
       n.right = del(n.right, succ.key, walked);
     }
     return n;
   };
   root = del(root, deleteKey, new Map());
-  emit(35, `Deleted ${deleteKey} — BST property preserved`, new Map());
+  emit(35, msg("n.bst.deleted", { key: deleteKey }), new Map());
   return steps;
 }
 
@@ -261,7 +263,7 @@ export function avlSteps(insertSeq: number[]): TreeStep[] {
 
   const emit = (
     codeLine: number,
-    note: string,
+    note: Note,
     tones: Map<string, NodeTone>,
     active = new Set<string>()
   ) => {
@@ -287,43 +289,43 @@ export function avlSteps(insertSeq: number[]): TreeStep[] {
       const node = mk(key);
       const t = new Map(walked);
       t.set(node.id, "insert");
-      emit(22, `Insert ${key} as a new leaf`, t);
+      emit(22, msg("n.avl.leaf", { key }), t);
       return node;
     }
     const t = new Map(walked);
     t.set(n.id, "compare");
-    emit(key < n.key ? 23 : 24, `Insert ${key}: compare with ${n.key}`, t);
+    emit(key < n.key ? 23 : 24, msg("n.avl.compare", { key, node: n.key }), t);
     walked.set(n.id, "path");
     if (key < n.key) n.left = insert(n.left, key, walked);
     else n.right = insert(n.right, key, walked);
 
     const b = bf(n);
-    emit(26, `Balance factor of ${n.key} is ${b > 0 ? "+" : ""}${b}`, new Map([[n.id, "current"]]));
+    emit(26, msg("n.avl.bf", { node: n.key, bf: `${b > 0 ? "+" : ""}${b}` }), new Map([[n.id, "current"]]));
 
     if (b > 1 && n.left && key < n.left.key) {
-      emit(27, `Left-Left case at ${n.key} — rotate right`, new Map([[n.id, "rotate"]]));
+      emit(27, msg("n.avl.ll", { node: n.key }), new Map([[n.id, "rotate"]]));
       const r = rotateRight(n);
-      emit(28, `Rotated right around ${n.key}`, new Map([[r.id, "current"]]));
+      emit(28, msg("n.avl.rotatedRight", { node: n.key }), new Map([[r.id, "current"]]));
       return r;
     }
     if (b < -1 && n.right && key > n.right.key) {
-      emit(29, `Right-Right case at ${n.key} — rotate left`, new Map([[n.id, "rotate"]]));
+      emit(29, msg("n.avl.rr", { node: n.key }), new Map([[n.id, "rotate"]]));
       const r = rotateLeft(n);
-      emit(30, `Rotated left around ${n.key}`, new Map([[r.id, "current"]]));
+      emit(30, msg("n.avl.rotatedLeft", { node: n.key }), new Map([[r.id, "current"]]));
       return r;
     }
     if (b > 1 && n.left && key > n.left.key) {
-      emit(31, `Left-Right case at ${n.key} — rotate left then right`, new Map([[n.id, "rotate"], [n.left.id, "rotate"]]));
+      emit(31, msg("n.avl.lr", { node: n.key }), new Map([[n.id, "rotate"], [n.left.id, "rotate"]]));
       n.left = rotateLeft(n.left);
       const r = rotateRight(n);
-      emit(33, `Double rotation done at ${n.key}`, new Map([[r.id, "current"]]));
+      emit(33, msg("n.avl.doubleDone", { node: n.key }), new Map([[r.id, "current"]]));
       return r;
     }
     if (b < -1 && n.right && key < n.right.key) {
-      emit(35, `Right-Left case at ${n.key} — rotate right then left`, new Map([[n.id, "rotate"], [n.right.id, "rotate"]]));
+      emit(35, msg("n.avl.rl", { node: n.key }), new Map([[n.id, "rotate"], [n.right.id, "rotate"]]));
       n.right = rotateRight(n.right);
       const r = rotateLeft(n);
-      emit(37, `Double rotation done at ${n.key}`, new Map([[r.id, "current"]]));
+      emit(37, msg("n.avl.doubleDone", { node: n.key }), new Map([[r.id, "current"]]));
       return r;
     }
     return n;
@@ -332,7 +334,7 @@ export function avlSteps(insertSeq: number[]): TreeStep[] {
   for (const key of insertSeq) {
     root = insert(root, key, new Map());
   }
-  emit(39, `AVL tree stays height-balanced after every insert`, new Map());
+  emit(39, msg("n.avl.done"), new Map());
   return steps;
 }
 
@@ -384,7 +386,7 @@ export function heapSteps(pushSeq: number[], popCount: number): TreeStep[] {
 
   const emit = (
     codeLine: number,
-    note: string,
+    note: Note,
     tones: Map<number, NodeTone>,
     active = new Set<number>()
   ) => {
@@ -414,12 +416,12 @@ export function heapSteps(pushSeq: number[], popCount: number): TreeStep[] {
     heap.push(val);
     ids.push(`n${ID++}`);
     let i = heap.length - 1;
-    emit(8, `Push ${val} at the end (index ${i})`, new Map([[i, "insert"]]));
+    emit(8, msg("n.heap.push", { value: val, index: i }), new Map([[i, "insert"]]));
     while (i > 0) {
       const parent = Math.floor((i - 1) / 2);
       emit(
         1,
-        `Sift-up: compare ${heap[i]} with parent ${heap[parent]}`,
+        msg("n.heap.siftUp", { value: heap[i], parent: heap[parent] }),
         new Map([
           [i, "current"],
           [parent, "compare"],
@@ -430,7 +432,7 @@ export function heapSteps(pushSeq: number[], popCount: number): TreeStep[] {
         swap(i, parent);
         emit(
           2,
-          `${heap[parent]} > ${heap[i]} — swap up`,
+          msg("n.heap.swapUp", { big: heap[parent], small: heap[i] }),
           new Map([
             [i, "compare"],
             [parent, "current"],
@@ -441,21 +443,21 @@ export function heapSteps(pushSeq: number[], popCount: number): TreeStep[] {
       } else break;
     }
   }
-  emit(7, `Max-heap built — root holds the maximum`, new Map([[0, "found"]]));
+  emit(7, msg("n.heap.built"), new Map([[0, "found"]]));
 
   // Pop (sift-down).
   for (let c = 0; c < popCount && heap.length > 0; c++) {
     const top = heap[0];
-    emit(24, `Pop: remove root ${top}`, new Map([[0, "remove"]]));
+    emit(24, msg("n.heap.pop", { value: top }), new Map([[0, "remove"]]));
     const last = heap.length - 1;
     swap(0, last);
     heap.pop();
     ids.pop();
     if (heap.length === 0) {
-      emit(25, `Heap is empty after popping ${top}`, new Map());
+      emit(25, msg("n.heap.empty", { value: top }), new Map());
       continue;
     }
-    emit(25, `Move last element ${heap[0]} to the root`, new Map([[0, "current"]]));
+    emit(25, msg("n.heap.moveLast", { value: heap[0] }), new Map([[0, "current"]]));
     let i = 0;
     for (;;) {
       const l = 2 * i + 1;
@@ -466,13 +468,13 @@ export function heapSteps(pushSeq: number[], popCount: number): TreeStep[] {
       const tones = new Map<number, NodeTone>([[i, "current"]]);
       if (l < heap.length) tones.set(l, "compare");
       if (r < heap.length) tones.set(r, "compare");
-      emit(14, `Sift-down: compare with children`, tones);
+      emit(14, msg("n.heap.siftDown"), tones);
       if (big === i) {
-        emit(17, `Heap property restored`, new Map([[i, "found"]]));
+        emit(17, msg("n.heap.restored"), new Map([[i, "found"]]));
         break;
       }
       swap(i, big);
-      emit(18, `Swap ${heap[i]} down`, new Map([[big, "current"]]), new Set([big]));
+      emit(18, msg("n.heap.swapDown", { value: heap[i] }), new Map([[big, "current"]]), new Set([big]));
       i = big;
     }
   }
@@ -539,7 +541,7 @@ export function trieSteps(words: string[], query: string): TreeStep[] {
 
   const emit = (
     codeLine: number,
-    note: string,
+    note: Note,
     tones: Map<string, NodeTone>,
     active = new Set<string>()
   ) => {
@@ -560,17 +562,17 @@ export function trieSteps(words: string[], query: string): TreeStep[] {
         node = child;
         const t = new Map(walked);
         t.set(child.id, "insert");
-        emit(11, `Insert "${w}": create node for '${c}'`, t, new Set([child.id]));
+        emit(11, msg("n.trie.create", { word: w, ch: c }), t, new Set([child.id]));
       } else {
         node = existing;
         const t = new Map(walked);
         t.set(existing.id, "current");
-        emit(12, `Insert "${w}": '${c}' already exists — descend`, t, new Set([existing.id]));
+        emit(12, msg("n.trie.descend", { word: w, ch: c }), t, new Set([existing.id]));
       }
       walked.set(node.id, "path");
     }
     node.end = true;
-    emit(14, `Mark end of word "${w}"`, new Map([[node.id, "found"]]));
+    emit(14, msg("n.trie.end", { word: w }), new Map([[node.id, "found"]]));
   }
 
   // Search the query prefix/word.
@@ -582,7 +584,7 @@ export function trieSteps(words: string[], query: string): TreeStep[] {
       const c = query[i];
       const next = node.children.get(c);
       if (!next) {
-        emit(21, `Search "${query}": '${c}' missing — not found`, new Map([[node.id, "remove"]]));
+        emit(21, msg("n.trie.missing", { query, ch: c }), new Map([[node.id, "remove"]]));
         ok = false;
         node = null;
         break;
@@ -590,13 +592,13 @@ export function trieSteps(words: string[], query: string): TreeStep[] {
       node = next;
       const t = new Map(walked);
       t.set(next.id, "current");
-      emit(22, `Search "${query}": match '${c}' — descend`, t, new Set([next.id]));
+      emit(22, msg("n.trie.match", { query, ch: c }), t, new Set([next.id]));
       walked.set(next.id, "path");
     }
     if (ok && node)
       emit(
         24,
-        node.end ? `"${query}" is a complete word` : `"${query}" is a valid prefix`,
+        msg(node.end ? "n.trie.word" : "n.trie.prefix", { query }),
         new Map([[node.id, "result"]])
       );
   }
@@ -639,7 +641,7 @@ export function segmentTreeSteps(
 
   const emit = (
     codeLine: number,
-    note: string,
+    note: Note,
     tones: Map<string, NodeTone>,
     active = new Set<string>(),
     view?: ArrayView
@@ -699,14 +701,20 @@ export function segmentTreeSteps(
 
   const animateBuild = (n: SegNode) => {
     if (n.lo === n.hi) {
-      emit(4, `Leaf [${n.lo}] = ${arr[n.lo]}`, new Map([[n.id, "insert"]]), new Set(), baseView([n.lo]));
+      emit(4, msg("n.seg.leaf", { index: n.lo, value: arr[n.lo] }), new Map([[n.id, "insert"]]), new Set(), baseView([n.lo]));
       return;
     }
     animateBuild(n.left!);
     animateBuild(n.right!);
     emit(
       10,
-      `Combine [${n.lo},${n.hi}] = ${n.left!.sum} + ${n.right!.sum} = ${n.sum}`,
+      msg("n.seg.combine", {
+        lo: n.lo,
+        hi: n.hi,
+        left: n.left!.sum,
+        right: n.right!.sum,
+        sum: n.sum,
+      }),
       new Map([
         [n.id, "current"],
         [n.left!.id, "compare"],
@@ -717,14 +725,14 @@ export function segmentTreeSteps(
     );
   };
   animateBuild(built);
-  emit(2, `Segment tree built — root sum = ${built.sum}`, new Map([[built.id, "found"]]), new Set(), baseView());
+  emit(2, msg("n.seg.built", { sum: built.sum }), new Map([[built.id, "found"]]), new Set(), baseView());
 
   // Range query.
   const query = (n: SegNode, l: number, r: number, walked: Map<string, NodeTone>): number => {
     if (r < n.lo || n.hi < l) {
       emit(
         14,
-        `[${n.lo},${n.hi}] outside [${l},${r}] — contributes 0`,
+        msg("n.seg.outside", { lo: n.lo, hi: n.hi, ql: l, qr: r }),
         new Map([...walked, [n.id, "remove"]]),
         new Set(),
         baseView(undefined, [l, r])
@@ -734,7 +742,7 @@ export function segmentTreeSteps(
     if (l <= n.lo && n.hi <= r) {
       emit(
         15,
-        `[${n.lo},${n.hi}] fully inside — take ${n.sum}`,
+        msg("n.seg.inside", { lo: n.lo, hi: n.hi, sum: n.sum }),
         new Map([...walked, [n.id, "found"]]),
         new Set(),
         baseView(undefined, [l, r])
@@ -743,7 +751,7 @@ export function segmentTreeSteps(
     }
     emit(
       16,
-      `[${n.lo},${n.hi}] partially overlaps — split`,
+      msg("n.seg.split", { lo: n.lo, hi: n.hi }),
       new Map([...walked, [n.id, "current"]]),
       new Set([n.left!.id, n.right!.id]),
       baseView(undefined, [l, r])
@@ -755,7 +763,7 @@ export function segmentTreeSteps(
   const total = query(built, ql, qr, new Map());
   emit(
     13,
-    `Sum over [${ql}, ${qr}] = ${total}`,
+    msg("n.seg.total", { ql, qr, total }),
     new Map([[built.id, "result"]]),
     new Set(),
     baseView(
@@ -782,7 +790,7 @@ export function unionFindSteps(
   /** Bottom-up n-ary forest layout: trees side by side, leaves drive x. */
   const snapUF = (
     codeLine: number,
-    note: string,
+    note: Note,
     tones: Map<number, NodeTone>,
     activeEdges: Set<number>,
     vars?: { label: string; value: string }[]
@@ -846,7 +854,7 @@ export function unionFindSteps(
 
   snapUF(
     4,
-    `makeSets(${n}): every element is its own root with rank 0.`,
+    msg("n.uf.makeSets", { n }),
     new Map(),
     new Set()
   );
@@ -861,7 +869,7 @@ export function unionFindSteps(
       tones.set(cur, "current");
       snapUF(
         10,
-        `find(${x}): ${cur} is not a root — follow parent[${cur}] = ${parent[cur]}.`,
+        msg("n.uf.walk", { x, node: cur, parent: parent[cur] }),
         tones,
         new Set([cur]),
         opVars(op)
@@ -873,7 +881,7 @@ export function unionFindSteps(
     rootTones.set(root, "found");
     snapUF(
       12,
-      `find(${x}) = ${root} — the root represents the set.`,
+      msg("n.uf.root", { x, root }),
       rootTones,
       new Set(),
       opVars(op)
@@ -887,7 +895,10 @@ export function unionFindSteps(
       tones.set(root, "found");
       snapUF(
         11,
-        `Path compression: ${toCompress.join(", ")} now point${toCompress.length === 1 ? "s" : ""} straight at ${root}.`,
+        msg(
+          toCompress.length === 1 ? "n.uf.compressOne" : "n.uf.compress",
+          { nodes: toCompress.join(", "), root }
+        ),
         tones,
         new Set(toCompress),
         opVars(op)
@@ -903,7 +914,7 @@ export function unionFindSteps(
     if (ra === rb) {
       snapUF(
         17,
-        `${op}: both are already in set ${ra} — nothing to do.`,
+        msg("n.uf.sameSet", { op, root: ra }),
         new Map([[ra, "remove"]]),
         new Set(),
         opVars(op)
@@ -914,7 +925,7 @@ export function unionFindSteps(
       parent[ra] = rb;
       snapUF(
         19,
-        `${op}: rank ${rank[ra]} < ${rank[rb]} — hang root ${ra} under ${rb}.`,
+        msg("n.uf.unionLess", { op, rankA: rank[ra], rankB: rank[rb], ra, rb }),
         new Map([
           [rb, "insert"],
           [ra, "rotate"],
@@ -926,7 +937,7 @@ export function unionFindSteps(
       parent[rb] = ra;
       snapUF(
         21,
-        `${op}: rank ${rank[ra]} > ${rank[rb]} — hang root ${rb} under ${ra}.`,
+        msg("n.uf.unionGreater", { op, rankA: rank[ra], rankB: rank[rb], ra, rb }),
         new Map([
           [ra, "insert"],
           [rb, "rotate"],
@@ -939,7 +950,7 @@ export function unionFindSteps(
       rank[ra]++;
       snapUF(
         24,
-        `${op}: equal ranks — hang ${rb} under ${ra} and bump rank[${ra}] to ${rank[ra]}.`,
+        msg("n.uf.unionEqual", { op, rb, ra, rank: rank[ra] }),
         new Map([
           [ra, "insert"],
           [rb, "rotate"],
@@ -955,7 +966,7 @@ export function unionFindSteps(
     const root = findSteps(findKey, op);
     snapUF(
       12,
-      `Done. find(${findKey}) = ${root}; repeated finds have flattened the forest.`,
+      msg("n.uf.done", { key: findKey, root }),
       new Map([
         [root, "result"],
         [findKey, "found"],

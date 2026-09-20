@@ -1,3 +1,5 @@
+import type { Note } from "./note";
+
 export type StepKind =
   | "compare"
   | "swap"
@@ -24,8 +26,8 @@ export interface SimulationStep {
   kind: StepKind;
   /** 0-based line of the algorithm's `code` string to highlight. */
   codeLine: number;
-  /** Human-readable explanation shown in the step strip. */
-  note: string;
+  /** Explanation shown in the step strip, as a translatable key + values. */
+  note: Note;
   /**
    * Watched loop variables at this step (`i`, `j`, `pivot`, `lo`, `hi`, …),
    * shown in the variable-watch panel. Snapshotted from the recorder's mutable
