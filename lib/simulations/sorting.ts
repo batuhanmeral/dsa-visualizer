@@ -12,6 +12,10 @@ export function makeRecorder(arr: number[]) {
   // Mutable watch bag: generators mutate it in place; every `record` snapshots
   // the current values, so the tracked variable set stays stable across a run.
   let watch: Record<string, number | string> | undefined;
+  // Value lifted out of the array into a local (insertion/shell `key`). While
+  // it is held the array has a duplicate at the hole, so the canvas needs to
+  // know which slot is a hole rather than a real element.
+  let held: { value: number; hole: number } | undefined;
   const record = (
     kind: StepKind,
     highlights: number[],
@@ -27,6 +31,7 @@ export function makeRecorder(arr: number[]) {
       kind,
       codeLine,
       note,
+      held,
       vars: watch
         ? Object.entries(watch).map(([label, value]) => ({ label, value }))
         : undefined,
@@ -36,7 +41,19 @@ export function makeRecorder(arr: number[]) {
   const setWatch = (bag: Record<string, number | string>) => {
     watch = bag;
   };
-  return { steps, sorted, record, setWatch };
+  /** Mark `value` as lifted out of the array, leaving a hole at `hole`. */
+  const hold = (value: number, hole: number) => {
+    held = { value, hole };
+  };
+  /** Move the hole (the key shifted one slot left / `gap` slots left). */
+  const moveHole = (hole: number) => {
+    if (held) held = { value: held.value, hole };
+  };
+  /** The key is back in the array — no hole any more. */
+  const release = () => {
+    held = undefined;
+  };
+  return { steps, sorted, record, setWatch, hold, moveHole, release };
 }
 
 export function bubbleSortSteps(input: number[]): SimulationStep[] {
@@ -133,7 +150,8 @@ export function selectionSortSteps(input: number[]): SimulationStep[] {
 export function insertionSortSteps(input: number[]): SimulationStep[] {
   const arr = [...input];
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
+  const { steps, sorted, record, setWatch, hold, moveHole, release } =
+    makeRecorder(arr);
   const w = { i: 0, j: 0, key: 0 };
   setWatch(w);
 
@@ -143,6 +161,7 @@ export function insertionSortSteps(input: number[]): SimulationStep[] {
     const key = arr[i];
     w.i = i;
     w.key = key;
+    hold(key, i);
     record("select", [i], 2, msg("n.insert.pick", { key }));
     let j = i - 1;
     w.j = j;
@@ -151,6 +170,7 @@ export function insertionSortSteps(input: number[]): SimulationStep[] {
       record("compare", [j], 4, msg("n.insert.ask", { value: arr[j], key }));
       if (arr[j] > key) {
         arr[j + 1] = arr[j];
+        moveHole(j);
         record("shift", [j, j + 1], 5, msg("n.insert.shift", { value: arr[j] }));
         j--;
       } else {
@@ -159,6 +179,7 @@ export function insertionSortSteps(input: number[]): SimulationStep[] {
     }
     w.j = j;
     arr[j + 1] = key;
+    release();
     record("select", [j + 1], 8, msg("n.insert.place", { key, index: j + 1 }));
   }
 
@@ -170,7 +191,8 @@ export function insertionSortSteps(input: number[]): SimulationStep[] {
 export function shellSortSteps(input: number[]): SimulationStep[] {
   const arr = [...input];
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
+  const { steps, sorted, record, setWatch, hold, moveHole, release } =
+    makeRecorder(arr);
   const w = { gap: 0, i: 0, j: 0, key: 0 };
   setWatch(w);
 
@@ -184,6 +206,7 @@ export function shellSortSteps(input: number[]): SimulationStep[] {
       w.i = i;
       w.key = key;
       w.j = i;
+      hold(key, i);
       record("select", [i], 3, msg("n.shell.take", { key, index: i }));
       let j = i;
       while (j >= gap && arr[j - gap] > key) {
@@ -195,11 +218,13 @@ export function shellSortSteps(input: number[]): SimulationStep[] {
           msg("n.shell.compare", { value: arr[j - gap], key, gap })
         );
         arr[j] = arr[j - gap];
+        moveHole(j - gap);
         record("shift", [j - gap, j], 6, msg("n.shell.moved", { value: arr[j], index: j }));
         j -= gap;
       }
       w.j = j;
       arr[j] = key;
+      release();
       record("select", [j], 9, msg("n.shell.place", { key, index: j }));
     }
   }

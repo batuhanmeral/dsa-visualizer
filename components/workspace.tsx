@@ -691,7 +691,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                         transition={{ delay: i * 0.04 }}
                         className="flex size-12 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/10 font-mono text-sm font-medium text-emerald-700 dark:text-emerald-300"
                       >
-                        {value}
+                        {step?.held?.hole === i ? "" : value}
                       </motion.span>
                       {algorithm.slug === "linked-list" &&
                         i < renderValues.length - 1 && (
@@ -726,8 +726,21 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                         height: `${Math.max((value / maxValue) * 100, 6)}%`,
                       }}
                       transition={{ type: "tween", duration: 0.25 }}
-                      className={`flex w-full max-w-12 flex-col justify-end rounded-t-md transition-colors duration-200 ${barColor(i)}`}
+                      className={`relative flex w-full max-w-12 flex-col justify-end rounded-t-md transition-colors duration-200 ${
+                        step?.held?.hole === i
+                          ? "border-2 border-dashed border-violet-400 bg-transparent dark:border-violet-500"
+                          : barColor(i)
+                      }`}
                     >
+                      {/* Insertion and shell sort lift a value into a local
+                          `key` and shift others into its slot. Without this the
+                          canvas shows that stale copy as a real element — two
+                          bars with the same value and one apparently lost. */}
+                      {step?.held?.hole === i && (
+                        <span className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-violet-500 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white shadow-sm">
+                          {step.held.value}
+                        </span>
+                      )}
                       <span
                         className={`pb-1 text-center font-mono text-[10px] ${
                           barIsColored(i) ||

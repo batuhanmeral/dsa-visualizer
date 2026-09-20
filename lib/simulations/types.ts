@@ -29,6 +29,13 @@ export interface SimulationStep {
   /** Explanation shown in the step strip, as a translatable key + values. */
   note: Note;
   /**
+   * A value lifted out of the array into a local variable (insertion/shell
+   * `key`). `hole` is the slot whose displayed value is a stale copy left
+   * behind by a shift, not a real element — the canvas draws it as a gap and
+   * shows `value` floating above it.
+   */
+  held?: { value: number; hole: number };
+  /**
    * Watched loop variables at this step (`i`, `j`, `pivot`, `lo`, `hi`, …),
    * shown in the variable-watch panel. Snapshotted from the recorder's mutable
    * watch bag — the key set stays stable across a run.
