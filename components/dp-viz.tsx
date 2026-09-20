@@ -155,7 +155,7 @@ function StringPairViz({
   const [a, setA] = useState(defaultA);
   const [b, setB] = useState(defaultB);
   const { a: ca, b: cb, steps } = useMemo(() => generate(a, b), [generate, a, b]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -218,7 +218,7 @@ function KnapsackViz({
     () => knapsackSteps(KNAP_ITEMS, KNAP_CAP),
     []
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
   const activeItem = step.active ? step.active[0] : 0;
 
@@ -282,7 +282,7 @@ function CoinChangeViz({
     () => coinChangeSteps(COINS, COIN_AMOUNT),
     []
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
   const activeCoin = step.active ? step.active[0] : 0;
 
@@ -340,7 +340,7 @@ function FloydViz({
   const { t } = useLang();
   const legend = useDpLegend();
   const { size, steps } = useMemo(() => floydWarshallSteps(), []);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -395,7 +395,7 @@ function FibonacciViz({
   const legend = useDpLegend();
   const [n, setN] = useState(8);
   const { steps } = useMemo(() => fibonacciSteps(n), [n]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -459,7 +459,7 @@ function LISViz({
     () => lisSteps(values.length ? values : [3, 1, 2]),
     [values]
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -524,7 +524,7 @@ function KadaneViz({
     () => kadaneSteps(values.length ? values : [-2, 1, -3, 4]),
     [values]
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {

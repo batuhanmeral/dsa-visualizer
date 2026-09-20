@@ -122,7 +122,7 @@ export default function StringViz({
     return config.generate(t, p);
   }, [config, text, pattern]);
 
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
   const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
 

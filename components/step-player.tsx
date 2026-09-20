@@ -28,16 +28,28 @@ import type { Note } from "@/lib/simulations/note";
  * (like it does for data structures) and drives the code-line highlight from
  * the active step via `onLine`. Speed comes from the Workspace speed selector.
  */
-export function useStepPlayer(count: number, speed: number) {
+export function useStepPlayer(
+  count: number,
+  speed: number,
+  /**
+   * The step list itself. Pass it whenever one is available: identity is the
+   * only reliable signal that a *different* run is being shown. Keying the
+   * rewind off `count` alone silently fails for runs that happen to be the
+   * same length — BFS and DFS, for instance, emit exactly 47 and 44 steps from
+   * every start node, so switching the source would resume mid-traversal.
+   */
+  steps?: readonly unknown[]
+) {
   const [index, setIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [prevCount, setPrevCount] = useState(count);
+  const [prevRun, setPrevRun] = useState<unknown>(steps ?? count);
   const atEnd = index >= count - 1;
 
-  // Rewind whenever the step list changes (new input / start node / N).
+  // Rewind whenever the run changes (new input / start node / N).
   // Adjusting state during render is the recommended alternative to an effect.
-  if (count !== prevCount) {
-    setPrevCount(count);
+  const run: unknown = steps ?? count;
+  if (run !== prevRun) {
+    setPrevRun(run);
     setIndex(0);
     setIsPlaying(false);
   }

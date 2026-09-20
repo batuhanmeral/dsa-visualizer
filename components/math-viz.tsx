@@ -45,7 +45,7 @@ function SieveViz({
   ]);
   const [n, setN] = useState<number>(60);
   const { steps } = useMemo(() => sieveSteps(n), [n]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -153,7 +153,7 @@ function GcdViz({
   const a = parseNum(aText, 252, 99999);
   const b = parseNum(bText, 105, 99999);
   const { steps } = useMemo(() => gcdSteps(a, b), [a, b]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -244,7 +244,7 @@ function ExtGcdViz({
   const a = parseNum(aText, 240, 99999);
   const b = parseNum(bText, 46, 99999);
   const { steps } = useMemo(() => extGcdSteps(a, b), [a, b]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -345,7 +345,7 @@ function PowViz({
     () => fastPowSteps(base, exp, mod),
     [base, exp, mod]
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {

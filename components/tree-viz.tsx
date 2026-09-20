@@ -171,7 +171,7 @@ function TreeFrame({
 }) {
   const { t } = useLang();
   const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {

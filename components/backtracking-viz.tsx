@@ -92,7 +92,7 @@ function QueensViz({
   const legend = useLegend(QUEEN_LEGEND);
   const [n, setN] = useState(6);
   const steps = useMemo(() => nQueensSteps(n), [n]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step: QueensStep = steps[player.index];
 
   useEffect(() => {
@@ -204,7 +204,7 @@ function SudokuViz({
   // Puzzle is fixed per mount; `fixed` marks the given (non-editable) clues.
   const { grid, fixed } = useMemo(() => makeSudokuGrid(), []);
   const steps = useMemo(() => sudokuSteps(grid), [grid]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step: SudokuStep = steps[player.index];
 
   useEffect(() => {
@@ -286,7 +286,7 @@ function MazeViz({
   const { t } = useLang();
   const legend = useLegend(MAZE_LEGEND);
   const steps = useMemo(() => mazeSteps(SAMPLE_MAZE), []);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step: MazeStep = steps[player.index];
   const N = step.maze.length;
 
@@ -381,7 +381,7 @@ function ChoiceViz({
   const { t } = useLang();
   const legend = useLegend(CHOICE_LEGEND);
   const steps = useMemo(() => generate(input), [generate, input]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step: ChoiceStep = steps[player.index];
 
   useEffect(() => {

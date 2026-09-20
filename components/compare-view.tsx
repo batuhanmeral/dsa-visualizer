@@ -167,7 +167,9 @@ export default function CompareView({
   );
 
   const maxLen = Math.max(stepsLeft.length, stepsRight.length, 1);
-  const player = useStepPlayer(maxLen, speed);
+  // Both lists identify the run: either one changing means a different race.
+  const race = useMemo(() => [stepsLeft, stepsRight], [stepsLeft, stepsRight]);
+  const player = useStepPlayer(maxLen, speed, race);
   const { index } = player;
 
   // Drive the code viewer from the left (page) algorithm's current line.

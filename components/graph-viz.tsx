@@ -119,7 +119,7 @@ export default function GraphViz({
     () => config.generate(graph, start, goal),
     [config, graph, start, goal]
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
   const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
 

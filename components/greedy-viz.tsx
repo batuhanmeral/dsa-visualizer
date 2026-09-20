@@ -62,7 +62,7 @@ function ActivityViz({
     () => activitySelectionSteps(ACTIVITIES),
     []
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
   const maxEnd = Math.max(...activities.map((a) => a.end));
 
@@ -157,7 +157,7 @@ function FracKnapViz({
     () => fractionalKnapsackSteps(FRAC_ITEMS, FRAC_CAP),
     []
   );
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -276,7 +276,7 @@ function JobSeqViz({
   const { t } = useLang();
   const legend = useGreedyLegend(PICK_LEGEND);
   const { jobs, steps } = useMemo(() => jobSequencingSteps(JOBS), []);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -410,7 +410,7 @@ function HuffmanViz({
   ]);
   const [text, setText] = useState(HUFF_DEFAULT_TEXT);
   const { steps } = useMemo(() => huffmanSteps(textToFreqs(text)), [text]);
-  const player = useStepPlayer(steps.length, speed);
+  const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
 
   useEffect(() => {
