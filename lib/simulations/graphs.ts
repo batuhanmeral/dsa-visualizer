@@ -354,6 +354,7 @@ export function bellmanFordSteps(g: Graph, src: number): GraphStep[] {
   dist[src] = 0;
   snap(5, msg("n.bellman.source", { node: src }));
 
+  let converged = false;
   for (let pass = 1; pass < V; pass++) {
     let changed = false;
     for (let u = 0; u < V; u++) {
@@ -386,9 +387,43 @@ export function bellmanFordSteps(g: Graph, src: number): GraphStep[] {
     current = null;
     edge = undefined;
     if (!changed) {
+      converged = true;
       snap(7, msg("n.bellman.converged", { pass }));
       break;
     }
+  }
+
+  // The extra sweep is the whole reason to prefer Bellman-Ford over Dijkstra:
+  // after V-1 passes every shortest path is settled unless a negative cycle is
+  // reachable, in which case some edge still relaxes. An early converged run
+  // already proves there is none, so only sweep when we used all V-1 passes.
+  if (!converged) {
+    snap(20, msg("n.bellman.checkCycle"));
+    for (let u = 0; u < V; u++) {
+      if (dist[u] === INF) continue;
+      for (let v = 0; v < V; v++) {
+        if (!m[u][v]) continue;
+        if (dist[u] + m[u][v] < dist[v]) {
+          current = u;
+          edge = [u, v];
+          snap(
+            24,
+            msg("n.bellman.negativeCycle", {
+              from: u,
+              to: v,
+              w: m[u][v],
+              du: dist[u],
+              dv: dist[v] === INF ? "@n.graph.inf" : dist[v],
+              src,
+            })
+          );
+          return steps;
+        }
+      }
+    }
+    current = null;
+    edge = undefined;
+    snap(25, msg("n.bellman.noCycle"));
   }
 
   current = null;
@@ -396,7 +431,7 @@ export function bellmanFordSteps(g: Graph, src: number): GraphStep[] {
   const summary = g.nodes
     .map((n) => `${n.id}:${dist[n.id] === INF ? "∞" : dist[n.id]}`)
     .join("  ");
-  snap(17, msg("n.bellman.done", { src, summary }));
+  snap(26, msg("n.bellman.done", { src, summary }));
   return steps;
 }
 

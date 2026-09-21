@@ -678,7 +678,7 @@ void dijkstra(int graph[V][V], int src, int dist[V]) {
         code: `#define V 6
 #define INF 1000000
 
-void bellmanFord(int graph[V][V], int src, int dist[V]) {
+int bellmanFord(int graph[V][V], int src, int dist[V]) {
     for (int i = 0; i < V; i++) dist[i] = INF;
     dist[src] = 0;
 
@@ -692,6 +692,15 @@ void bellmanFord(int graph[V][V], int src, int dist[V]) {
             }
         }
     }
+
+    /* One extra sweep: an edge that still relaxes after V-1
+       passes proves a negative cycle is reachable. */
+    for (int u = 0; u < V; u++)
+        for (int v = 0; v < V; v++)
+            if (graph[u][v] && dist[u] != INF &&
+                dist[u] + graph[u][v] < dist[v])
+                return 0;
+    return 1;
 }`,
       },
       {
