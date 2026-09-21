@@ -482,8 +482,15 @@ export function countingSortSteps(input: number[]): SimulationStep[] {
   for (let d = 1; d <= max; d++) count[d] += count[d - 1];
   record("info", [], 12, msg("n.counting.prefix"));
 
+  // The backward walk is what makes counting sort stable, so animate it rather
+  // than filling `out` silently: line 16 is the whole point of the algorithm.
   const out = new Array<number>(n);
-  for (let i = n - 1; i >= 0; i--) out[--count[arr[i]]] = arr[i];
+  for (let i = n - 1; i >= 0; i--) {
+    w.i = i;
+    const slot = --count[arr[i]];
+    out[slot] = arr[i];
+    record("probe", [i], 16, msg("n.counting.stable", { value: arr[i], slot }));
+  }
 
   for (let i = 0; i < n; i++) {
     w.i = i;
@@ -617,10 +624,15 @@ export function radixSortSteps(input: number[]): SimulationStep[] {
     }
     for (let d = 1; d < 10; d++) count[d] += count[d - 1];
 
+    // Same as counting sort: the backward pass is where stability comes from,
+    // and stability is the only reason radix sort works at all.
     const out = new Array<number>(n);
     for (let i = n - 1; i >= 0; i--) {
       const d = Math.floor(arr[i] / exp) % 10;
-      out[--count[d]] = arr[i];
+      const slot = --count[d];
+      out[slot] = arr[i];
+      w.i = i;
+      record("probe", [i], 14, msg("n.radix.stable", { value: arr[i], slot, ...place }));
     }
     for (let i = 0; i < n; i++) arr[i] = out[i];
     record("shift", [], 16, msg("n.radix.reorder", { ...place }));
