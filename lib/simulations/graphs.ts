@@ -494,6 +494,21 @@ export function topoSortSteps(g: Graph): GraphStep[] {
   }
 
   current = null;
+  // Kahn's algorithm doubles as a cycle test: if the queue drains before every
+  // node is emitted, the leftovers all still have incoming edges, which can
+  // only happen on a cycle. Without this the run would quietly present a
+  // partial list as a valid topological order.
+  if (order.length < V) {
+    snap(
+      22,
+      msg("n.topo.cycle", {
+        emitted: order.length,
+        total: V,
+        left: V - order.length,
+      })
+    );
+    return steps;
+  }
   snap(19, msg("n.topo.done", { order: order.join(" → ") }));
   return steps;
 }

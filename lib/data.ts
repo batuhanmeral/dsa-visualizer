@@ -730,6 +730,9 @@ void topoSort(int graph[V][V]) {
                 queue[rear++] = v;
         }
     }
+
+    if (rear < V)
+        printf("\\ncycle: %d node(s) never reached in-degree 0", V - rear);
 }`,
       },
       {
