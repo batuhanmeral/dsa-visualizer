@@ -741,6 +741,7 @@ export function aStarSteps(g: Graph, src: number, goal = 5): GraphStep[] {
   f[src] = h[src];
   snap(8, msg("n.astar.start", { goal, src, h: h[src] }));
 
+  let reached = false;
   for (let count = 0; count < V; count++) {
     let u = -1;
     for (let v = 0; v < V; v++)
@@ -755,6 +756,7 @@ export function aStarSteps(g: Graph, src: number, goal = 5): GraphStep[] {
       pathTo(u)
     );
     if (u === goal) {
+      reached = true;
       snap(15, msg("n.astar.reached", { goal, cost: gscore[u] }), pathTo(u));
       break;
     }
@@ -785,6 +787,14 @@ export function aStarSteps(g: Graph, src: number, goal = 5): GraphStep[] {
       }
     }
     edge = undefined;
+  }
+
+  // Draining the open set without popping the goal means it is unreachable.
+  // Say so instead of ending on whatever the last relaxation happened to be.
+  if (!reached) {
+    current = null;
+    edge = undefined;
+    snap(24, msg("n.astar.exhausted", { goal, src }));
   }
 
   return steps;
