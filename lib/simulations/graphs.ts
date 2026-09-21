@@ -268,7 +268,11 @@ export function dijkstraSteps(g: Graph, src: number): GraphStep[] {
   dist[src] = 0;
   snap(6, msg("n.dijkstra.source", { node: src }));
 
-  for (let count = 0; count < V - 1; count++) {
+  // V rounds, not V-1: the textbook loop stops one short because the last
+  // node's distance is already final, but the visualization needs it marked
+  // visited too — otherwise the farthest node stays grey forever while showing
+  // a correct distance (and Prim, which loops V times, looks inconsistent).
+  for (let count = 0; count < V; count++) {
     let u = -1;
     for (let v = 0; v < V; v++)
       if (!visited[v] && (u === -1 || dist[v] < dist[u])) u = v;
