@@ -106,18 +106,26 @@ export const SUDOKU_PUZZLE: number[][] = [
   [3, 4, 5, 2, 8, 6, 1, 7, 9],
 ];
 
-/** Cells to blank out (row, col) — leaves a solvable trail with backtracking. */
+/**
+ * Cells to blank out (row, col).
+ *
+ * Chosen so the solver genuinely has to back up: the previous set happened to
+ * be fillable left-to-right in one pass, which meant the Sudoku demo in the
+ * *backtracking* category never once backtracked. This one forces three dead
+ * ends while keeping the run under a hundred steps.
+ */
 const BLANKS: [number, number][] = [
+  [0, 1],
   [0, 2],
-  [0, 5],
-  [1, 4],
-  [2, 0],
-  [3, 6],
-  [4, 3],
-  [5, 8],
-  [6, 1],
-  [7, 7],
-  [8, 4],
+  [0, 8],
+  [1, 2],
+  [2, 5],
+  [3, 0],
+  [4, 1],
+  [4, 8],
+  [7, 0],
+  [7, 3],
+  [8, 3],
 ];
 
 export function makeSudokuGrid(): { grid: number[][]; fixed: boolean[][] } {
@@ -195,7 +203,7 @@ export function sudokuSteps(grid0: number[][]): SudokuStep[] {
     return true;
   };
 
-  solve();
+  if (!solve()) snap(21, msg("n.sudoku.impossible"), "backtrack");
   return steps;
 }
 
