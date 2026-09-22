@@ -1225,15 +1225,14 @@ int solve(int g[9][9]) {
         code: `#define N 4
 
 int solve(int maze[N][N], int r, int c, int sol[N][N]) {
-    if (r == N - 1 && c == N - 1) {
-        sol[r][c] = 1;
-        return 1;
-    }
     if (r < 0 || c < 0 || r >= N || c >= N ||
         maze[r][c] == 0 || sol[r][c] == 1)
         return 0;
 
     sol[r][c] = 1;
+    if (r == N - 1 && c == N - 1)
+        return 1;   /* exit reached */
+
     if (solve(maze, r + 1, c, sol)) return 1;   /* down  */
     if (solve(maze, r, c + 1, sol)) return 1;   /* right */
     if (solve(maze, r - 1, c, sol)) return 1;   /* up    */

@@ -241,22 +241,20 @@ export function mazeSteps(maze0: number[][]): MazeStep[] {
 
   // Directions: down, right, up, left — codeLine matches each `if (solve(...))`.
   const DIRS: [number, number, StepNoteKey, number][] = [
-    [1, 0, "n.maze.dir.down", 12],
-    [0, 1, "n.maze.dir.right", 13],
-    [-1, 0, "n.maze.dir.up", 14],
-    [0, -1, "n.maze.dir.left", 15],
+    [1, 0, "n.maze.dir.down", 11],
+    [0, 1, "n.maze.dir.right", 12],
+    [-1, 0, "n.maze.dir.up", 13],
+    [0, -1, "n.maze.dir.left", 14],
   ];
 
   const solve = (r: number, c: number): boolean => {
-    if (r === N - 1 && c === N - 1) {
-      sol[r][c] = true;
-      snap(4, msg("n.maze.exit", { r, c }), "solved", [r, c]);
-      return true;
-    }
+    // Bounds and walls are checked BEFORE the exit test. The other order (and
+    // the C snippet that used to match it) accepted a walled-off exit as a
+    // solution and drew the path straight through the wall.
     if (r < 0 || c < 0 || r >= N || c >= N) return false;
     if (maze[r][c] === 0 || sol[r][c]) {
       snap(
-        9,
+        4,
         msg(maze[r][c] === 0 ? "n.maze.wall" : "n.maze.onPath", { r, c }),
         "blocked",
         [r, c]
@@ -265,17 +263,30 @@ export function mazeSteps(maze0: number[][]): MazeStep[] {
     }
 
     sol[r][c] = true;
-    snap(11, msg("n.maze.step", { r, c }), "move", [r, c]);
+    snap(7, msg("n.maze.step", { r, c }), "move", [r, c]);
+    if (r === N - 1 && c === N - 1) {
+      snap(9, msg("n.maze.exit", { r, c }), "solved", [r, c]);
+      return true;
+    }
+
     for (const [dr, dc, dirKey, line] of DIRS) {
       snap(line, msg("n.maze.try", { r, c, dir: `@${dirKey}` }), "try", [r, c]);
       if (solve(r + dr, c + dc)) return true;
     }
     sol[r][c] = false;
-    snap(16, msg("n.maze.backtrack", { r, c }), "backtrack", [r, c]);
+    snap(15, msg("n.maze.backtrack", { r, c }), "backtrack", [r, c]);
     return false;
   };
 
-  solve(0, 0);
+  if (!solve(0, 0)) {
+    snap(
+      16,
+      maze[N - 1][N - 1] === 0
+        ? msg("n.maze.blockedExit", { r: N - 1, c: N - 1 })
+        : msg("n.maze.noRoute"),
+      "backtrack"
+    );
+  }
   return steps;
 }
 
