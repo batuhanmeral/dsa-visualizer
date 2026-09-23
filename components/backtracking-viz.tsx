@@ -403,7 +403,7 @@ function ChoiceViz({
         <span className="text-[11px] text-zinc-400">
           {t(kind === "subset" ? "bt.set" : "bt.elements")}:{" "}
           {input.join(", ")} ·{" "}
-          {t("bt.found", { n: step.results.length, total })}
+          {t("bt.found", { n: step.resultCount, total })}
         </span>
       }
     >
@@ -450,13 +450,14 @@ function ChoiceViz({
         {/* Results collected so far */}
         <div className="flex w-full flex-col items-center gap-1.5">
           <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-            {t("bt.recordedCount", { n: step.results.length })}
+            {t("bt.recordedCount", { n: step.resultCount })}
           </span>
           <div className="flex max-h-40 flex-wrap items-center justify-center gap-1.5 overflow-auto">
-            {step.results.length === 0 && (
+            {step.resultCount === 0 && (
               <span className="text-xs text-zinc-400">{t("bt.noneYet")}</span>
             )}
-            {step.results.map((res, i) => (
+            {/* `results` is shared across steps; slice to what existed here. */}
+            {step.results.slice(0, step.resultCount).map((res, i) => (
               <motion.span
                 key={i}
                 initial={{ opacity: 0, scale: 0.8 }}

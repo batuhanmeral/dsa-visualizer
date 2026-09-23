@@ -317,7 +317,14 @@ export interface ChoiceStep {
   highlight?: number;
   /** Permutations: first `fixed` entries are locked in place. */
   fixed?: number;
-  results: number[][];
+  /**
+   * Every result the whole run produces — one shared array, referenced (never
+   * copied) by each step. Copying it per step cost O(2^n · 2^n) for subsets and
+   * O(n! · n!) for permutations: n = 7 exhausted a 2 GB heap.
+   */
+  results: readonly (readonly number[])[];
+  /** How many entries of `results` existed at this step. */
+  resultCount: number;
   status: ChoiceStatus;
 }
 
@@ -337,7 +344,8 @@ export function subsetsSteps(a: number[]): ChoiceStep[] {
       note,
       current: current.slice(),
       highlight,
-      results: results.map((r) => r.slice()),
+      results,
+      resultCount: results.length,
       status,
     });
 
@@ -377,7 +385,8 @@ export function permutationsSteps(a: number[]): ChoiceStep[] {
       current: arr.slice(),
       highlight,
       fixed,
-      results: results.map((r) => r.slice()),
+      results,
+      resultCount: results.length,
       status,
     });
 
