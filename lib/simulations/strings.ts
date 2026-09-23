@@ -141,6 +141,7 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
 
   i = 0;
   let j = 0;
+  const hits: number[] = [];
   while (i < n) {
     emitSearch(21, msg("n.kmp.scan", { i, ti: t[i], j, pj: p[j] }), i, j, "active");
     if (t[i] === p[j]) {
@@ -149,6 +150,7 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
       if (j === m) {
         const start = i - j;
         for (let k = start; k < i; k++) matched[k] = true;
+        hits.push(start);
         emitSearch(24, msg("n.kmp.hit", { start }), i - 1, j - 1, "done");
         j = lps[j - 1];
         emitSearch(25, msg("n.kmp.continue", { j }), i, j, "window");
@@ -165,13 +167,26 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
   }
   steps.push({
     codeLine: 20,
-    note: msg(
-      matched.filter(Boolean).length > 0 ? "n.str.located" : "n.str.absent"
-    ),
+    note: matchSummary(hits),
     status: "done",
     tracks: searchTracks(-1, -1),
   });
   return steps;
+}
+
+/**
+ * Final tally for the matchers.
+ *
+ * Counting distinct start positions, not highlighted cells: deriving the count
+ * from the highlight mask (`marked / m`) undercounts overlapping matches and
+ * can even yield a fraction — "ABABA" / "ABA" reported 1.67 matches.
+ */
+function matchSummary(hits: number[]): Note {
+  if (hits.length === 0) return msg("n.str.countNone");
+  const indices = hits.join(", ");
+  return hits.length === 1
+    ? msg("n.str.countOne", { indices })
+    : msg("n.str.countMany", { count: hits.length, indices });
 }
 
 // ── Rabin-Karp ──────────────────────────────────────────────────────────
@@ -203,6 +218,7 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
     ];
   };
 
+  const hits: number[] = [];
   let ph = 0;
   let th = 0;
   let pow = 1;
@@ -253,6 +269,7 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
       }
       if (k === m) {
         for (let q = i; q < i + m; q++) matched[q] = true;
+        hits.push(i);
         steps.push({
           codeLine: 15,
           note: msg("n.rk.confirmed", { i }),
@@ -287,9 +304,7 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
   }
   steps.push({
     codeLine: 11,
-    note: msg(
-      matched.filter(Boolean).length > 0 ? "n.str.located" : "n.str.absent"
-    ),
+    note: matchSummary(hits),
     status: "done",
     tracks: tracks(-1, 0, false),
   });
@@ -547,6 +562,7 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
   };
 
   let s = 0;
+  const hits: number[] = [];
   while (s <= n - m) {
     let j = m - 1;
     emitSearch(15, msg("n.bm.align", { s }), s, j, "window", "active");
@@ -556,6 +572,7 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
     }
     if (j < 0) {
       for (let k = 0; k < m; k++) matched[s + k] = true;
+      hits.push(s);
       emitSearch(19, msg("n.bm.full", { s }), s, -1, "done");
       s += 1;
     } else {
@@ -577,7 +594,7 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
   }
   steps.push({
     codeLine: 25,
-    note: msg("n.bm.done", { count: matched.filter(Boolean).length / m }),
+    note: matchSummary(hits),
     status: "done",
     tracks: searchTracks(n, -1),
   });

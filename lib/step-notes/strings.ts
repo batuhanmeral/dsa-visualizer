@@ -28,9 +28,6 @@ export const en = {
   "n.rk.roll": "Roll the hash forward: drop '{out}', add '{in}'.",
 
   // Shared scan outcome
-  "n.str.located": "Scan complete — pattern located.",
-  "n.str.absent": "Scan complete — pattern not present.",
-  "n.bm.done": "Done — {count} match(es) found.",
   "n.str.countOne": "Done — 1 match found (at index {indices}).",
   "n.str.countMany": "Done — {count} matches found (at indices {indices}).",
   "n.str.countNone": "Done — no match found.",
@@ -90,9 +87,6 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.rk.spurious": "Yanlış alarm — karakterler {k}. konumda farklı.",
   "n.rk.roll": "Özet ileri yuvarlanıyor: '{out}' çıkıyor, '{in}' giriyor.",
 
-  "n.str.located": "Tarama tamamlandı — desen bulundu.",
-  "n.str.absent": "Tarama tamamlandı — desen mevcut değil.",
-  "n.bm.done": "Tamamlandı — {count} eşleşme bulundu.",
   "n.str.countOne": "Tamamlandı — 1 eşleşme bulundu ({indices}. indekste).",
   "n.str.countMany": "Tamamlandı — {count} eşleşme bulundu ({indices} indekslerinde).",
   "n.str.countNone": "Tamamlandı — eşleşme bulunamadı.",
