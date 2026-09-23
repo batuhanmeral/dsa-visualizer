@@ -77,7 +77,9 @@ export function nQueensSteps(n: number): QueensStep[] {
   };
 
   snap(11, msg("n.queens.start", { n }), "try");
-  solve(0);
+  // n = 2 and n = 3 have no solution: without this the run just ended on a
+  // backtrack, leaving it to the viewer to guess whether it had given up.
+  if (!solve(0)) snap(18, msg("n.queens.impossible", { n }), "backtrack");
   return steps;
 }
 
