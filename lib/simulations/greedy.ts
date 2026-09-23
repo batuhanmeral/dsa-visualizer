@@ -49,6 +49,11 @@ export function activitySelectionSteps(input: Activity[]): ActivityResult {
       lastFinish,
     });
 
+  if (activities.length === 0) {
+    snap(0, msg("n.activity.empty"), null, null);
+    return { activities, steps };
+  }
+
   snap(0, msg("n.activity.sorted"), null, null);
 
   let lastFinish = activities[0].end;
@@ -147,6 +152,11 @@ export function fractionalKnapsackSteps(
       total,
     });
 
+  if (items.length === 0) {
+    snap(0, msg("n.frac.empty"), null);
+    return { items, capacity, steps };
+  }
+
   snap(0, msg("n.frac.sorted"), null);
   snap(3, msg("n.frac.start", { capacity }), null);
 
@@ -227,7 +237,10 @@ export interface JobResult {
 
 export function jobSequencingSteps(input: Job[]): JobResult {
   const jobs = [...input].sort((x, y) => y.profit - x.profit);
-  const maxDeadline = Math.max(...jobs.map((j) => j.deadline));
+  // Math.max of an empty list is -Infinity, which `new Array()` rejects.
+  const maxDeadline = jobs.length
+    ? Math.max(1, ...jobs.map((j) => j.deadline))
+    : 0;
   const slots: (number | null)[] = new Array(maxDeadline).fill(null);
   const steps: JobStep[] = [];
   const scheduled: number[] = [];
@@ -249,6 +262,11 @@ export function jobSequencingSteps(input: Job[]): JobResult {
       skipped: [...skipped],
       total,
     });
+
+  if (jobs.length === 0) {
+    snap(0, msg("n.job.empty"), null, null);
+    return { jobs, maxDeadline, steps };
+  }
 
   snap(0, msg("n.job.sorted"), null, null);
   snap(4, msg("n.job.freeHours", { hours: maxDeadline }), null, null);
@@ -347,6 +365,29 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
       codes: { ...codes },
     });
 
+  if (roots.length === 0) {
+    snap(6, msg("n.huff.empty"), "init", []);
+    return { freqs: sorted, steps };
+  }
+  if (roots.length === 1) {
+    // The merge loop never runs, so there is no tree — but the single symbol
+    // still needs a code. Emit it directly instead of walking a missing root.
+    const only = nodes[roots[0]];
+    codes[only.ch ?? "?"] = "0";
+    snap(23, msg("n.huff.single"), "code", [only.id]);
+    snap(
+      27,
+      msg("n.huff.done", {
+        codes: Object.entries(codes)
+          .map(([c, code]) => `${c}=${code}`)
+          .join(", "),
+      }),
+      "done",
+      []
+    );
+    return { freqs: sorted, steps };
+  }
+
   snap(6, msg("n.huff.start", { count: roots.length }), "init", []);
 
   while (roots.length > 1) {
@@ -390,14 +431,8 @@ export function huffmanSteps(freqs: { ch: string; freq: number }[]): HuffResult 
     const n = nodes[id];
     if (n.left === null && n.right === null) {
       codes[n.ch ?? "?"] = path || "0";
-      snap(
-        23,
-        path
-          ? msg("n.huff.leaf", { ch: n.ch ?? "?", path, code: path })
-          : msg("n.huff.leafRoot", { ch: n.ch ?? "?", code: "0" }),
-        "code",
-        [id]
-      );
+      // A single-symbol alphabet returns above, so every leaf here has a path.
+      snap(23, msg("n.huff.leaf", { ch: n.ch ?? "?", path, code: path }), "code", [id]);
       return;
     }
     if (n.left !== null) emit(n.left, path + "0");

@@ -475,6 +475,12 @@ export function kadaneSteps(input: number[]): KadaneResult {
     deps: [number, number][]
   ) => steps.push({ codeLine, note, table: [row.slice()], active, deps });
 
+  if (n === 0) {
+    // a[0] would be undefined and every sum after it NaN.
+    snap(1, msg("n.kadane.empty"), undefined, []);
+    return { values: a, steps };
+  }
+
   let cur = a[0];
   let best = a[0];
   row[0] = a[0];
@@ -524,6 +530,11 @@ export function lisSteps(input: number[]): LISResult {
     active: [number, number] | undefined,
     deps: [number, number][]
   ) => steps.push({ codeLine, note, table: [dp.slice()], active, deps });
+
+  if (n === 0) {
+    snap(11, msg("n.lis.empty"), undefined, []);
+    return { values: a, steps };
+  }
 
   let best = 0;
   for (let i = 0; i < n; i++) {

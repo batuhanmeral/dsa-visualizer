@@ -83,6 +83,22 @@ export function kmpSteps(text: string, pattern: string): StringStep[] {
   };
 
   // Phase 1 — build the longest-proper-prefix-suffix table.
+  if (m === 0 || n === 0 || m > n) {
+    // Nothing meaningful to build or scan; say what makes it impossible.
+    steps.push({
+      codeLine: 0,
+      note:
+        m === 0
+          ? msg("n.str.noPattern")
+          : n === 0
+            ? msg("n.str.noText")
+            : msg("n.str.tooLong", { m, n }),
+      status: "mismatch",
+      tracks: [],
+    });
+    return steps;
+  }
+
   shown[0] = 0;
   emitBuild(2, msg("n.kmp.lps0"), 0, 0, "window");
   let len = 0;
@@ -218,6 +234,26 @@ export function rabinKarpSteps(text: string, pattern: string): StringStep[] {
     ];
   };
 
+  if (m === 0 || n === 0) {
+    steps.push({
+      codeLine: 0,
+      note: msg(m === 0 ? "n.str.noPattern" : "n.str.noText"),
+      status: "mismatch",
+      tracks: [],
+    });
+    return steps;
+  }
+  if (m > n) {
+    // The window loop never runs and every hash would be NaN.
+    steps.push({
+      codeLine: 0,
+      note: msg("n.str.tooLong", { m, n }),
+      status: "mismatch",
+      tracks: [],
+    });
+    return steps;
+  }
+
   const hits: number[] = [];
   let ph = 0;
   let th = 0;
@@ -351,6 +387,16 @@ export function zSteps(text: string): StringStep[] {
     });
   };
 
+  if (n === 0) {
+    steps.push({
+      codeLine: 0,
+      note: msg("n.str.noText"),
+      status: "mismatch",
+      tracks: [],
+    });
+    return steps;
+  }
+
   z[0] = n;
   shown[0] = n;
   let l = 0;
@@ -476,7 +522,9 @@ export function manacherSteps(text: string): StringStep[] {
   const start = Math.floor((bestCenter - best) / 2);
   emit(
     14,
-    msg("n.man.done", { pal: raw.slice(start, start + best), len: best }),
+    best > 0
+      ? msg("n.man.done", { pal: raw.slice(start, start + best), len: best })
+      : msg("n.man.empty"),
     bestCenter,
     bestCenter,
     r,
@@ -492,7 +540,22 @@ export function boyerMooreSteps(text: string, pattern: string): StringStep[] {
   const n = t.length;
   const m = p.length;
   const steps: StringStep[] = [];
-  if (m === 0 || n === 0 || m > n) return steps;
+  if (m === 0 || n === 0 || m > n) {
+    // Returning an empty list left the player with nothing to show; explain
+    // which input makes the search impossible instead.
+    steps.push({
+      codeLine: 0,
+      note:
+        m === 0
+          ? msg("n.str.noPattern")
+          : n === 0
+            ? msg("n.str.noText")
+            : msg("n.str.tooLong", { m, n }),
+      status: "mismatch",
+      tracks: [],
+    });
+    return steps;
+  }
 
   // Phase 1 — last-occurrence ("bad character") table over the pattern.
   const last = new Map<string, number>();

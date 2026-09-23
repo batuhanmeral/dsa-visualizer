@@ -696,6 +696,19 @@ export function segmentTreeSteps(
     node.sum = node.left.sum + node.right.sum;
     return node;
   };
+  if (arr.length === 0) {
+    // construct(0, -1) would recurse forever: mid = (0 + -1) >> 1 = -1, so the
+    // left child is the same range again. Nothing to build, so say so.
+    steps.push({
+      codeLine: 2,
+      note: msg("n.seg.empty"),
+      nodes: [],
+      edges: [],
+      cols: 1,
+      depth: 1,
+    });
+    return steps;
+  }
   const built = construct(0, arr.length - 1);
   root = built;
 
