@@ -77,6 +77,7 @@ export const en = {
   "ws.tab.code": "Code",
   "ws.tab.about": "About",
   "ws.tab.growth": "Growth",
+  "ws.invariant": "Invariant",
   "growth.hint":
     "Steps produced by the simulation on the same random input at growing sizes — watch the curves separate.",
   "growth.steps": "steps",
@@ -324,6 +325,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "ws.tab.code": "Kod",
   "ws.tab.about": "Açıklama",
   "ws.tab.growth": "Büyüme",
+  "ws.invariant": "Değişmez",
   "growth.hint":
     "Aynı rastgele girdide, büyüyen boyutlarda simülasyonun ürettiği adım sayısı — eğrilerin ayrışmasını izleyin.",
   "growth.steps": "adım",

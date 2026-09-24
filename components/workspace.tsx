@@ -25,6 +25,7 @@ import {
 import { categories, type Algorithm, type Category } from "@/lib/data";
 import { getSimulation, type StepKind } from "@/lib/simulations";
 import { getAlgoInfo } from "@/lib/algo-info";
+import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
@@ -33,6 +34,7 @@ import type { CodeLang } from "@/lib/highlight";
 import GrowthChart from "./growth-chart";
 import {
   SPEEDS,
+  InvariantContext,
   SpeedContext,
   SpeedSelect,
   TransportControls,
@@ -317,6 +319,15 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
 
   const legend = category.slug === "searching" ? SEARCH_LEGEND : SORT_LEGEND;
 
+  // The statement that is true at this point in the run. Phase-aware for the
+  // array canvas; the other families get one statement via InvariantContext,
+  // since their phases are already legible from the drawing.
+  const invariant = step ? invariantFor(algorithm.slug, step) : null;
+  const staticInvariant = useMemo(
+    () => staticInvariantFor(algorithm.slug),
+    [algorithm.slug]
+  );
+
   // Which operation counters this algorithm emits (stable across the run).
   const activeStats = useMemo(
     () => (steps ? STAT_KINDS.filter((s) => steps.some((st) => st.kind === s.kind)) : []),
@@ -436,6 +447,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
 
   return (
     <SpeedContext.Provider value={{ speed, setSpeed }}>
+      <InvariantContext.Provider value={staticInvariant}>
     <div className="flex flex-col gap-4 p-4 lg:h-dvh lg:p-6">
       {/* ── Top bar ─────────────────────────────────────────────── */}
       <header className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
@@ -793,6 +805,15 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       />
                       <span className="truncate">{tn(step.note)}</span>
                     </p>
+                    {invariant && (
+                      /* Why the step is allowed, not what it did. */
+                      <p className="mt-1.5 flex min-w-0 items-start gap-2 border-l-2 border-sky-500/40 pl-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                        <span className="shrink-0 font-medium text-sky-600 dark:text-sky-400">
+                          {t("ws.invariant")}
+                        </span>
+                        <span>{tn(invariant)}</span>
+                      </p>
+                    )}
                     <div className="mt-2 flex items-center gap-2">
                       <input
                         type="range"
@@ -1029,6 +1050,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
         </section>
       </div>
     </div>
+      </InvariantContext.Provider>
     </SpeedContext.Provider>
   );
 }

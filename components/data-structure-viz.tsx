@@ -2,6 +2,7 @@
 
 import {
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
 import { msg, type Note } from "@/lib/simulations/note";
-import { SpeedSelect } from "./step-player";
+import { InvariantContext, SpeedSelect } from "./step-player";
 
 /**
  * Interactive data-structure playground. Unlike the sorting/searching engines
@@ -116,7 +117,8 @@ function VizShell({
   note: Note;
   busy: boolean;
 }) {
-  const { tn } = useLang();
+  const { t, tn } = useLang();
+  const invariant = useContext(InvariantContext);
   return (
     <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
       <div className="scrollbar-slim flex min-h-0 flex-1 items-center justify-center overflow-auto">
@@ -133,6 +135,15 @@ function VizShell({
             />
             <span className="truncate">{tn(note)}</span>
           </p>
+          {invariant && (
+            /* Why the operation is safe, not what it did. */
+            <p className="mt-1.5 flex min-w-0 items-start gap-2 border-l-2 border-sky-500/40 pl-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+              <span className="shrink-0 font-medium text-sky-600 dark:text-sky-400">
+                {t("ws.invariant")}
+              </span>
+              <span>{tn(invariant)}</span>
+            </p>
+          )}
           <SpeedSelect />
         </div>
       </div>

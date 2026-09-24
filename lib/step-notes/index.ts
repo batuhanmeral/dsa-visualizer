@@ -9,6 +9,7 @@ import * as backtracking from "./backtracking";
 import * as common from "./common";
 import * as dp from "./dp";
 import * as graphs from "./graphs";
+import * as invariants from "./invariants";
 import * as greedy from "./greedy";
 import * as math from "./math";
 import * as searching from "./searching";
@@ -22,6 +23,7 @@ export const stepNotesEn = {
   ...sorting.en,
   ...searching.en,
   ...graphs.en,
+  ...invariants.en,
   ...trees.en,
   ...dp.en,
   ...greedy.en,
@@ -38,6 +40,7 @@ export const stepNotesTr: Partial<Record<StepNoteKey, string>> = {
   ...sorting.tr,
   ...searching.tr,
   ...graphs.tr,
+  ...invariants.tr,
   ...trees.tr,
   ...dp.tr,
   ...greedy.tr,

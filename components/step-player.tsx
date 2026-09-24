@@ -105,6 +105,15 @@ export const SpeedContext = createContext<{
   setSpeed: (s: (typeof SPEEDS)[number]) => void;
 } | null>(null);
 
+/**
+ * The current algorithm's loop invariant, supplied once by the Workspace.
+ *
+ * The visualizer families nest several components deep (TreeViz → BSTViz →
+ * TreeFrame → PlaybackPanel) and the inner ones do not know the slug, so a
+ * context beats threading the same prop through every level — same reasoning as
+ * `SpeedContext` above.
+ */
+export const InvariantContext = createContext<Note | null>(null);
 
 export function SpeedSelect() {
   const ctx = useContext(SpeedContext);
@@ -176,6 +185,7 @@ export function PlaybackPanel({
   player,
   count,
   note,
+  invariant,
   dotClass = "bg-emerald-500",
   legend,
   extra,
@@ -188,6 +198,8 @@ export function PlaybackPanel({
    * caption comes from the UI dictionary rather than a step (compare mode).
    */
   note: Note | string;
+  /** The algorithm's invariant, shown under the note as the "why". */
+  invariant?: Note | null;
   /** Tailwind bg-* class for the status dot, keyed to the step kind. */
   dotClass?: string;
   legend?: { label: string; dot: string }[];
@@ -196,6 +208,8 @@ export function PlaybackPanel({
   children: ReactNode;
 }) {
   const { t, tn } = useLang();
+  const contextInvariant = useContext(InvariantContext);
+  const shownInvariant = invariant ?? contextInvariant;
   return (
     <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
       <div className="scrollbar-slim flex min-h-0 flex-1 items-center justify-center overflow-auto">
@@ -238,6 +252,15 @@ export function PlaybackPanel({
                 {typeof note === "string" ? note : tn(note)}
               </span>
             </p>
+            {shownInvariant && (
+              /* Why the step is allowed, not what it did. */
+              <p className="mt-1.5 flex min-w-0 items-start gap-2 border-l-2 border-sky-500/40 pl-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+                <span className="shrink-0 font-medium text-sky-600 dark:text-sky-400">
+                  {t("ws.invariant")}
+                </span>
+                <span>{tn(shownInvariant)}</span>
+              </p>
+            )}
             {legend && (
               <div className="mt-2 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
                 {legend.map((item) => (
