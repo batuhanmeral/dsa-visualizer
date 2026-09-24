@@ -73,6 +73,26 @@ function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
   return null;
 }
 
+/** Input shapes offered by the preset menu. */
+type InputShape =
+  | "random"
+  | "sorted"
+  | "reversed"
+  | "nearly"
+  | "equal"
+  | "fewUnique"
+  | "wideRange";
+
+const INPUT_SHAPES: { shape: InputShape; key: TKey }[] = [
+  { shape: "random", key: "ws.shape.random" },
+  { shape: "sorted", key: "ws.shape.sorted" },
+  { shape: "reversed", key: "ws.shape.reversed" },
+  { shape: "nearly", key: "ws.shape.nearly" },
+  { shape: "equal", key: "ws.shape.equal" },
+  { shape: "fewUnique", key: "ws.shape.fewUnique" },
+  { shape: "wideRange", key: "ws.shape.wideRange" },
+];
+
 const MAX_VALUES = 16;
 const DEFAULT_INPUT = "23, 7, 41, 15, 3, 34, 9, 28";
 const DEFAULT_TARGET = "15";
@@ -122,6 +142,49 @@ function parseValues(text: string): number[] {
     .slice(0, MAX_VALUES);
 }
 
+/**
+ * Input shapes worth trying, not just "another random list".
+ *
+ * Best and worst cases only separate on particular inputs: insertion sort is
+ * O(n) on sorted data and O(n²) reversed, quick sort's textbook worst case is
+ * sorted input, and counting sort's cost tracks the value range rather than the
+ * length. Handing those over as one click is the difference between reading
+ * that and seeing it.
+ */
+function buildInput(shape: InputShape): number[] {
+  const count = 10;
+  const rand = () => 5 + Math.floor(Math.random() * 95);
+  switch (shape) {
+    case "sorted":
+      return Array.from({ length: count }, rand).sort((a, b) => a - b);
+    case "reversed":
+      return Array.from({ length: count }, rand).sort((a, b) => b - a);
+    case "nearly": {
+      // Sorted, then two adjacent pairs swapped: the "almost done" case.
+      const a = Array.from({ length: count }, rand).sort((x, y) => x - y);
+      for (const i of [2, 6]) [a[i], a[i + 1]] = [a[i + 1], a[i]];
+      return a;
+    }
+    case "equal":
+      return new Array(count).fill(rand());
+    case "fewUnique": {
+      const pool = [rand(), rand(), rand()];
+      return Array.from(
+        { length: count },
+        () => pool[Math.floor(Math.random() * pool.length)]
+      );
+    }
+    case "wideRange":
+      // Same length, far larger value range — counting/radix sort feel this.
+      return Array.from({ length: count }, () => Math.floor(Math.random() * 999));
+    default:
+      return Array.from(
+        { length: 8 + Math.floor(Math.random() * 5) },
+        rand
+      );
+  }
+}
+
 interface WorkspaceProps {
   category: Pick<Category, "name" | "slug">;
   algorithm: Algorithm;
@@ -129,7 +192,6 @@ interface WorkspaceProps {
 
 export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const { t, tn, lang } = useLang();
-
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
   const generator = getSimulation(algorithm.slug);
@@ -146,6 +208,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
     Number.parseInt(DEFAULT_TARGET, 10)
   );
   const [copied, setCopied] = useState(false);
+  const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [codeLang, setCodeLang] = useState<CodeLang>("c");
   // Pseudocode is aligned line-for-line with the C source (enforced by
@@ -270,14 +333,16 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
     reset();
   };
 
-  const shuffle = () => {
-    const count = 8 + Math.floor(Math.random() * 5);
-    const random = Array.from(
-      { length: count },
-      () => 5 + Math.floor(Math.random() * 95)
-    );
-    setValues(random);
-    setInputText(random.join(", "));
+  const applyShape = (shape: InputShape) => {
+    const next = buildInput(shape);
+    setValues(next);
+    setInputText(next.join(", "));
+    // Keep the target reachable: aim at a value that is actually in the list.
+    if (hasTarget) {
+      const pick = next[Math.floor(next.length / 2)];
+      setTarget(pick);
+      setTargetText(String(pick));
+    }
     reset();
   };
 
@@ -585,15 +650,40 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             >
               {t("ws.apply")}
             </button>
-            <button
-              type="button"
-              onClick={shuffle}
-              title={t("ws.random.title")}
-              className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              <Dices className="size-4" />
-              {t("ws.random")}
-            </button>
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShapeMenuOpen((o) => !o)}
+                aria-expanded={shapeMenuOpen}
+                aria-haspopup="menu"
+                title={t("ws.shape.title")}
+                className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
+              >
+                <Dices className="size-4" />
+                {t("ws.shape")}
+              </button>
+              {shapeMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute bottom-full left-0 z-20 mb-1.5 w-56 overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
+                >
+                  {INPUT_SHAPES.map(({ shape, key }) => (
+                    <button
+                      key={shape}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        applyShape(shape);
+                        setShapeMenuOpen(false);
+                      }}
+                      className="block w-full px-3 py-1.5 text-left text-xs text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                    >
+                      {t(key)}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               type="button"
               onClick={copyLink}
@@ -742,7 +832,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                         transition={{ delay: i * 0.04 }}
                         className="flex size-12 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/10 font-mono text-sm font-medium text-emerald-700 dark:text-emerald-300"
                       >
-                        {step?.held?.hole === i ? "" : value}
+                        {value}
                       </motion.span>
                       {algorithm.slug === "linked-list" &&
                         i < renderValues.length - 1 && (
@@ -800,7 +890,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                             : "text-zinc-600 dark:text-zinc-300"
                         }`}
                       >
-                        {value}
+                        {step?.held?.hole === i ? "" : value}
                       </span>
                     </motion.div>
                   ))}
