@@ -107,7 +107,14 @@ export const GEOMETRIC_GRAPH: Graph = {
   })),
 };
 
-/** Adjacency matrix (0 = no edge, else weight). Respects `directed`. */
+/**
+ * Adjacency matrix (0 = no edge, else weight). Respects `directed`.
+ *
+ * The 0-means-absent sentinel mirrors the C snippets shown beside every graph
+ * algorithm (`if (graph[u][v]) …`), so a genuine zero-weight edge cannot be
+ * represented. The editor therefore constrains weights to 1…99 — see
+ * MIN_EDGE_WEIGHT in components/graph-viz.tsx.
+ */
 function toMatrix(g: Graph): number[][] {
   const n = g.nodes.length;
   const m = Array.from({ length: n }, () => new Array(n).fill(0));
@@ -840,10 +847,14 @@ export const GRAPH_ALGOS: Record<string, GraphAlgoConfig> = {
     startLabel: "Source",
     generate: dijkstraSteps,
   },
+  // Both are editable now that they detect the cases an edited graph can
+  // introduce: Bellman-Ford reports a reachable negative cycle, and the
+  // topological sort refuses a graph that has any cycle at all.
   "bellman-ford": {
     graph: DIRECTED_DAG,
     weighted: true,
     usesStart: true,
+    editable: true,
     startLabel: "Source",
     generate: bellmanFordSteps,
   },
@@ -851,6 +862,7 @@ export const GRAPH_ALGOS: Record<string, GraphAlgoConfig> = {
     graph: DIRECTED_DAG,
     weighted: false,
     usesStart: false,
+    editable: true,
     startLabel: "",
     generate: topoSortSteps,
   },

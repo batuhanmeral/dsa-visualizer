@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { Pencil, Plus, RotateCcw } from "lucide-react";
+import { ArrowRight, Minus, Pencil, Plus, RotateCcw, Trash2 } from "lucide-react";
 import {
   GRAPH_ALGOS,
   VIEW_H,
@@ -71,6 +71,15 @@ const same = (e: [number, number], a: number, b: number) =>
 
 const MAX_NODES = 10;
 
+/**
+ * Weights are constrained to 1…99 because the engines — like the C snippets
+ * beside them — use 0 in the adjacency matrix to mean "no edge". A zero-weight
+ * edge could not be told apart from an absent one, so the editor never offers
+ * one. See `toMatrix` in lib/simulations/graphs.ts.
+ */
+const MIN_EDGE_WEIGHT = 1;
+const MAX_EDGE_WEIGHT = 99;
+
 /** Spot for a new node: the candidate farthest from every existing node. */
 function freeSpot(nodes: { x: number; y: number }[]): { x: number; y: number } {
   const candidates: { x: number; y: number }[] = [];
@@ -110,6 +119,8 @@ export default function GraphViz({
   const [goal, setGoal] = useState(5);
   const [editing, setEditing] = useState(false);
   const [selected, setSelected] = useState<number | null>(null);
+  // The edge whose weight is being adjusted, as an [from, to] pair.
+  const [pickedEdge, setPickedEdge] = useState<[number, number] | null>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   // Drag state lives in refs — no re-render churn while the pointer moves.
   const dragId = useRef<number | null>(null);
@@ -141,19 +152,79 @@ export default function GraphViz({
       const exists = g.edges.some((e) => same([e.from, e.to], a, b));
       const edges = exists
         ? g.edges.filter((e) => !same([e.from, e.to], a, b))
-        : [
-            ...g.edges,
-            { from: a, to: b, weight: 1 + Math.floor(Math.random() * 9) },
-          ];
+        : [...g.edges, { from: a, to: b, weight: MIN_EDGE_WEIGHT }];
       return { ...g, edges };
     });
+    // Select a newly drawn edge so its weight can be set straight away.
+    setPickedEdge((current) =>
+      current && same(current, a, b) ? null : [a, b]
+    );
   };
 
-  const onNodeClick = (id: number) => {
+  const edgeWeight = (a: number, b: number) =>
+    graph.edges.find((e) => same([e.from, e.to], a, b))?.weight;
+
+  const nudgeWeight = (delta: number) => {
+    if (!pickedEdge) return;
+    const [a, b] = pickedEdge;
+    setGraph((g) => ({
+      ...g,
+      edges: g.edges.map((e) =>
+        same([e.from, e.to], a, b)
+          ? {
+              ...e,
+              weight: Math.min(
+                MAX_EDGE_WEIGHT,
+                Math.max(MIN_EDGE_WEIGHT, e.weight + delta)
+              ),
+            }
+          : e
+      ),
+    }));
+  };
+
+  /**
+   * Remove a node, renumbering the rest so ids stay 0..n-1.
+   *
+   * The engines index the adjacency matrix by node id, so a gap in the
+   * numbering would leave a phantom row. Renumbering keeps that contract and
+   * also keeps the start/goal pickers honest.
+   */
+  const deleteNode = (id: number) => {
+    setGraph((g) => {
+      if (g.nodes.length <= 2) return g;
+      const renumber = (old: number) => (old > id ? old - 1 : old);
+      return {
+        ...g,
+        nodes: g.nodes
+          .filter((n) => n.id !== id)
+          .map((n) => ({ ...n, id: renumber(n.id) })),
+        edges: g.edges
+          .filter((e) => e.from !== id && e.to !== id)
+          .map((e) => ({ ...e, from: renumber(e.from), to: renumber(e.to) })),
+      };
+    });
+    setSelected(null);
+    setPickedEdge(null);
+    const last = graph.nodes.length - 2;
+    setStart((v) => Math.min(v > id ? v - 1 : v, last));
+    setGoal((v) => Math.min(v > id ? v - 1 : v, last));
+  };
+
+  const toggleDirected = () => {
+    setGraph((g) => ({ ...g, directed: !g.directed }));
+    setPickedEdge(null);
+  };
+
+  const onNodeClick = (id: number, remove: boolean) => {
     if (!editing) return;
     // A drag that just ended must not double as an edge-toggle click.
     if (dragMoved.current) {
       dragMoved.current = false;
+      return;
+    }
+    if (remove) {
+      deleteNode(id);
       return;
     }
     if (selected === null) {
@@ -246,6 +317,48 @@ export default function GraphViz({
           )}
           {config.editable && (
             <div className="ml-auto flex items-center gap-1.5">
+              {editing && config.weighted && pickedEdge && (
+                <div className="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-1.5 py-1">
+                  <span className="px-1 font-mono text-[11px] text-amber-700 dark:text-amber-300">
+                    {pickedEdge[0]}–{pickedEdge[1]}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => nudgeWeight(-1)}
+                    aria-label={t("graph.weight.less")}
+                    className="rounded p-0.5 text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
+                  >
+                    <Minus className="size-3.5" />
+                  </button>
+                  <span className="min-w-6 text-center font-mono text-[11px] font-semibold tabular-nums text-amber-800 dark:text-amber-200">
+                    {edgeWeight(pickedEdge[0], pickedEdge[1]) ?? "–"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => nudgeWeight(1)}
+                    aria-label={t("graph.weight.more")}
+                    className="rounded p-0.5 text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-300"
+                  >
+                    <Plus className="size-3.5" />
+                  </button>
+                </div>
+              )}
+              {editing && (
+                <button
+                  type="button"
+                  onClick={toggleDirected}
+                  aria-pressed={graph.directed === true}
+                  title={t("graph.directed.title")}
+                  className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
+                    graph.directed
+                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      : "border border-zinc-200 text-zinc-500 hover:text-zinc-900 dark:border-zinc-800 dark:hover:text-zinc-100"
+                  }`}
+                >
+                  <ArrowRight className="size-3.5" />
+                  {t(graph.directed ? "graph.directed" : "graph.undirected")}
+                </button>
+              )}
               {editing && graph.nodes.length < MAX_NODES && (
                 <button
                   type="button"
@@ -256,11 +369,22 @@ export default function GraphViz({
                   {t("graph.addNode")}
                 </button>
               )}
+              {editing && selected !== null && graph.nodes.length > 2 && (
+                <button
+                  type="button"
+                  onClick={() => deleteNode(selected)}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/40 px-2.5 py-1.5 text-xs font-medium text-rose-600 transition-colors hover:bg-rose-500/10 dark:text-rose-400"
+                >
+                  <Trash2 className="size-3.5" />
+                  {t("graph.deleteNode", { id: selected })}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => {
                   setEditing((e) => !e);
                   setSelected(null);
+                  setPickedEdge(null);
                 }}
                 className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                   editing
@@ -277,6 +401,9 @@ export default function GraphViz({
                   onClick={() => {
                     setGraph(config.graph);
                     setSelected(null);
+                    setPickedEdge(null);
+                    setStart(0);
+                    setGoal(config.graph.nodes.length - 1);
                   }}
                   title={t("graph.reset.title")}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-zinc-200 px-2.5 py-1.5 text-xs font-medium text-zinc-500 transition-colors hover:text-zinc-900 dark:border-zinc-800 dark:hover:text-zinc-100"
@@ -363,6 +490,8 @@ export default function GraphViz({
                     ? "stroke-rose-400/60"
                     : "stroke-zinc-300 dark:stroke-zinc-700";
             const width = role === "active" || role === "tree" ? 4 : 2;
+            const isPicked =
+              editing && pickedEdge !== null && same(pickedEdge, e.from, e.to);
             return (
               <g key={`${e.from}-${e.to}`}>
                 <line
@@ -383,14 +512,29 @@ export default function GraphViz({
                   }
                 />
                 {config.weighted && (
-                  <g>
+                  <g
+                    onClick={() =>
+                      editing &&
+                      setPickedEdge((current) =>
+                        current && same(current, e.from, e.to)
+                          ? null
+                          : [e.from, e.to]
+                      )
+                    }
+                    className={editing ? "cursor-pointer" : undefined}
+                  >
                     <rect
                       x={mx - 11}
                       y={my - 9}
                       width={22}
                       height={16}
                       rx={4}
-                      className="fill-white dark:fill-zinc-900"
+                      className={
+                        isPicked
+                          ? "fill-amber-100 stroke-amber-500 dark:fill-amber-950"
+                          : "fill-white dark:fill-zinc-900"
+                      }
+                      strokeWidth={isPicked ? 1.5 : 0}
                     />
                     <text
                       x={mx}
@@ -416,7 +560,7 @@ export default function GraphViz({
             return (
               <g
                 key={n.id}
-                onClick={() => onNodeClick(n.id)}
+                onClick={(e) => onNodeClick(n.id, e.shiftKey || e.altKey)}
                 onPointerDown={(e) => {
                   if (!editing) return;
                   dragId.current = n.id;
