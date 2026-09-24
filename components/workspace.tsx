@@ -29,6 +29,7 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
 import CodeView from "./code-view";
+import type { CodeLang } from "@/lib/highlight";
 import GrowthChart from "./growth-chart";
 import {
   SPEEDS,
@@ -126,7 +127,7 @@ interface WorkspaceProps {
 
 export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const { t, tn, lang } = useLang();
-  const codeLines = useMemo(() => algorithm.code.split("\n"), [algorithm.code]);
+
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
   const generator = getSimulation(algorithm.slug);
@@ -144,6 +145,11 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   );
   const [copied, setCopied] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
+  const [codeLang, setCodeLang] = useState<CodeLang>("c");
+  // Pseudocode is aligned line-for-line with the C source (enforced by
+  // `npm test`), so the active line from a step needs no remapping.
+  const shownCode = codeLang === "pseudo" ? algorithm.pseudo : algorithm.code;
+  const codeLines = useMemo(() => shownCode.split("\n"), [shownCode]);
   const [compareMode, setCompareMode] = useState(false);
   const [panelTab, setPanelTab] = useState<"code" | "about" | "growth">(
     "code"
@@ -198,6 +204,29 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
     );
     return () => clearInterval(id);
   }, [playing, speed, steps, codeLines.length]);
+
+  // Which view the reader prefers is a lasting preference, not per-algorithm.
+  // Read after mount for the same reason LangProvider does: the server render
+  // has no localStorage, so the default has to be what both sides produce.
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("codeLang");
+      if (saved === "c" || saved === "pseudo") setCodeLang(saved);
+    } catch {
+      /* localStorage unavailable — keep the default */
+    }
+  }, []);
+  /* eslint-enable react-hooks/set-state-in-effect */
+
+  const pickCodeLang = (next: CodeLang) => {
+    setCodeLang(next);
+    try {
+      localStorage.setItem("codeLang", next);
+    } catch {
+      /* localStorage unavailable — the choice just will not persist */
+    }
+  };
 
   const reset = () => {
     setIsPlaying(false);
@@ -362,7 +391,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
 
   const copyCode = async () => {
     try {
-      await navigator.clipboard.writeText(algorithm.code);
+      await navigator.clipboard.writeText(shownCode);
       setCodeCopied(true);
       window.setTimeout(() => setCodeCopied(false), 1500);
     } catch {
@@ -892,9 +921,31 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           >
             <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-400">
               <TerminalSquare className="size-4 shrink-0 text-emerald-400" />
-              <span className="truncate">{algorithm.slug}.c</span>
+              <span className="truncate">
+                {algorithm.slug}
+                {codeLang === "pseudo" ? ".pseudo" : ".c"}
+              </span>
             </span>
             <div className="flex shrink-0 items-center gap-2">
+              {showCode && (
+                <div className="flex items-center gap-0.5 rounded-lg bg-zinc-900 p-0.5">
+                  {(["c", "pseudo"] as const).map((lang) => (
+                    <button
+                      key={lang}
+                      type="button"
+                      onClick={() => pickCodeLang(lang)}
+                      aria-pressed={codeLang === lang}
+                      className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
+                        codeLang === lang
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "text-zinc-500 hover:text-zinc-200"
+                      }`}
+                    >
+                      {t(lang === "c" ? "ws.lang.c" : "ws.lang.pseudo")}
+                    </button>
+                  ))}
+                </div>
+              )}
               {panelTabs.length > 1 && (
                 <div
                   className={`flex items-center gap-0.5 rounded-lg p-0.5 ${
@@ -952,7 +1003,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             </div>
           </div>
           {showCode ? (
-            <CodeView code={algorithm.code} activeLine={activeLine} />
+            <CodeView code={shownCode} activeLine={activeLine} lang={codeLang} />
           ) : activeTab === "growth" ? (
             <GrowthChart algorithm={algorithm} categorySlug={category.slug} />
           ) : (

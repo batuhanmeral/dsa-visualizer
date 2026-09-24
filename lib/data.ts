@@ -20,6 +20,13 @@ export interface Algorithm {
   space: string;
   /** C source shown in the code viewer (`<slug>.c`). */
   code: string;
+  /**
+   * Language-neutral pseudocode for the same algorithm, **line for line** with
+   * `code`: line i of one explains line i of the other. That alignment is what
+   * lets a single `codeLine` from a step generator highlight either view, with
+   * no second mapping to keep in sync — and `npm test` enforces it.
+   */
+  pseudo: string;
   /** When set, the workspace lets the user enter their own numbers. */
   inputKind?: "array" | "array-target";
   /** Input is auto-sorted before display (e.g. Binary Search). */
@@ -63,6 +70,20 @@ export const categories: Category[] = [
         if (!swapped) break;
     }
 }`,
+        pseudo: `procedure BubbleSort(A, n)
+    for i ← 0 to n-2
+        swapped ← false
+        for j ← 0 to n-i-2
+            if A[j] > A[j+1]
+                tmp ← A[j]
+                A[j] ← A[j+1]
+                A[j+1] ← tmp
+                swapped ← true
+            end if
+        end for
+        if not swapped then break        ▸ already sorted
+    end for
+end procedure`,
       },
       {
         slug: "selection-sort",
@@ -85,6 +106,19 @@ export const categories: Category[] = [
         }
     }
 }`,
+        pseudo: `procedure SelectionSort(A, n)
+    for i ← 0 to n-2
+        min ← i
+        for j ← i+1 to n-1
+            if A[j] < A[min] then min ← j
+        end for
+        if min ≠ i
+            tmp ← A[i]
+            A[i] ← A[min]
+            A[min] ← tmp
+        end if
+    end for
+end procedure`,
       },
       {
         slug: "insertion-sort",
@@ -105,6 +139,17 @@ export const categories: Category[] = [
         arr[j + 1] = key;
     }
 }`,
+        pseudo: `procedure InsertionSort(A, n)
+    for i ← 1 to n-1
+        key ← A[i]                       ▸ lift it out
+        j ← i-1
+        while j ≥ 0 and A[j] > key
+            A[j+1] ← A[j]                ▸ shift right
+            j ← j-1
+        end while
+        A[j+1] ← key                     ▸ drop it in
+    end for
+end procedure`,
       },
       {
         slug: "shell-sort",
@@ -127,6 +172,19 @@ export const categories: Category[] = [
         }
     }
 }`,
+        pseudo: `procedure ShellSort(A, n)
+    for gap ← n/2 down to 1, halving
+        for i ← gap to n-1
+            key ← A[i]
+            j ← i
+            while j ≥ gap and A[j-gap] > key
+                A[j] ← A[j-gap]          ▸ jump gap slots
+                j ← j-gap
+            end while
+            A[j] ← key
+        end for
+    end for
+end procedure`,
       },
       {
         slug: "merge-sort",
@@ -156,6 +214,26 @@ void mergeSort(int arr[], int lo, int hi) {
     mergeSort(arr, mid + 1, hi);
     merge(arr, lo, mid, hi);
 }`,
+        pseudo: `procedure Merge(A, lo, mid, hi)
+    n1 ← mid-lo+1, n2 ← hi-mid
+    let L[n1], R[n2]
+    copy A[lo .. mid]   into L
+    copy A[mid+1 .. hi] into R
+
+    i ← 0, j ← 0, k ← lo
+    while i < n1 and j < n2              ▸ take the smaller head
+        A[k++] ← if L[i] ≤ R[j] then L[i++] else R[j++]
+    while i < n1: A[k++] ← L[i++]        ▸ drain L
+    while j < n2: A[k++] ← R[j++]        ▸ drain R
+end procedure
+
+procedure MergeSort(A, lo, hi)
+    if lo ≥ hi then return               ▸ one element is sorted
+    mid ← lo + (hi-lo)/2
+    MergeSort(A, lo, mid)
+    MergeSort(A, mid+1, hi)
+    Merge(A, lo, mid, hi)
+end procedure`,
       },
       {
         slug: "quick-sort",
@@ -185,6 +263,26 @@ void quickSort(int arr[], int lo, int hi) {
         quickSort(arr, p + 1, hi);
     }
 }`,
+        pseudo: `function Partition(A, lo, hi)
+    pivot ← A[hi]
+    i ← lo-1                             ▸ end of the "smaller" region
+    for j ← lo to hi-1
+        if A[j] < pivot
+            i ← i+1
+            swap A[i], A[j]
+        end if
+    end for
+    swap A[i+1], A[hi]                   ▸ pivot to its final place
+    return i+1
+end function
+
+procedure QuickSort(A, lo, hi)
+    if lo < hi
+        p ← Partition(A, lo, hi)
+        QuickSort(A, lo, p-1)
+        QuickSort(A, p+1, hi)
+    end if
+end procedure`,
       },
       {
         slug: "heap-sort",
@@ -217,6 +315,29 @@ void heapSort(int arr[], int n) {
         heapify(arr, i, 0);
     }
 }`,
+        pseudo: `procedure Heapify(A, n, i)                ▸ sift A[i] down
+    largest ← i
+    l ← 2i+1, r ← 2i+2
+    if l < n and A[l] > A[largest] then largest ← l
+    if r < n and A[r] > A[largest] then largest ← r
+    if largest ≠ i
+        tmp ← A[i]
+        A[i] ← A[largest]
+        A[largest] ← tmp
+        Heapify(A, n, largest)
+    end if
+end procedure
+
+procedure HeapSort(A, n)
+    for i ← n/2-1 down to 0              ▸ build a max-heap
+        Heapify(A, n, i)
+    for i ← n-1 down to 1
+        tmp ← A[0]
+        A[0] ← A[i]                      ▸ max to the back
+        A[i] ← tmp
+        Heapify(A, i, 0)                 ▸ restore the heap
+    end for
+end procedure`,
       },
       {
         slug: "radix-sort",
@@ -249,6 +370,29 @@ void radixSort(int arr[], int n) {
     for (int exp = 1; getMax(arr, n) / exp > 0; exp *= 10)
         countingPass(arr, n, exp);
 }`,
+        pseudo: `function GetMax(A, n)
+    mx ← A[0]
+    for i ← 1 to n-1
+        if A[i] > mx then mx ← A[i]
+    return mx
+end function
+
+procedure CountingPass(A, n, exp)         ▸ stable, by one digit
+    let out[n], count[10] ← all zero
+    for i ← 0 to n-1
+        count[digit(A[i], exp)] ← count[...] + 1
+    for d ← 1 to 9
+        count[d] ← count[d] + count[d-1]  ▸ running positions
+    for i ← n-1 down to 0                 ▸ backwards ⇒ stable
+        out[--count[digit(A[i], exp)]] ← A[i]
+    for i ← 0 to n-1
+        A[i] ← out[i]
+end procedure
+
+procedure RadixSort(A, n)
+    for exp ← 1, 10, 100, … while GetMax(A,n)/exp > 0
+        CountingPass(A, n, exp)
+end procedure`,
       },
       {
         slug: "counting-sort",
@@ -279,6 +423,27 @@ void radixSort(int arr[], int n) {
     for (int i = 0; i < n; i++)
         arr[i] = out[i];
 }`,
+        pseudo: `procedure CountingSort(A, n)
+    max ← A[0]
+    for i ← 1 to n-1
+        if A[i] > max then max ← A[i]
+
+    let count[max+1]
+    for i ← 0 to max: count[i] ← 0
+
+    for i ← 0 to n-1                     ▸ tally each value
+        count[A[i]] ← count[A[i]] + 1
+
+    for i ← 1 to max                     ▸ running positions
+        count[i] ← count[i] + count[i-1]
+
+    let out[n]
+    for i ← n-1 down to 0                ▸ backwards ⇒ stable
+        out[--count[A[i]]] ← A[i]
+
+    for i ← 0 to n-1
+        A[i] ← out[i]
+end procedure`,
       },
       {
         slug: "bucket-sort",
@@ -311,6 +476,29 @@ void bucketSort(int arr[], int n) {
         for (int j = 0; j < count[b]; j++)
             arr[idx++] = bucket[b][j];
 }`,
+        pseudo: `BUCKETS ← 5
+
+procedure BucketSort(A, n)
+    max ← A[0]
+    for i ← 1 to n-1
+        if A[i] > max then max ← A[i]
+
+    let bucket[BUCKETS][…], count[BUCKETS] ← 0
+    size ← max/BUCKETS + 1               ▸ value range per bucket
+
+    for i ← 0 to n-1
+        b ← A[i] / size
+        append A[i] to bucket[b]
+    end for
+
+    for b ← 0 to BUCKETS-1
+        InsertionSort(bucket[b])         ▸ few items each
+
+    idx ← 0
+    for b ← 0 to BUCKETS-1
+        for each v in bucket[b]
+            A[idx++] ← v
+end procedure`,
       },
     ],
   },
@@ -335,6 +523,13 @@ void bucketSort(int arr[], int n) {
     }
     return -1;
 }`,
+        pseudo: `function LinearSearch(A, n, target)
+    for i ← 0 to n-1
+        if A[i] = target
+            return i                     ▸ first match wins
+    end for
+    return -1                            ▸ not present
+end function`,
       },
       {
         slug: "binary-search",
@@ -358,6 +553,19 @@ void bucketSort(int arr[], int n) {
     }
     return -1;
 }`,
+        pseudo: `function BinarySearch(A, n, target)        ▸ A must be sorted
+    lo ← 0, hi ← n-1
+    while lo ≤ hi
+        mid ← lo + (hi-lo)/2             ▸ no overflow
+        if A[mid] = target
+            return mid
+        if A[mid] < target
+            lo ← mid+1                   ▸ drop the left half
+        else
+            hi ← mid-1                   ▸ drop the right half
+    end while
+    return -1
+end function`,
       },
       {
         slug: "jump-search",
@@ -386,6 +594,24 @@ void bucketSort(int arr[], int n) {
         return prev;
     return -1;
 }`,
+        pseudo: `function JumpSearch(A, n, target)          ▸ A must be sorted
+    step ← ⌊√n⌋
+    prev ← 0
+    while A[min(step,n)-1] < target      ▸ leap block by block
+        prev ← step
+        step ← step + ⌊√n⌋
+        if prev ≥ n
+            return -1                    ▸ past the end
+    end while
+    while A[prev] < target               ▸ scan inside the block
+        prev ← prev+1
+        if prev = min(step,n)
+            return -1
+    end while
+    if A[prev] = target
+        return prev
+    return -1
+end function`,
       },
       {
         slug: "interpolation-search",
@@ -416,6 +642,26 @@ void bucketSort(int arr[], int n) {
     }
     return -1;
 }`,
+        pseudo: `function InterpolationSearch(A, n, target) ▸ sorted, ~uniform
+    lo ← 0, hi ← n-1
+    while lo ≤ hi and A[lo] ≤ target ≤ A[hi]
+        if lo = hi
+            if A[lo] = target then return lo
+            return -1
+        end if
+        if A[hi] = A[lo]                 ▸ flat window: all equal
+            return lo                    ▸ guard ⇒ it is the match
+        pos ← lo + (target-A[lo])·(hi-lo)
+                   / (A[hi]-A[lo])       ▸ guess by value
+        if A[pos] = target
+            return pos
+        if A[pos] < target
+            lo ← pos+1
+        else
+            hi ← pos-1
+    end while
+    return -1
+end function`,
       },
     ],
   },
@@ -455,6 +701,28 @@ Node *removeValue(Node *head, int value) {
     head->next = removeValue(head->next, value);
     return head;
 }`,
+        pseudo: `record Node
+    data
+    next                                 ▸ pointer to the next node
+end record
+
+function PushFront(head, value)
+    node ← allocate Node
+    node.data ← value
+    node.next ← head                     ▸ old head follows
+    return node                          ▸ the new head
+end function
+
+function RemoveValue(head, value)
+    if head = NIL then return NIL        ▸ ran off the end
+    if head.data = value
+        rest ← head.next
+        free head
+        return rest                      ▸ splice it out
+    end if
+    head.next ← RemoveValue(head.next, value)
+    return head
+end function`,
       },
       {
         slug: "stack",
@@ -484,6 +752,26 @@ int pop(Stack *s) {
 int peek(const Stack *s) {
     return s->items[s->top];
 }`,
+        pseudo: `MAX ← 100
+
+record Stack
+    items[MAX]
+    top                                  ▸ -1 when empty
+end record
+
+procedure Push(s, value)
+    if s.top = MAX-1 then return         ▸ overflow
+    s.items[++s.top] ← value             ▸ grow at the top
+end procedure
+
+function Pop(s)
+    if s.top = -1 then return -1         ▸ underflow
+    return s.items[s.top--]              ▸ last in, first out
+end function
+
+function Peek(s)
+    return s.items[s.top]                ▸ look, do not remove
+end function`,
       },
       {
         slug: "queue",
@@ -514,6 +802,27 @@ int dequeue(Queue *q) {
     q->size--;
     return value;
 }`,
+        pseudo: `MAX ← 100
+
+record Queue
+    items[MAX]
+    front, rear, size                    ▸ indices wrap around
+end record
+
+procedure Enqueue(q, value)
+    if q.size = MAX then return          ▸ full
+    q.rear ← (q.rear + 1) mod MAX        ▸ wrap
+    q.items[q.rear] ← value
+    q.size ← q.size + 1
+end procedure
+
+function Dequeue(q)
+    if q.size = 0 then return -1         ▸ empty
+    value ← q.items[q.front]             ▸ first in, first out
+    q.front ← (q.front + 1) mod MAX
+    q.size ← q.size - 1
+    return value
+end function`,
       },
       {
         slug: "hash-table",
@@ -549,6 +858,32 @@ int contains(int key) {
         if (e->key == key) return 1;
     return 0;
 }`,
+        pseudo: `BUCKETS ← 8
+
+record Entry
+    key
+    next                                 ▸ next entry in the chain
+end record
+
+let table[BUCKETS] ← all empty
+
+function Hash(key)
+    return key mod BUCKETS               ▸ non-negative
+end function
+
+procedure Insert(key)
+    b ← Hash(key)                        ▸ which bucket
+    e ← allocate Entry
+    e.key ← key
+    e.next ← table[b]                    ▸ chain on collision
+    table[b] ← e                         ▸ new head of the chain
+end procedure
+
+function Contains(key)
+    for each e in chain table[Hash(key)]
+        if e.key = key then return true  ▸ only one bucket scanned
+    return false
+end function`,
       },
       {
         slug: "union-find",
@@ -584,6 +919,33 @@ void unionSets(int a, int b) {
         rank_[ra]++;
     }
 }`,
+        pseudo: `let parent[N], rank[N]
+
+procedure MakeSets(n)
+    for i ← 0 to n-1
+        parent[i] ← i                    ▸ its own root
+        rank[i] ← 0
+    end for
+end procedure
+
+function Find(x)
+    if parent[x] ≠ x
+        parent[x] ← Find(parent[x])      ▸ compress the path
+    return parent[x]                     ▸ the set's representative
+end function
+
+procedure Union(a, b)
+    ra ← Find(a), rb ← Find(b)
+    if ra = rb then return               ▸ same set already
+    if rank[ra] < rank[rb]
+        parent[ra] ← rb                  ▸ shallower under deeper
+    else if rank[ra] > rank[rb]
+        parent[rb] ← ra
+    else
+        parent[rb] ← ra
+        rank[ra] ← rank[ra] + 1          ▸ equal ranks: depth grows
+    end if
+end procedure`,
       },
     ],
   },
@@ -620,6 +982,26 @@ void bfs(int graph[V][V], int start) {
         }
     }
 }`,
+        pseudo: `V ← 6
+
+procedure BFS(graph, start)
+    let visited[V] ← all false
+    let queue ← empty                    ▸ FIFO
+
+    visited[start] ← true
+    enqueue start
+
+    while queue is not empty
+        u ← dequeue                      ▸ nearest unexplored
+        output u
+        for v ← 0 to V-1
+            if edge u→v and not visited[v]
+                visited[v] ← true        ▸ mark on discovery
+                enqueue v
+            end if
+        end for
+    end while
+end procedure`,
       },
       {
         slug: "dfs",
@@ -638,6 +1020,16 @@ void dfs(int graph[V][V], int u, int visited[V]) {
             dfs(graph, v, visited);
     }
 }`,
+        pseudo: `V ← 6
+
+procedure DFS(graph, u, visited)
+    visited[u] ← true
+    output u
+    for v ← 0 to V-1
+        if edge u→v and not visited[v]
+            DFS(graph, v, visited)       ▸ dive before widening
+    end for
+end procedure`,
       },
       {
         slug: "dijkstra",
@@ -667,6 +1059,27 @@ void dijkstra(int graph[V][V], int src, int dist[V]) {
                 dist[v] = dist[u] + graph[u][v];
     }
 }`,
+        pseudo: `V ← 6
+INF ← ∞
+
+procedure Dijkstra(graph, src, dist)      ▸ non-negative weights
+    let visited[V] ← all false
+    for i ← 0 to V-1: dist[i] ← INF
+    dist[src] ← 0
+
+    repeat V times
+        u ← -1
+        for v ← 0 to V-1                 ▸ nearest unvisited
+            if not visited[v] and (u = -1 or dist[v] < dist[u])
+                u ← v
+        visited[u] ← true                ▸ dist[u] is now final
+
+        for v ← 0 to V-1                 ▸ relax u's edges
+            if edge u→v and not visited[v] and
+               dist[u] + w(u,v) < dist[v]
+                dist[v] ← dist[u] + w(u,v)
+    end repeat
+end procedure`,
       },
       {
         slug: "bellman-ford",
@@ -702,6 +1115,33 @@ int bellmanFord(int graph[V][V], int src, int dist[V]) {
                 return 0;
     return 1;
 }`,
+        pseudo: `V ← 6
+INF ← ∞
+
+function BellmanFord(graph, src, dist)    ▸ negatives allowed
+    for i ← 0 to V-1: dist[i] ← INF
+    dist[src] ← 0
+
+    for pass ← 1 to V-1
+        for u ← 0 to V-1
+            if dist[u] = INF then skip
+            for v ← 0 to V-1
+                if edge u→v and
+                   dist[u] + w(u,v) < dist[v]
+                    dist[v] ← dist[u] + w(u,v)
+            end for
+        end for
+    end for
+
+    ▸ One extra sweep: an edge that still relaxes after
+    ▸ V-1 passes proves a negative cycle is reachable.
+    for u ← 0 to V-1
+        for v ← 0 to V-1
+            if edge u→v and dist[u] ≠ INF and
+               dist[u] + w(u,v) < dist[v]
+                return false             ▸ no shortest path exists
+    return true
+end function`,
       },
       {
         slug: "topological-sort",
@@ -734,6 +1174,30 @@ void topoSort(int graph[V][V]) {
     if (rear < V)
         printf("\\ncycle: %d node(s) never reached in-degree 0", V - rear);
 }`,
+        pseudo: `V ← 6
+
+procedure TopoSort(graph)                 ▸ Kahn's algorithm
+    let indeg[V] ← all zero
+    for u ← 0 to V-1
+        for v ← 0 to V-1
+            if edge u→v then indeg[v] ← indeg[v] + 1
+
+    let queue ← empty
+    for v ← 0 to V-1
+        if indeg[v] = 0 then enqueue v   ▸ no prerequisites
+
+    while queue is not empty
+        u ← dequeue
+        output u
+        for v ← 0 to V-1
+            if edge u→v and --indeg[v] = 0
+                enqueue v                ▸ last prerequisite met
+        end for
+    end while
+
+    if fewer than V nodes were emitted
+        report a cycle                   ▸ no valid order exists
+end procedure`,
       },
       {
         slug: "prim",
@@ -766,6 +1230,30 @@ void prim(int graph[V][V], int start) {
             }
     }
 }`,
+        pseudo: `V ← 6
+INF ← ∞
+
+procedure Prim(graph, start)              ▸ grow one tree
+    let inMST[V] ← all false
+    let key[V], parent[V]
+    for i ← 0 to V-1: key[i] ← INF
+    key[start] ← 0
+
+    repeat V times
+        u ← -1
+        for v ← 0 to V-1                 ▸ cheapest node outside
+            if not inMST[v] and (u = -1 or key[v] < key[u])
+                u ← v
+        inMST[u] ← true                  ▸ add it to the tree
+
+        for v ← 0 to V-1                 ▸ update the frontier
+            if edge u→v and not inMST[v] and
+               w(u,v) < key[v]
+                key[v] ← w(u,v)
+                parent[v] ← u
+            end if
+    end repeat
+end procedure`,
       },
       {
         slug: "kruskal",
@@ -793,6 +1281,25 @@ void kruskal(Edge edges[], int m) {
         parent[a] = b;          /* union: keep this edge */
     }
 }`,
+        pseudo: `V ← 6
+
+let parent[V]
+function Find(x)
+    while parent[x] ≠ x: x ← parent[x]
+    return x
+end function
+
+procedure Kruskal(edges, m)               ▸ grow a forest
+    for i ← 0 to V-1: parent[i] ← i
+    sort edges by weight, ascending
+
+    for i ← 0 to m-1
+        a ← Find(edges[i].u), b ← Find(edges[i].v)
+        if a = b
+            continue                     ▸ same set ⇒ cycle, skip
+        parent[a] ← b                    ▸ union: keep this edge
+    end for
+end procedure`,
       },
       {
         slug: "a-star",
@@ -827,6 +1334,32 @@ int aStar(int graph[V][V], int h[V], int src, int goal) {
     }
     return -1;
 }`,
+        pseudo: `V ← 6
+INF ← ∞
+
+▸ h[v] = straight-line estimate from v to the goal
+function AStar(graph, h, src, goal)
+    let g[V], f[V], closed[V] ← all false
+    for i ← 0 to V-1: g[i] ← INF, f[i] ← INF
+    g[src] ← 0
+    f[src] ← h[src]                      ▸ cost so far + guess
+
+    repeat V times
+        u ← -1
+        for v ← 0 to V-1                 ▸ lowest f, not closed
+            if not closed[v] and (u = -1 or f[v] < f[u])
+                u ← v
+        if u = goal then return g[goal]
+        closed[u] ← true
+
+        for v ← 0 to V-1
+            if edge u→v and g[u] + w(u,v) < g[v]
+                g[v] ← g[u] + w(u,v)
+                f[v] ← g[v] + h[v]       ▸ steer toward the goal
+            end if
+    end repeat
+    return -1                            ▸ goal unreachable
+end function`,
       },
       {
         slug: "floyd-warshall",
@@ -849,6 +1382,20 @@ void floydWarshall(int dist[V][V]) {
         }
     }
 }`,
+        pseudo: `V ← 4
+INF ← ∞
+
+procedure FloydWarshall(dist)             ▸ all pairs at once
+    for k ← 0 to V-1                     ▸ allowed stop-over
+        for i ← 0 to V-1
+            for j ← 0 to V-1
+                if dist[i][k] + dist[k][j] < dist[i][j]
+                    dist[i][j] ← dist[i][k]
+                                + dist[k][j]
+            end for
+        end for
+    end for
+end procedure`,
       },
     ],
   },
@@ -883,6 +1430,24 @@ int lcs(const char *a, const char *b) {
     }
     return dp[m][n];
 }`,
+        pseudo: `function Max(a, b) → the larger of a and b
+
+function LCS(a, b)
+    m ← length(a), n ← length(b)
+    let dp[m+1][n+1]                     ▸ dp[i][j] = LCS of prefixes
+
+    for i ← 0 to m
+        for j ← 0 to n
+            if i = 0 or j = 0
+                dp[i][j] ← 0             ▸ empty prefix
+            else if a[i-1] = b[j-1]
+                dp[i][j] ← dp[i-1][j-1] + 1   ▸ extend diagonally
+            else
+                dp[i][j] ← Max(dp[i-1][j], dp[i][j-1])
+        end for
+    end for
+    return dp[m][n]
+end function`,
       },
       {
         slug: "knapsack",
@@ -909,6 +1474,24 @@ int knapsack(int w[], int val[], int n, int W) {
     }
     return dp[n][W];
 }`,
+        pseudo: `function Max(a, b) → the larger of a and b
+
+function Knapsack(w, val, n, W)           ▸ each item once
+    let dp[n+1][W+1]                     ▸ dp[i][c] = best with i items
+
+    for i ← 0 to n
+        for c ← 0 to W
+            if i = 0 or c = 0
+                dp[i][c] ← 0             ▸ nothing fits, nothing gained
+            else if w[i-1] > c
+                dp[i][c] ← dp[i-1][c]    ▸ too heavy: skip it
+            else
+                dp[i][c] ← Max(dp[i-1][c],
+                    dp[i-1][c-w[i-1]] + val[i-1])
+        end for
+    end for
+    return dp[n][W]
+end function`,
       },
       {
         slug: "edit-distance",
@@ -941,6 +1524,30 @@ int editDistance(const char *a, const char *b) {
     }
     return dp[m][n];
 }`,
+        pseudo: `function Min3(a, b, c)
+    m ← the smaller of a and b
+    return the smaller of m and c
+end function
+
+function EditDistance(a, b)               ▸ Levenshtein
+    m ← length(a), n ← length(b)
+    let dp[m+1][n+1]                     ▸ dp[i][j] = edits so far
+
+    for i ← 0 to m
+        for j ← 0 to n
+            if i = 0
+                dp[i][j] ← j             ▸ j inserts
+            else if j = 0
+                dp[i][j] ← i             ▸ i deletes
+            else if a[i-1] = b[j-1]
+                dp[i][j] ← dp[i-1][j-1]  ▸ free: same character
+            else
+                dp[i][j] ← 1 + Min3(dp[i-1][j-1],
+                                    dp[i-1][j], dp[i][j-1])
+        end for
+    end for
+    return dp[m][n]
+end function`,
       },
       {
         slug: "coin-change",
@@ -971,6 +1578,28 @@ int coinChange(int coins[], int n, int amount) {
     }
     return dp[n][amount];
 }`,
+        pseudo: `INF ← ∞
+
+function Min(a, b) → the smaller of a and b
+
+function CoinChange(coins, n, amount)     ▸ unlimited of each
+    let dp[n+1][amount+1]
+
+    for i ← 0 to n
+        for a ← 0 to amount
+            if a = 0
+                dp[i][a] ← 0             ▸ no coins needed
+            else if i = 0
+                dp[i][a] ← INF           ▸ no coins available
+            else if coins[i-1] > a
+                dp[i][a] ← dp[i-1][a]    ▸ coin too large
+            else
+                dp[i][a] ← Min(dp[i-1][a],
+                               dp[i][a-coins[i-1]] + 1)
+        end for
+    end for
+    return dp[n][amount]
+end function`,
       },
       {
         slug: "fibonacci",
@@ -988,6 +1617,15 @@ int coinChange(int coins[], int n, int amount) {
         dp[i] = dp[i - 1] + dp[i - 2];
     return dp[n];
 }`,
+        pseudo: `function Fib(n)                            ▸ bottom-up
+    if n ≤ 1 then return n
+    let dp[n+1]
+    dp[0] ← 0
+    dp[1] ← 1
+    for i ← 2 to n
+        dp[i] ← dp[i-1] + dp[i-2]        ▸ each solved once
+    return dp[n]
+end function`,
       },
       {
         slug: "kadane",
@@ -1009,6 +1647,19 @@ int coinChange(int coins[], int n, int amount) {
     }
     return best;
 }`,
+        pseudo: `function Kadane(A, n)                      ▸ max subarray sum
+    best ← A[0]
+    cur ← A[0]                           ▸ best run ending here
+    for i ← 1 to n-1
+        if cur + A[i] > A[i]
+            cur ← cur + A[i]             ▸ extend the run
+        else
+            cur ← A[i]                   ▸ restart run here
+        if cur > best
+            best ← cur
+    end for
+    return best
+end function`,
       },
       {
         slug: "lis",
@@ -1030,6 +1681,19 @@ int coinChange(int coins[], int n, int amount) {
     }
     return best;
 }`,
+        pseudo: `function LIS(A, n)                         ▸ longest increasing
+    let dp[n]
+    best ← 0
+    for i ← 0 to n-1
+        dp[i] ← 1                        ▸ A[i] on its own
+        for j ← 0 to i-1
+            if A[j] < A[i] and dp[j] + 1 > dp[i]
+                dp[i] ← dp[j] + 1        ▸ extend that run
+        end for
+        if dp[i] > best then best ← dp[i]
+    end for
+    return best
+end function`,
       },
     ],
   },
@@ -1057,6 +1721,17 @@ void activitySelect(int start[], int finish[], int n) {
         }
     }
 }`,
+        pseudo: `▸ activities sorted by finish time
+procedure ActivitySelect(start, finish, n)
+    lastFinish ← finish[0]               ▸ earliest finisher is safe
+    select 0
+    for i ← 1 to n-1
+        if start[i] ≥ lastFinish         ▸ no overlap
+            select i
+            lastFinish ← finish[i]       ▸ move the frontier
+        end if
+    end for
+end procedure`,
       },
       {
         slug: "fractional-knapsack",
@@ -1081,6 +1756,22 @@ double fracKnapsack(int w[], int v[], int n, int W) {
     }
     return total;
 }`,
+        pseudo: `▸ items sorted by value/weight ratio, descending
+function FracKnapsack(w, v, n, W)
+    total ← 0
+    remaining ← W
+    for i ← 0 to n-1 while remaining > 0
+        if w[i] ≤ remaining
+            remaining ← remaining - w[i] ▸ take it all
+            total ← total + v[i]
+        else
+            frac ← remaining / w[i]
+            total ← total + v[i]·frac    ▸ take a fraction
+            remaining ← 0                ▸ the bag is full
+        end if
+    end for
+    return total
+end function`,
       },
       {
         slug: "job-sequencing",
@@ -1107,6 +1798,24 @@ int jobSequence(int dl[], int p[], int n, int maxD) {
     }
     return total;
 }`,
+        pseudo: `▸ jobs sorted by profit, descending
+function JobSequence(deadline, profit, n, maxD)
+    let slot[1 .. maxD]
+    for t ← 1 to maxD
+        slot[t] ← empty                  ▸ all hours free
+
+    total ← 0
+    for i ← 0 to n-1
+        for t ← deadline[i] down to 1
+            if slot[t] is empty
+                slot[t] ← i              ▸ latest free hour
+                total ← total + profit[i]
+                break                    ▸ keep earlier hours open
+            end if
+        end for
+    end for
+    return total
+end function`,
       },
       {
         slug: "huffman-coding",
@@ -1144,6 +1853,35 @@ void printCodes(Node *t, char buf[], int d) {
     buf[d] = '0'; printCodes(t->left,  buf, d + 1);
     buf[d] = '1'; printCodes(t->right, buf, d + 1);
 }`,
+        pseudo: `record Node
+    ch
+    freq
+    left, right                          ▸ NIL for a leaf
+end record
+
+function BuildHuffman(forest, n)
+    while n > 1
+        a ← index of the lightest tree
+        b ← index of the next lightest
+        m ← new Node with freq
+                  forest[a].freq + forest[b].freq
+        m.left  ← forest[a]              ▸ 0 goes left
+        m.right ← forest[b]              ▸ 1 goes right
+        forest[a] ← m                    ▸ replace one
+        forest[b] ← forest[--n]          ▸ drop the other
+    end while
+    return forest[0]                     ▸ the Huffman tree
+end function
+
+procedure PrintCodes(t, buf, d)
+    if t is a leaf                       ▸ path spells its code
+        buf[d] ← end of string
+        output t.ch and buf
+        return
+    end if
+    buf[d] ← '0'; PrintCodes(t.left,  buf, d+1)
+    buf[d] ← '1'; PrintCodes(t.right, buf, d+1)
+end procedure`,
       },
     ],
   },
@@ -1180,6 +1918,26 @@ int solve(int board[], int row, int n) {
     }
     return 0;
 }`,
+        pseudo: `function Safe(board, row, col)
+    for r ← 0 to row-1
+        if board[r] = col then return false        ▸ same column
+        if r - board[r] = row - col then return false   ▸ ╲
+        if r + board[r] = row + col then return false   ▸ ╱
+    end for
+    return true
+end function
+
+function Solve(board, row, n)
+    if row = n then return true          ▸ all queens placed
+    for col ← 0 to n-1
+        if Safe(board, row, col)
+            board[row] ← col             ▸ place
+            if Solve(board, row+1, n) then return true
+            board[row] ← empty           ▸ backtrack
+        end if
+    end for
+    return false                         ▸ this row has no option
+end function`,
       },
       {
         slug: "sudoku",
@@ -1214,6 +1972,32 @@ int solve(int g[9][9]) {
     }
     return 1;
 }`,
+        pseudo: `function Valid(g, r, c, d)
+    for i ← 0 to 8
+        if g[r][i] = d or g[i][c] = d    ▸ row or column clash
+            return false
+        if d is already in r,c's 3×3 box
+            return false
+    end for
+    return true
+end function
+
+function Solve(g)
+    for r ← 0 to 8
+        for c ← 0 to 8
+            if g[r][c] is filled then continue
+            for d ← 1 to 9               ▸ try each digit
+                if Valid(g, r, c, d)
+                    g[r][c] ← d          ▸ place
+                    if Solve(g) then return true
+                    g[r][c] ← empty      ▸ backtrack
+                end if
+            end for
+            return false                 ▸ no digit fits: back up
+        end for
+    end for
+    return true                          ▸ no blanks left
+end function`,
       },
       {
         slug: "rat-in-a-maze",
@@ -1240,6 +2024,24 @@ int solve(int maze[N][N], int r, int c, int sol[N][N]) {
     sol[r][c] = 0;   /* backtrack */
     return 0;
 }`,
+        pseudo: `N ← 4
+
+function Solve(maze, r, c, sol)
+    if (r,c) is off the board or
+       maze[r][c] is a wall or sol[r][c] is on the path
+        return false
+
+    sol[r][c] ← on the path
+    if r = N-1 and c = N-1
+        return true                      ▸ exit reached
+
+    if Solve(maze, r+1, c, sol) then return true   ▸ down
+    if Solve(maze, r, c+1, sol) then return true   ▸ right
+    if Solve(maze, r-1, c, sol) then return true   ▸ up
+    if Solve(maze, r, c-1, sol) then return true   ▸ left
+    sol[r][c] ← off the path             ▸ backtrack
+    return false
+end function`,
       },
       {
         slug: "subsets",
@@ -1258,6 +2060,16 @@ int solve(int maze[N][N], int r, int c, int sol[N][N]) {
     /* backtrack: exclude a[i] */
     subsets(a, n, i + 1, cur, k);
 }`,
+        pseudo: `procedure Subsets(A, n, i, cur, k)
+    if i = n
+        output cur[0 .. k-1]             ▸ one complete subset
+        return
+    end if
+    cur[k] ← A[i]                        ▸ include A[i]
+    Subsets(A, n, i+1, cur, k+1)
+    ▸ backtrack: exclude A[i]
+    Subsets(A, n, i+1, cur, k)
+end procedure`,
       },
       {
         slug: "permutations",
@@ -1277,6 +2089,17 @@ int solve(int maze[N][N], int r, int c, int sol[N][N]) {
         swap(&a[k], &a[i]);   /* undo */
     }
 }`,
+        pseudo: `procedure Permute(A, n, k)
+    if k = n
+        output A                         ▸ one complete permutation
+        return
+    end if
+    for i ← k to n-1
+        swap A[k], A[i]                  ▸ fix A[i] at position k
+        Permute(A, n, k+1)
+        swap A[k], A[i]                  ▸ undo
+    end for
+end procedure`,
       },
     ],
   },
@@ -1330,6 +2153,43 @@ Node *deleteNode(Node *root, int key) {
     }
     return root;
 }`,
+        pseudo: `record Node
+    key
+    left, right
+end record
+
+function Insert(root, key)
+    if root = NIL
+        return new Node(key)             ▸ found the empty slot
+    if key < root.key
+        root.left ← Insert(root.left, key)
+    else if key > root.key
+        root.right ← Insert(root.right, key)
+    return root                          ▸ duplicates ignored
+end function
+
+function Search(root, key)
+    while root ≠ NIL and root.key ≠ key
+        root ← if key < root.key then root.left
+                                 else root.right
+    return root                          ▸ NIL when absent
+end function
+
+function Delete(root, key)
+    if root = NIL then return NIL
+    if key < root.key
+        root.left ← Delete(root.left, key)
+    else if key > root.key
+        root.right ← Delete(root.right, key)
+    else
+        if root has no left  then return root.right
+        if root has no right then return root.left
+        m ← smallest node in root.right  ▸ in-order successor
+        root.key ← m.key                 ▸ copy it up
+        root.right ← Delete(root.right, m.key)
+    end if
+    return root
+end function`,
       },
       {
         slug: "avl",
@@ -1379,6 +2239,47 @@ Node *insert(Node *n, int key) {
     }
     return n;
 }`,
+        pseudo: `function Height(n) → n.height, or 0 for NIL
+function BF(n)                            ▸ balance factor
+    return Height(n.left) - Height(n.right)
+end function
+
+function RotateRight(y)
+    x ← y.left
+    y.left ← x.right                     ▸ x's right subtree moves
+    x.right ← y                          ▸ y drops under x
+    fix heights of y then x
+    return x                             ▸ x is the new root
+end function
+
+function RotateLeft(x)
+    y ← x.right
+    x.right ← y.left
+    y.left ← x
+    fix heights of x then y
+    return y
+end function
+
+function Insert(n, key)
+    if n = NIL then return new Node(key)
+    if key < n.key then n.left ← Insert(n.left, key)
+    else n.right ← Insert(n.right, key)
+    fix height of n
+    b ← BF(n)                            ▸ |b| ≤ 1 must hold
+    if b > 1 and key < n.left.key        ▸ Left-Left
+        return RotateRight(n)
+    if b < -1 and key > n.right.key      ▸ Right-Right
+        return RotateLeft(n)
+    if b > 1 and key > n.left.key        ▸ Left-Right
+        n.left ← RotateLeft(n.left)
+        return RotateRight(n)
+    end if
+    if b < -1 and key < n.right.key      ▸ Right-Left
+        n.right ← RotateRight(n.right)
+        return RotateLeft(n)
+    end if
+    return n
+end function`,
       },
       {
         slug: "heap",
@@ -1416,6 +2317,35 @@ int pop(int h[], int *n) {
     siftDown(h, *n, 0);
     return top;
 }`,
+        pseudo: `procedure SiftUp(h, i)                    ▸ after a push
+    while i > 0 and h[i] > h[parent(i)]
+        swap h[i], h[parent(i)]
+        i ← parent(i)
+    end while
+end procedure
+
+procedure Push(h, n, val)
+    h[n] ← val                           ▸ append at the end
+    SiftUp(h, n++)                       ▸ then bubble it up
+end procedure
+
+procedure SiftDown(h, n, i)               ▸ after a pop
+    loop
+        l ← 2i+1, r ← 2i+2, big ← i
+        if l < n and h[l] > h[big] then big ← l
+        if r < n and h[r] > h[big] then big ← r
+        if big = i then break            ▸ heap restored
+        swap h[i], h[big]
+        i ← big
+    end loop
+end procedure
+
+function Pop(h, n)
+    top ← h[0]                           ▸ the maximum
+    h[0] ← h[--n]                        ▸ last element to the root
+    SiftDown(h, n, 0)
+    return top
+end function`,
       },
       {
         slug: "trie",
@@ -1450,6 +2380,32 @@ int search(Trie *root, const char *w) {
     }
     return node->end;
 }`,
+        pseudo: `R ← 26
+record Trie
+    next[R]                              ▸ one child per letter
+    end                                  ▸ true if a word stops here
+end record
+
+procedure Insert(root, w)
+    node ← root
+    for i ← 0 to length(w)-1
+        c ← index of w[i]
+        if node.next[c] = NIL
+            node.next[c] ← new Trie      ▸ extend the path
+        node ← node.next[c]
+    end for
+    node.end ← true                      ▸ mark the word's end
+end procedure
+
+function Search(root, w)
+    node ← root
+    for i ← 0 to length(w)-1
+        c ← index of w[i]
+        if node.next[c] = NIL then return false   ▸ no such path
+        node ← node.next[c]
+    end for
+    return node.end                      ▸ word, or only a prefix?
+end function`,
       },
       {
         slug: "segment-tree",
@@ -1478,6 +2434,26 @@ int query(int node, int lo, int hi, int l, int r) {
     return query(2*node, lo, mid, l, r)
          + query(2*node+1, mid+1, hi, l, r);
 }`,
+        pseudo: `let tree[4·MAXN]
+
+procedure Build(A, node, lo, hi)
+    if lo = hi
+        tree[node] ← A[lo]               ▸ a leaf is one element
+        return
+    end if
+    mid ← (lo + hi)/2
+    Build(A, 2·node, lo, mid)
+    Build(A, 2·node+1, mid+1, hi)
+    tree[node] ← tree[2·node] + tree[2·node+1]
+end procedure
+
+function Query(node, lo, hi, l, r)
+    if [lo,hi] and [l,r] do not overlap then return 0
+    if [lo,hi] lies inside [l,r] then return tree[node]
+    mid ← (lo + hi)/2                    ▸ partial: split
+    return Query(2·node, lo, mid, l, r)
+         + Query(2·node+1, mid+1, hi, l, r)
+end function`,
       },
     ],
   },
@@ -1528,6 +2504,40 @@ void kmp(const char *t, const char *p) {
         }
     }
 }`,
+        pseudo: `procedure ComputeLPS(p, m, lps)            ▸ prefix = suffix lengths
+    len ← 0, i ← 1
+    lps[0] ← 0
+    while i < m
+        if p[i] = p[len]
+            lps[i++] ← ++len             ▸ prefix grew
+        else if len > 0
+            len ← lps[len-1]             ▸ fall back, do not restart
+        else
+            lps[i++] ← 0
+        end if
+    end while
+end procedure
+
+procedure KMP(t, p)
+    n ← length(t), m ← length(p)
+    let lps[m]
+    ComputeLPS(p, m, lps)
+
+    i ← 0, j ← 0                         ▸ i never moves backwards
+    while i < n
+        if t[i] = p[j]
+            i ← i+1, j ← j+1
+            if j = m
+                report a match at i-j
+                j ← lps[j-1]             ▸ keep scanning
+            end if
+        else if j > 0
+            j ← lps[j-1]                 ▸ reuse the table
+        else
+            i ← i+1
+        end if
+    end while
+end procedure`,
       },
       {
         slug: "rabin-karp",
@@ -1560,6 +2570,30 @@ void rabinKarp(const char *t, const char *p) {
         }
     }
 }`,
+        pseudo: `BASE ← 256
+MOD ← a large prime
+
+procedure RabinKarp(t, p)
+    n ← length(t), m ← length(p)
+    ph ← 0, th ← 0, pow ← 1
+    for i ← 0 to m-1                     ▸ hash pattern + first window
+        ph ← (ph·BASE + p[i]) mod MOD
+        th ← (th·BASE + t[i]) mod MOD
+        if i > 0 then pow ← (pow·BASE) mod MOD
+    end for
+    for i ← 0 while i+m ≤ n
+        if ph = th                       ▸ hashes agree
+            k ← 0
+            while k < m and t[i+k] = p[k]: k ← k+1   ▸ verify
+            if k = m then report a match at i
+        end if
+        if i+m < n                       ▸ roll the window
+            th ← ((th - t[i]·pow)·BASE
+                  + t[i+m]) mod MOD
+            if th < 0 then th ← th + MOD
+        end if
+    end for
+end procedure`,
       },
       {
         slug: "z-algorithm",
@@ -1583,6 +2617,21 @@ void rabinKarp(const char *t, const char *p) {
         }
     }
 }`,
+        pseudo: `procedure ZArray(s, n, z)                 ▸ z[i] = prefix match at i
+    z[0] ← n
+    l ← 0, r ← 0                         ▸ rightmost known match
+    for i ← 1 to n-1
+        if i < r
+            z[i] ← min(r-i, z[i-l])      ▸ reuse the mirror
+        while i + z[i] < n and
+               s[z[i]] = s[i + z[i]]
+            z[i] ← z[i] + 1              ▸ extend by comparing
+        if i + z[i] > r
+            l ← i
+            r ← i + z[i]                 ▸ new rightmost window
+        end if
+    end for
+end procedure`,
       },
       {
         slug: "boyer-moore",
@@ -1618,6 +2667,33 @@ void boyerMoore(const char *t, const char *p) {
         }
     }
 }`,
+        pseudo: `R ← 256
+
+procedure BadChar(p, m, last)             ▸ rightmost index per char
+    for c ← 0 to R-1: last[c] ← -1
+    for i ← 0 to m-1
+        last[p[i]] ← i                   ▸ later wins
+end procedure
+
+procedure BoyerMoore(t, p)
+    n ← length(t), m ← length(p)
+    let last[R]
+    BadChar(p, m, last)
+
+    s ← 0                                ▸ current alignment
+    while s ≤ n-m
+        j ← m-1
+        while j ≥ 0 and p[j] = t[s+j]    ▸ compare right to left
+            j ← j-1
+        if j < 0
+            report a match at s
+            s ← s+1
+        else
+            shift ← j - last[t[s+j]]     ▸ align the bad character
+            s ← s + max(shift, 1)
+        end if
+    end while
+end procedure`,
       },
       {
         slug: "manacher",
@@ -1642,6 +2718,22 @@ int manacher(const char *t, int n, int p[]) {
     }
     return best;
 }`,
+        pseudo: `▸ transform: "aba" → "^#a#b#a#$" so every centre is odd
+function Manacher(t, n, p)
+    c ← 0, r ← 0, best ← 0               ▸ centre and right edge
+    for i ← 1 to n-2
+        if i < r
+            p[i] ← min(r-i, p[2c-i])     ▸ mirror inside the window
+        while t[i + p[i] + 1] = t[i - p[i] - 1]
+            p[i] ← p[i] + 1              ▸ expand outwards
+        if i + p[i] > r
+            c ← i
+            r ← i + p[i]                 ▸ new rightmost window
+        end if
+        if p[i] > best then best ← p[i]
+    end for
+    return best                          ▸ half-length of the longest
+end function`,
       },
     ],
   },
@@ -1672,6 +2764,20 @@ int manacher(const char *t, int n, int p[]) {
     for (int i = 2; i <= n; i++)
         if (prime[i]) printf("%d ", i);
 }`,
+        pseudo: `procedure Sieve(n)
+    let prime[0 .. n]
+    for i ← 0 to n: prime[i] ← true      ▸ innocent until crossed
+    prime[0] ← prime[1] ← false
+
+    for p ← 2 while p·p ≤ n              ▸ p > √n cannot be least
+        if prime[p] is false then continue
+        for m ← p·p to n step p           ▸ smaller multiples are done
+            prime[m] ← false             ▸ cross out multiple
+    end for
+
+    for i ← 2 to n
+        if prime[i] then output i        ▸ every survivor is prime
+end procedure`,
       },
       {
         slug: "euclidean-gcd",
@@ -1688,6 +2794,14 @@ int manacher(const char *t, int n, int p[]) {
     }
     return a;
 }`,
+        pseudo: `function GCD(a, b)
+    while b ≠ 0
+        r ← a mod b                      ▸ a = q·b + r
+        a ← b
+        b ← r                            ▸ gcd(a,b) = gcd(b,r)
+    end while
+    return a                             ▸ last non-zero remainder
+end function`,
       },
       {
         slug: "extended-euclidean",
@@ -1710,6 +2824,20 @@ int manacher(const char *t, int n, int p[]) {
     printf("gcd = %d = %d*a + %d*b\\n",
            old_r, old_s, old_t);
 }`,
+        pseudo: `procedure ExtendedGCD(a, b)                ▸ also finds x, y
+    old_r ← a, r ← b
+    old_s ← 1, s ← 0                     ▸ coefficient of a
+    old_t ← 0, t ← 1                     ▸ coefficient of b
+    while r ≠ 0                          ▸ every row keeps r = s·a + t·b
+        q ← ⌊old_r / r⌋
+        ▸ step each pair forward by q
+        (old_r, r) ← (r, old_r - q·r)
+        (old_s, s) ← (s, old_s - q·s)
+        (old_t, t) ← (t, old_t - q·t)
+    end while
+    output gcd = old_r
+         = old_s·a + old_t·b             ▸ Bézout's identity
+end procedure`,
       },
       {
         slug: "fast-exponentiation",
@@ -1729,6 +2857,17 @@ int manacher(const char *t, int n, int p[]) {
     }
     return result;
 }`,
+        pseudo: `function Power(b, e, m)                    ▸ b^e mod m
+    result ← 1
+    b ← b mod m                          ▸ keep numbers small
+    while e > 0
+        if e is odd                      ▸ low bit set?
+            result ← result·b mod m      ▸ fold this power in
+        b ← b·b mod m                    ▸ square for the next bit
+        e ← ⌊e / 2⌋                      ▸ shift right
+    end while
+    return result                        ▸ O(log e) multiplications
+end function`,
       },
     ],
   },

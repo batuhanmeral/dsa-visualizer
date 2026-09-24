@@ -55,6 +55,8 @@ export const en = {
   "ws.input.placeholder": "e.g. 23, 7, 41, 15",
   "ws.target.aria": "Target value",
   "ws.maxNumbers": "max {n} numbers (0–999)",
+  "ws.lang.c": "C",
+  "ws.lang.pseudo": "Pseudocode",
   "ws.autoSorted": " · input is sorted automatically",
   "ws.copy": "Copy",
   "ws.timeline": "Simulation timeline",
@@ -116,7 +118,7 @@ export const en = {
   "graph.reset.title": "Restore preset graph",
   "graph.addNode": "Add node",
   "graph.editHint":
-    "Click two nodes to toggle the edge between them — drag a node to move it.",
+    "Click two nodes to toggle the edge between them. Drag a node to move it, shift-click to delete it, and click a weight to adjust it. Weights stay ≥ 1: the adjacency matrix uses 0 to mean \"no edge\".",
   "graph.order": "order",
 
   // Dynamic programming
@@ -300,6 +302,8 @@ export const tr: Partial<Record<TKey, string>> = {
   "ws.input.placeholder": "örn. 23, 7, 41, 15",
   "ws.target.aria": "Hedef değer",
   "ws.maxNumbers": "en fazla {n} sayı (0–999)",
+  "ws.lang.c": "C",
+  "ws.lang.pseudo": "Sözde kod",
   "ws.autoSorted": " · girdi otomatik sıralanır",
   "ws.copy": "Kopyala",
   "ws.timeline": "Simülasyon zaman çizelgesi",

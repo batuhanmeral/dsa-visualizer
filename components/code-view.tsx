@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import { tokenize, type TokenType } from "@/lib/highlight";
+import { tokenize, type CodeLang, type TokenType } from "@/lib/highlight";
 
 /**
- * Syntax-highlighted C code panel. Tokenizes the snippet once (memoized on the
+ * Syntax-highlighted code panel, for either the C source or the pseudocode. Tokenizes the snippet once (memoized on the
  * source) and renders it line by line so the workspace's active-line highlight
  * — driven by the current simulation step — can style each row independently.
  * Token colours stay visible on the active line; the emerald left border and
@@ -25,11 +25,13 @@ const TOKEN_CLASS: Record<TokenType, string> = {
 export default function CodeView({
   code,
   activeLine,
+  lang = "c",
 }: {
   code: string;
   activeLine: number;
+  lang?: CodeLang;
 }) {
-  const lines = useMemo(() => tokenize(code), [code]);
+  const lines = useMemo(() => tokenize(code, lang), [code, lang]);
 
   return (
     <pre className="scrollbar-slim flex-1 overflow-auto py-3 font-mono text-[11px] leading-5">

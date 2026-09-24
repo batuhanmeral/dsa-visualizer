@@ -144,8 +144,109 @@ function tokenizeLine(line: string, state: State): Token[] {
   return tokens;
 }
 
-/** Tokenize a full C snippet into one `Token[]` per source line. */
-export function tokenize(code: string): Token[][] {
+// ── Pseudocode ──────────────────────────────────────────────────────────
+// The pseudocode snippets in `lib/data.ts` are their own small language:
+// `←` for assignment, `▸` to end of line for a remark, and spelled-out
+// control words. Reusing the C tokenizer would colour `for`/`if` but miss all
+// of that, so they get their own pass.
+
+const PSEUDO_KEYWORDS = new Set([
+  "and", "append", "break", "by", "continue", "do", "down", "each", "else",
+  "end", "for", "function", "if", "in", "is", "let", "logfn", "loop", "mod",
+  "new", "not", "of", "or", "output", "procedure", "record", "repeat",
+  "report", "return", "select", "skip", "sort", "step", "swap", "then",
+  "times", "to", "while", "with",
+]);
+
+const PSEUDO_CONSTANTS = new Set(["NIL", "true", "false", "empty", "∞"]);
+
+/** Characters that read as operators rather than prose. */
+const PSEUDO_OPERATORS = new Set([
+  "←", "≤", "≥", "≠", "=", "<", ">", "+", "-", "·", "/", "±", "→",
+]);
+
+function tokenizePseudoLine(line: string): Token[] {
+  const tokens: Token[] = [];
+  const n = line.length;
+  let i = 0;
+  let plain = "";
+  const push = (value: string, type: TokenType) => {
+    if (value) tokens.push({ value, type });
+  };
+  const flush = () => {
+    if (plain) {
+      tokens.push({ value: plain, type: "plain" });
+      plain = "";
+    }
+  };
+
+  while (i < n) {
+    const c = line[i];
+
+    // A remark runs to the end of the line.
+    if (c === "▸") {
+      flush();
+      push(line.slice(i), "comment");
+      return tokens;
+    }
+    if (c === "'" || c === '"') {
+      flush();
+      let j = i + 1;
+      while (j < n && line[j] !== c) j++;
+      push(line.slice(i, Math.min(j + 1, n)), "string");
+      i = j + 1;
+      continue;
+    }
+    if (isDigit(c)) {
+      flush();
+      let j = i;
+      while (j < n && /[0-9.]/.test(line[j])) j++;
+      push(line.slice(i, j), "number");
+      i = j;
+      continue;
+    }
+    if (isIdentStart(c)) {
+      flush();
+      let j = i;
+      while (j < n && isIdent(line[j])) j++;
+      const word = line.slice(i, j);
+      let k = j;
+      while (k < n && /\s/.test(line[k])) k++;
+      let type: TokenType = "plain";
+      if (PSEUDO_KEYWORDS.has(word.toLowerCase())) type = "keyword";
+      else if (PSEUDO_CONSTANTS.has(word)) type = "constant";
+      else if (/^[A-Z][A-Z0-9_]*$/.test(word)) type = "constant";
+      else if (line[k] === "(" || /^[A-Z][A-Za-z0-9]*$/.test(word))
+        type = "function";
+      push(word, type);
+      i = j;
+      continue;
+    }
+    if (PSEUDO_OPERATORS.has(c)) {
+      flush();
+      push(c, "keyword");
+      i++;
+      continue;
+    }
+    if (PSEUDO_CONSTANTS.has(c)) {
+      flush();
+      push(c, "constant");
+      i++;
+      continue;
+    }
+    plain += c;
+    i++;
+  }
+  flush();
+  return tokens;
+}
+
+/** Which of the two views a snippet is written in. */
+export type CodeLang = "c" | "pseudo";
+
+/** Tokenize a snippet into one `Token[]` per source line. */
+export function tokenize(code: string, lang: CodeLang = "c"): Token[][] {
+  if (lang === "pseudo") return code.split("\n").map(tokenizePseudoLine);
   const state: State = { inBlockComment: false };
   return code.split("\n").map((line) => tokenizeLine(line, state));
 }
