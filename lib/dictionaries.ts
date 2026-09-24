@@ -78,8 +78,19 @@ export const en = {
   "ws.tab.about": "About",
   "ws.tab.growth": "Growth",
   "ws.invariant": "Invariant",
-  "growth.hint":
-    "Steps produced by the simulation on the same random input at growing sizes — watch the curves separate.",
+  "stat.total": "operations",
+  "stat.totalHint":
+    "Comparisons, swaps, moves and probes so far. This algorithm is {o}; open the Growth tab to see the count for n = {n} against that curve.",
+  "growth.hint.ops":
+    "Comparisons, swaps, moves and probes on the same random input at growing sizes — this is what the O(…) bound is about.",
+  "growth.hint.steps":
+    "Animation frames, narration included. The shape matches the operations, but the constant is the visualization's, not the algorithm's.",
+  "growth.metric.ops": "operations",
+  "growth.metric.steps": "steps",
+  "growth.theory": "{o}, fitted to the measurements",
+  "growth.legend.theory": "{o} (fitted)",
+  "growth.legend.live": "your input (n = {n})",
+  "growth.live": "your input — n={n}: {value}",
   "growth.steps": "steps",
   "growth.others": "other algorithms ({n})",
   "growth.table": "Show data table",
@@ -326,8 +337,19 @@ export const tr: Partial<Record<TKey, string>> = {
   "ws.tab.about": "Açıklama",
   "ws.tab.growth": "Büyüme",
   "ws.invariant": "Değişmez",
-  "growth.hint":
-    "Aynı rastgele girdide, büyüyen boyutlarda simülasyonun ürettiği adım sayısı — eğrilerin ayrışmasını izleyin.",
+  "stat.total": "işlem",
+  "stat.totalHint":
+    "Şimdiye kadarki karşılaştırma, takas, hareket ve yoklama sayısı. Bu algoritma {o}; n = {n} için bu sayının eğriye oturuşunu Büyüme sekmesinde görebilirsiniz.",
+  "growth.hint.ops":
+    "Aynı rastgele girdide, büyüyen boyutlarda karşılaştırma, takas, hareket ve yoklama sayısı — O(…) sınırının konusu tam olarak bu.",
+  "growth.hint.steps":
+    "Anlatım adımları dahil animasyon kareleri. Şekil işlem sayısıyla aynı, ama sabit çarpan algoritmanın değil görselleştirmenin.",
+  "growth.metric.ops": "işlem",
+  "growth.metric.steps": "adım",
+  "growth.theory": "{o}, ölçümlere oturtuldu",
+  "growth.legend.theory": "{o} (oturtulmuş)",
+  "growth.legend.live": "sizin girdiniz (n = {n})",
+  "growth.live": "sizin girdiniz — n={n}: {value}",
   "growth.steps": "adım",
   "growth.others": "diğer algoritmalar ({n})",
   "growth.table": "Veri tablosunu göster",

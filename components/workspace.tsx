@@ -333,6 +333,16 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
     () => (steps ? STAT_KINDS.filter((s) => steps.some((st) => st.kind === s.kind)) : []),
     [steps]
   );
+  /** Operations so far — the sum the complexity bound is about. */
+  const totalOperations = useMemo(() => {
+    if (!steps) return 0;
+    const upto = Math.min(stepIndex, steps.length - 1);
+    let total = 0;
+    for (let i = 0; i <= upto; i++)
+      if (STAT_KINDS.some((k) => k.kind === steps[i].kind)) total++;
+    return total;
+  }, [steps, stepIndex]);
+
   // Running totals up to (and including) the current step.
   const runningCounts = useMemo(() => {
     const counts = {} as Partial<Record<StepKind, number>>;
@@ -842,6 +852,25 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       <div className="min-w-0">
                         {(activeStats.length > 0 || (step.vars && step.vars.length > 0)) && (
                           <div className="flex flex-wrap items-center gap-1.5">
+                            {activeStats.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setPanelTab("growth")}
+                                title={t("stat.totalHint", {
+                                  o: algorithm.time,
+                                  n: values.length,
+                                })}
+                                className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-700 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
+                              >
+                                {t("stat.total")}
+                                <span className="font-mono tabular-nums font-semibold">
+                                  {totalOperations}
+                                </span>
+                                <span className="font-mono text-emerald-600/70 dark:text-emerald-400/70">
+                                  {algorithm.time}
+                                </span>
+                              </button>
+                            )}
                             {activeStats.map((s) => (
                               <span
                                 key={s.kind}
@@ -1026,7 +1055,12 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           {showCode ? (
             <CodeView code={shownCode} activeLine={activeLine} lang={codeLang} />
           ) : activeTab === "growth" ? (
-            <GrowthChart algorithm={algorithm} categorySlug={category.slug} />
+            <GrowthChart
+              algorithm={algorithm}
+              categorySlug={category.slug}
+              liveValues={values}
+              liveTarget={target}
+            />
           ) : (
             <div className="scrollbar-slim flex-1 space-y-5 overflow-y-auto p-5">
               <InfoBlock title={t("info.how")} accent="text-emerald-600 dark:text-emerald-400">
