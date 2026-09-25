@@ -30,17 +30,27 @@ executes.
 - **A visualization tailored to each family** — animated bars, node-edge
   graphs, DP tables, chess boards, self-balancing trees, sliding pattern
   windows, interval timelines, a merging Huffman forest, a prime grid and more
-- **Syntax-highlighted C code** — a dependency-free tokenizer colours the
-  snippet; every animation step points at the exact source line it corresponds
-  to, plus a copy button
+- **C or pseudocode** — a dependency-free tokenizer colours either view, and
+  because the pseudocode is aligned line for line with the C, a single step
+  highlights the right line in both. Your choice is remembered; copy button
+  included
+- **"Why this step?"** — under every step note, the loop invariant that holds
+  right now. The note says what happened; the invariant says why it was allowed
 - **About tab** — per-algorithm intuition, best/worst case behaviour and
   when-to-use notes, in both languages
-- **Growth tab** — an empirical step-count chart: the current algorithm's curve
-  against its whole family on identical inputs of growing size
-- **Draw your own graph** — add and drag nodes, toggle edges, then rerun the
-  traversal on your graph
-- **Bilingual (TR/EN)** — an EN/TR toggle in the navbar switches the whole UI
-  and all algorithm/category names and summaries, persisted across visits
+- **Growth tab** — measured operations (comparisons, swaps, moves, probes) at
+  growing input sizes, with the algorithm's stated complexity fitted over them
+  and your current input marked on the curve. Toggle to animation steps to see
+  what the visualization adds on top
+- **Input shapes** — load the inputs where best and worst cases actually
+  separate: already sorted, reversed, nearly sorted, all equal, few distinct
+  values, wide value range
+- **Draw your own graph** — add, drag and delete nodes, toggle edges, edit
+  weights, switch between directed and undirected, then rerun on your graph.
+  Cycles and negative cycles are reported rather than silently mishandled
+- **Bilingual (TR/EN)** — an EN/TR toggle in the navbar switches the whole UI,
+  all algorithm/category names and summaries, and every step explanation,
+  persisted across visits
 - **Custom input** — type your own numbers/strings, pick start nodes, edit
   graph edges, choose board sizes, feed Huffman any text, set GCD/power
   operands
