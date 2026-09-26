@@ -11,7 +11,7 @@ export function hasStringViz(slug: string): boolean {
 }
 
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
-  { key: "str.legend.pointer", dot: "bg-emerald-500" },
+  { key: "str.legend.pointer", dot: "bg-claude-500" },
   { key: "str.legend.match", dot: "bg-sky-500" },
   { key: "str.legend.mismatch", dot: "bg-rose-500" },
   { key: "str.legend.window", dot: "bg-amber-400/70" },
@@ -20,20 +20,20 @@ const LEGEND_KEYS: { key: TKey; dot: string }[] = [
 const CELL_TONE: Record<Tone, string> = {
   idle: "border-zinc-200 bg-white text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400",
   active:
-    "border-emerald-500 bg-emerald-500/20 text-emerald-700 dark:text-emerald-200",
+    "border-claude-500 bg-claude-500/20 text-claude-700 dark:text-claude-200",
   match: "border-sky-500/60 bg-sky-500/15 text-sky-700 dark:text-sky-200",
   mismatch: "border-rose-500/60 bg-rose-500/15 text-rose-700 dark:text-rose-200",
   window: "border-amber-400/60 bg-amber-400/15 text-amber-700 dark:text-amber-200",
-  done: "border-emerald-500/60 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300",
+  done: "border-claude-500/60 bg-claude-500/15 text-claude-700 dark:text-claude-300",
 };
 
 const ARR_TONE: Record<Tone, string> = {
   idle: "text-zinc-300 dark:text-zinc-700",
-  active: "text-emerald-600 dark:text-emerald-400 font-semibold",
+  active: "text-claude-600 dark:text-claude-400 font-semibold",
   match: "text-sky-600 dark:text-sky-300",
   mismatch: "text-rose-600 dark:text-rose-300",
   window: "text-zinc-500 dark:text-zinc-300",
-  done: "text-emerald-600 dark:text-emerald-400",
+  done: "text-claude-600 dark:text-claude-400",
 };
 
 function TrackRow({ track }: { track: Track }) {
@@ -95,7 +95,7 @@ function StringField({
         spellCheck={false}
         maxLength={28}
         onChange={(e) => onChange(e.target.value.toUpperCase())}
-        className={`${width} rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs uppercase tracking-wide text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200`}
+        className={`${width} rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs uppercase tracking-wide text-zinc-700 outline-none focus:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200`}
       />
     </label>
   );
@@ -143,7 +143,7 @@ export default function StringViz({
           : step.status === "match"
             ? "bg-sky-500"
             : step.status === "done"
-              ? "bg-emerald-500"
+              ? "bg-claude-500"
               : "bg-amber-400"
       }
       legend={legend}

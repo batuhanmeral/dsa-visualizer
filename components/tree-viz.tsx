@@ -31,7 +31,7 @@ export function hasTreeViz(slug: string): boolean {
 }
 
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
-  { key: "tree.legend.current", dot: "bg-emerald-500" },
+  { key: "tree.legend.current", dot: "bg-claude-500" },
   { key: "tree.legend.compare", dot: "bg-amber-400" },
   { key: "tree.legend.insert", dot: "bg-sky-500" },
   { key: "tree.legend.remove", dot: "bg-rose-500" },
@@ -40,14 +40,14 @@ const LEGEND_KEYS: { key: TKey; dot: string }[] = [
 
 const NODE_TONE: Record<NodeTone, { circle: string; text: string }> = {
   idle: { circle: "fill-white stroke-zinc-300 dark:fill-zinc-900 dark:stroke-zinc-700", text: "fill-zinc-600 dark:fill-zinc-300" },
-  current: { circle: "fill-emerald-500 stroke-emerald-500", text: "fill-white" },
-  path: { circle: "fill-emerald-500/15 stroke-emerald-500/60", text: "fill-emerald-700 dark:fill-emerald-300" },
+  current: { circle: "fill-claude-500 stroke-claude-500", text: "fill-white" },
+  path: { circle: "fill-claude-500/15 stroke-claude-500/60", text: "fill-claude-700 dark:fill-claude-300" },
   compare: { circle: "fill-amber-400/20 stroke-amber-400", text: "fill-amber-700 dark:fill-amber-200" },
   insert: { circle: "fill-sky-500 stroke-sky-500", text: "fill-white" },
   remove: { circle: "fill-rose-500 stroke-rose-500", text: "fill-white" },
   rotate: { circle: "fill-violet-500/25 stroke-violet-500", text: "fill-violet-700 dark:fill-violet-200" },
-  found: { circle: "fill-emerald-500 stroke-emerald-500", text: "fill-white" },
-  result: { circle: "fill-emerald-500/20 stroke-emerald-500", text: "fill-emerald-700 dark:fill-emerald-300" },
+  found: { circle: "fill-claude-500 stroke-claude-500", text: "fill-white" },
+  result: { circle: "fill-claude-500/20 stroke-claude-500", text: "fill-claude-700 dark:fill-claude-300" },
 };
 
 const GAP_X = 52;
@@ -79,9 +79,9 @@ function TreeCanvas({ step }: { step: TreeStep }) {
             animate={{ x1: cx(a.x), y1: cy(a.y), x2: cx(b.x), y2: cy(b.y) }}
             className={
               e.tone === "active"
-                ? "stroke-emerald-500"
+                ? "stroke-claude-500"
                 : e.tone === "path"
-                  ? "stroke-emerald-500/40"
+                  ? "stroke-claude-500/40"
                   : "stroke-zinc-300 dark:stroke-zinc-700"
             }
             strokeWidth={e.tone === "idle" ? 1.5 : 2.5}
@@ -139,7 +139,7 @@ function ArrayStrip({ view }: { view: ArrayView }) {
               <span
                 className={`flex size-8 items-center justify-center rounded-md border font-mono text-xs font-medium transition-colors ${
                   active
-                    ? "border-emerald-500 bg-emerald-500/20 text-emerald-700 dark:text-emerald-200"
+                    ? "border-claude-500 bg-claude-500/20 text-claude-700 dark:text-claude-200"
                     : inRange(i)
                       ? "border-amber-400/60 bg-amber-400/15 text-amber-700 dark:text-amber-200"
                       : "border-zinc-200 bg-white text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400"
@@ -233,7 +233,7 @@ function Field({
         value={value}
         spellCheck={false}
         onChange={(e) => onChange(e.target.value)}
-        className={`${width} rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200`}
+        className={`${width} rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200`}
       />
     </label>
   );

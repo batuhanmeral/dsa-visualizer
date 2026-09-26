@@ -178,7 +178,7 @@ export default function GrowthChart({
               aria-pressed={metric === m}
               className={`rounded-md px-2 py-1 text-[10px] font-medium transition-colors ${
                 metric === m
-                  ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
+                  ? "bg-claude-500/15 text-claude-700 dark:text-claude-400"
                   : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
               }`}
             >
@@ -285,7 +285,7 @@ export default function GrowthChart({
         <path
           d={path(current)}
           fill="none"
-          className="stroke-emerald-600 dark:stroke-emerald-500"
+          className="stroke-claude-600 dark:stroke-claude-500"
           strokeWidth={2.5}
           strokeLinejoin="round"
           strokeLinecap="round"
@@ -296,7 +296,7 @@ export default function GrowthChart({
             cx={px(p.n)}
             cy={py(value(p))}
             r={4}
-            className="fill-emerald-600 stroke-white dark:fill-emerald-500 dark:stroke-zinc-900"
+            className="fill-claude-600 stroke-white dark:fill-claude-500 dark:stroke-zinc-900"
             strokeWidth={1.5}
           >
             <title>{`${label(current.slug)} — n=${p.n}: ${value(p)}`}</title>
@@ -306,7 +306,7 @@ export default function GrowthChart({
           x={px(current.points[current.points.length - 1].n)}
           y={py(value(current.points[current.points.length - 1])) - 8}
           textAnchor="end"
-          className="fill-emerald-600 text-[9px] font-semibold tabular-nums dark:fill-emerald-500"
+          className="fill-claude-600 text-[9px] font-semibold tabular-nums dark:fill-claude-500"
         >
           {value(current.points[current.points.length - 1])}
         </text>
@@ -340,7 +340,7 @@ export default function GrowthChart({
       {/* Legend */}
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
         <span className="flex items-center gap-1.5 text-[10px] text-zinc-500 dark:text-zinc-400">
-          <span className="h-0.5 w-4 rounded-full bg-emerald-600 dark:bg-emerald-500" />
+          <span className="h-0.5 w-4 rounded-full bg-claude-600 dark:bg-claude-500" />
           {label(current.slug)}
         </span>
         {theoryPath && (
@@ -386,7 +386,7 @@ export default function GrowthChart({
                   key={s.slug}
                   className={
                     s.slug === current.slug
-                      ? "font-semibold text-emerald-700 dark:text-emerald-400"
+                      ? "font-semibold text-claude-700 dark:text-claude-400"
                       : "text-zinc-500 dark:text-zinc-400"
                   }
                 >

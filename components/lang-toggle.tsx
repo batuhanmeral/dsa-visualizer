@@ -20,7 +20,7 @@ export default function LangToggle({ className = "" }: { className?: string }) {
           aria-pressed={lang === l}
           className={`rounded-md px-2 py-1 text-[11px] font-semibold uppercase transition-colors ${
             lang === l
-              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+              ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
               : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
           }`}
         >

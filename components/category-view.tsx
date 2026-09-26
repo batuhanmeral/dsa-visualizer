@@ -16,7 +16,7 @@ export default function CategoryView({ slug }: { slug: string }) {
   return (
     <div className="mx-auto max-w-3xl px-6 py-12 lg:py-16">
       <div className="mb-8 flex items-center gap-4">
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+        <span className="flex size-12 items-center justify-center rounded-2xl bg-claude-500/10 text-claude-600 dark:text-claude-400">
           <Icon className="size-6" />
         </span>
         <div>
@@ -34,7 +34,7 @@ export default function CategoryView({ slug }: { slug: string }) {
           <li key={algorithm.slug}>
             <Link
               href={`/${category.slug}/${algorithm.slug}`}
-              className="group flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-emerald-500/40 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-emerald-500/40"
+              className="group flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-claude-500/40 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-claude-500/40"
             >
               <div className="min-w-0">
                 <h2 className="text-sm font-semibold tracking-tight">
@@ -48,7 +48,7 @@ export default function CategoryView({ slug }: { slug: string }) {
                   {algorithm.space}
                 </p>
               </div>
-              <ArrowRight className="size-4 shrink-0 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-emerald-500" />
+              <ArrowRight className="size-4 shrink-0 text-zinc-400 transition-transform group-hover:translate-x-1 group-hover:text-claude-500" />
             </Link>
           </li>
         ))}

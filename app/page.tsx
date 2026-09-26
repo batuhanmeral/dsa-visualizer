@@ -28,7 +28,7 @@ export default function HomePage() {
     <div className="mx-auto max-w-5xl px-6 py-12 lg:py-16">
       {/* Hero */}
       <div className="mb-12">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-claude-500/30 bg-claude-500/10 px-3 py-1 text-xs font-medium text-claude-600 dark:text-claude-400">
           <Sparkles className="size-3.5" />
           {t("home.badge", {
             count: algorithmCount,
@@ -37,7 +37,7 @@ export default function HomePage() {
         </span>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
           {t("home.title.pre")}
-          <span className="text-emerald-500">{t("home.title.accent")}</span>
+          <span className="text-claude-500">{t("home.title.accent")}</span>
           {t("home.title.post")}
         </h1>
         <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
@@ -53,7 +53,7 @@ export default function HomePage() {
           return (
             <section
               key={category.slug}
-              className="self-start rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-emerald-500/40 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-emerald-500/40"
+              className="self-start rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-claude-500/40 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-claude-500/40"
             >
               <button
                 type="button"
@@ -61,7 +61,7 @@ export default function HomePage() {
                 aria-expanded={isOpen}
                 className="flex w-full items-center gap-3 text-left"
               >
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-claude-500/10 text-claude-600 dark:text-claude-400">
                   <Icon className="size-5" />
                 </span>
                 <div className="min-w-0 flex-1">

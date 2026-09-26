@@ -48,7 +48,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           <Menu className="size-5" />
         </button>
         <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+          <span className="flex size-7 items-center justify-center rounded-lg bg-claude-500/15 text-claude-600 dark:text-claude-400">
             <Binary className="size-4" />
           </span>
           Algorhythm

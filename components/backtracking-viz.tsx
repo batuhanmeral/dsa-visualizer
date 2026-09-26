@@ -45,17 +45,17 @@ function useLegend(keys: { key: TKey; dot: string }[]) {
 // ── N-Queens ────────────────────────────────────────────────────────────
 const QUEEN_LEGEND: { key: TKey; dot: string }[] = [
   { key: "bt.legend.trying", dot: "bg-amber-400" },
-  { key: "bt.legend.placed", dot: "bg-emerald-500" },
+  { key: "bt.legend.placed", dot: "bg-claude-500" },
   { key: "bt.legend.conflict", dot: "bg-rose-500" },
   { key: "bt.legend.backtrack", dot: "bg-violet-500" },
 ];
 
 const QUEEN_DOT: Record<QueenStatus, string> = {
   try: "bg-amber-400",
-  place: "bg-emerald-500",
+  place: "bg-claude-500",
   conflict: "bg-rose-500",
   backtrack: "bg-violet-500",
-  solved: "bg-emerald-500",
+  solved: "bg-claude-500",
 };
 
 function activeCellTone(
@@ -67,7 +67,7 @@ function activeCellTone(
     case "try":
       return status === "try"
         ? "border-amber-400/70 bg-amber-400/25"
-        : "border-emerald-500/70 bg-emerald-500/20";
+        : "border-claude-500/70 bg-claude-500/20";
     case "conflict":
     case "reject":
     case "blocked":
@@ -77,7 +77,7 @@ function activeCellTone(
     case "scan":
       return "border-sky-500/70 bg-sky-500/15";
     default:
-      return "border-emerald-500/70 bg-emerald-500/20";
+      return "border-claude-500/70 bg-claude-500/20";
   }
 }
 
@@ -160,7 +160,7 @@ function QueensViz({
                   <Crown
                     className={`size-6 ${
                       step.status === "solved"
-                        ? "text-emerald-500"
+                        ? "text-claude-500"
                         : "text-zinc-700 dark:text-zinc-200"
                     }`}
                     fill="currentColor"
@@ -179,17 +179,17 @@ function QueensViz({
 const SUDOKU_LEGEND: { key: TKey; dot: string }[] = [
   { key: "bt.legend.scanning", dot: "bg-sky-500" },
   { key: "bt.legend.trying", dot: "bg-amber-400" },
-  { key: "bt.legend.placed", dot: "bg-emerald-500" },
+  { key: "bt.legend.placed", dot: "bg-claude-500" },
   { key: "bt.legend.rejectBacktrack", dot: "bg-rose-500" },
 ];
 
 const SUDOKU_DOT: Record<SudokuStatus, string> = {
   scan: "bg-sky-500",
   try: "bg-amber-400",
-  place: "bg-emerald-500",
+  place: "bg-claude-500",
   reject: "bg-rose-500",
   backtrack: "bg-violet-500",
-  solved: "bg-emerald-500",
+  solved: "bg-claude-500",
 };
 
 function SudokuViz({
@@ -247,7 +247,7 @@ function SudokuViz({
                     ? `${activeCellTone(step.status)} border`
                     : given
                       ? "bg-zinc-100 text-zinc-800 dark:bg-zinc-800/60 dark:text-zinc-100"
-                      : "bg-white text-emerald-600 dark:bg-zinc-900 dark:text-emerald-400"
+                      : "bg-white text-claude-600 dark:bg-zinc-900 dark:text-claude-400"
                 }`}
               >
                 {showDigit === 0 ? "" : showDigit}
@@ -263,17 +263,17 @@ function SudokuViz({
 // ── Rat in a Maze ───────────────────────────────────────────────────────
 const MAZE_LEGEND: { key: TKey; dot: string }[] = [
   { key: "bt.legend.trying", dot: "bg-amber-400" },
-  { key: "bt.legend.onPath", dot: "bg-emerald-500" },
+  { key: "bt.legend.onPath", dot: "bg-claude-500" },
   { key: "bt.legend.deadEnd", dot: "bg-rose-500" },
   { key: "bt.legend.backtrack", dot: "bg-violet-500" },
 ];
 
 const MAZE_DOT: Record<MazeStatus, string> = {
   try: "bg-amber-400",
-  move: "bg-emerald-500",
+  move: "bg-claude-500",
   blocked: "bg-rose-500",
   backtrack: "bg-violet-500",
-  solved: "bg-emerald-500",
+  solved: "bg-claude-500",
 };
 
 function MazeViz({
@@ -326,14 +326,14 @@ function MazeViz({
                     : isActive
                       ? activeCellTone(step.status)
                       : onPath
-                        ? "bg-emerald-500/25"
+                        ? "bg-claude-500/25"
                         : "bg-zinc-50 dark:bg-zinc-800/40"
                 }`}
               >
                 {onPath && cell !== 0 && (
                   <motion.span
                     layoutId={`rat-dot-${r}-${c}`}
-                    className="size-3 rounded-full bg-emerald-500"
+                    className="size-3 rounded-full bg-claude-500"
                   />
                 )}
                 {(isStart || isExit) && (
@@ -354,7 +354,7 @@ function MazeViz({
 const CHOICE_LEGEND: { key: TKey; dot: string }[] = [
   { key: "bt.legend.choose", dot: "bg-amber-400" },
   { key: "bt.legend.backtrack", dot: "bg-violet-500" },
-  { key: "bt.legend.recorded", dot: "bg-emerald-500" },
+  { key: "bt.legend.recorded", dot: "bg-claude-500" },
 ];
 
 const CHOICE_DOT: Record<ChoiceStatus, string> = {
@@ -362,7 +362,7 @@ const CHOICE_DOT: Record<ChoiceStatus, string> = {
   skip: "bg-zinc-400",
   recurse: "bg-sky-500",
   backtrack: "bg-violet-500",
-  complete: "bg-emerald-500",
+  complete: "bg-claude-500",
 };
 
 function ChoiceViz({
@@ -433,7 +433,7 @@ function ChoiceViz({
                     hot
                       ? "border-amber-400 bg-amber-400/25 text-amber-700 dark:text-amber-200"
                       : locked
-                        ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                        ? "border-claude-500/50 bg-claude-500/15 text-claude-700 dark:text-claude-300"
                         : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
                   }`}
                 >
@@ -462,7 +462,7 @@ function ChoiceViz({
                 key={i}
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-300"
+                className="rounded-md border border-claude-500/40 bg-claude-500/10 px-2 py-1 font-mono text-[11px] text-claude-700 dark:text-claude-300"
               >
                 {brackets[0]}
                 {res.join(",")}

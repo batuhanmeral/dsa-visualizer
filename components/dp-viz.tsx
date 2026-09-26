@@ -39,7 +39,7 @@ const cellText = (v: number | null): string =>
   v === null ? "·" : v >= INF_DISPLAY ? "∞" : String(v);
 
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
-  { key: "dp.legend.computing", dot: "bg-emerald-500" },
+  { key: "dp.legend.computing", dot: "bg-claude-500" },
   { key: "dp.legend.readsFrom", dot: "bg-amber-400" },
   { key: "dp.legend.filled", dot: "bg-sky-500" },
 ];
@@ -80,7 +80,7 @@ function DPTable({
                 key={j}
                 className={`size-9 rounded-md text-center text-xs font-semibold ${
                   step.active?.[1] === j
-                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
                     : "text-zinc-500 dark:text-zinc-400"
                 }`}
               >
@@ -95,7 +95,7 @@ function DPTable({
               <th
                 className={`size-9 rounded-md text-center text-xs font-semibold ${
                   step.active?.[0] === i
-                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
                     : "text-zinc-500 dark:text-zinc-400"
                 }`}
               >
@@ -105,7 +105,7 @@ function DPTable({
                 const active = isActive(i, j);
                 const dep = isDep(i, j);
                 const tone = active
-                  ? "border-emerald-500/70 bg-emerald-500/20 text-emerald-700 dark:text-emerald-200"
+                  ? "border-claude-500/70 bg-claude-500/20 text-claude-700 dark:text-claude-200"
                   : dep
                     ? "border-amber-400/70 bg-amber-400/20 text-amber-700 dark:text-amber-200"
                     : cell !== null
@@ -176,7 +176,7 @@ function StringPairViz({
             <span
               className={`ml-auto inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium ${
                 step.match
-                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
                   : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
               }`}
             >
@@ -242,7 +242,7 @@ function KnapsackViz({
               key={i}
               className={`rounded-md border px-2 py-1 font-mono text-[11px] transition-colors ${
                 activeItem === i + 1
-                  ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  ? "border-claude-500/60 bg-claude-500/15 text-claude-600 dark:text-claude-400"
                   : "border-zinc-200 text-zinc-500 dark:border-zinc-800 dark:text-zinc-400"
               }`}
             >
@@ -306,7 +306,7 @@ function CoinChangeViz({
               key={i}
               className={`flex size-7 items-center justify-center rounded-full border font-mono text-[11px] transition-colors ${
                 activeCoin === i + 1
-                  ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  ? "border-claude-500/60 bg-claude-500/15 text-claude-600 dark:text-claude-400"
                   : "border-zinc-300 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
               }`}
             >
@@ -365,7 +365,7 @@ function FloydViz({
               key={k}
               className={`flex size-7 items-center justify-center rounded-full border font-mono text-[11px] transition-colors ${
                 step.k === k
-                  ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  ? "border-claude-500/60 bg-claude-500/15 text-claude-600 dark:text-claude-400"
                   : "border-zinc-300 text-zinc-500 dark:border-zinc-700 dark:text-zinc-400"
               }`}
             >
@@ -480,7 +480,7 @@ function LISViz({
             value={text}
             spellCheck={false}
             onChange={(e) => setText(e.target.value)}
-            className="w-56 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+            className="w-56 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
           />
         </label>
       }
@@ -545,7 +545,7 @@ function KadaneViz({
             value={text}
             spellCheck={false}
             onChange={(e) => setText(e.target.value)}
-            className="w-64 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+            className="w-64 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
           />
         </label>
       }
@@ -583,7 +583,7 @@ function StringField({
         maxLength={8}
         spellCheck={false}
         onChange={(e) => onChange(e.target.value)}
-        className="w-24 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs uppercase tracking-wide text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+        className="w-24 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs uppercase tracking-wide text-zinc-700 outline-none focus:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
       />
     </label>
   );

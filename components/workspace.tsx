@@ -97,15 +97,25 @@ const MAX_VALUES = 16;
 const DEFAULT_INPUT = "23, 7, 41, 15, 3, 34, 9, 28";
 const DEFAULT_TARGET = "15";
 
+/**
+ * Step-kind colours.
+ *
+ * `found`/`done` sit a step darker than the accent (600, not 500) because
+ * `compare`/`probe` are amber: with the accent now orange, the two would
+ * otherwise be neighbours on the wheel, and "being compared" versus "settled
+ * in place" is the distinction the canvas exists to make. 600 against amber-400
+ * is a ~26-point lightness gap, which survives being read at a glance and in
+ * greyscale.
+ */
 const KIND_STYLES: Record<StepKind, { bar: string; dot: string }> = {
   compare: { bar: "bg-amber-400", dot: "bg-amber-400" },
   swap: { bar: "bg-rose-500", dot: "bg-rose-500" },
   shift: { bar: "bg-violet-500", dot: "bg-violet-500" },
   select: { bar: "bg-sky-500", dot: "bg-sky-500" },
   probe: { bar: "bg-amber-400", dot: "bg-amber-400" },
-  found: { bar: "bg-emerald-500", dot: "bg-emerald-500" },
+  found: { bar: "bg-claude-600", dot: "bg-claude-600" },
   info: { bar: "bg-zinc-400", dot: "bg-zinc-400" },
-  done: { bar: "bg-emerald-500", dot: "bg-emerald-500" },
+  done: { bar: "bg-claude-600", dot: "bg-claude-600" },
 };
 
 const SORT_LEGEND: { key: TKey; dot: string }[] = [
@@ -113,12 +123,12 @@ const SORT_LEGEND: { key: TKey; dot: string }[] = [
   { key: "legend.swap", dot: "bg-rose-500" },
   { key: "legend.shift", dot: "bg-violet-500" },
   { key: "legend.select", dot: "bg-sky-500" },
-  { key: "legend.sorted", dot: "bg-emerald-500" },
+  { key: "legend.sorted", dot: "bg-claude-600" },
 ];
 
 const SEARCH_LEGEND: { key: TKey; dot: string }[] = [
   { key: "legend.checking", dot: "bg-amber-400" },
-  { key: "legend.found", dot: "bg-emerald-500" },
+  { key: "legend.found", dot: "bg-claude-600" },
   { key: "legend.eliminated", dot: "bg-zinc-300 dark:bg-zinc-700" },
 ];
 
@@ -370,15 +380,15 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
 
   const barColor = (i: number): string => {
     if (step) {
-      if (step.kind === "done") return "bg-emerald-500";
+      if (step.kind === "done") return "bg-claude-600";
       if (step.highlights.includes(i)) return KIND_STYLES[step.kind].bar;
-      if (step.sorted.includes(i)) return "bg-emerald-500";
+      if (step.sorted.includes(i)) return "bg-claude-600";
       // Outside the active window → eliminated / not being worked on: dim it.
       if (step.range && (i < step.range[0] || i > step.range[1]))
         return "bg-zinc-200 dark:bg-zinc-800/70";
       return "bg-zinc-300 dark:bg-zinc-700";
     }
-    if (hasTarget && renderValues[i] === target) return "bg-emerald-500";
+    if (hasTarget && renderValues[i] === target) return "bg-claude-600";
     return "bg-zinc-300 dark:bg-zinc-700";
   };
 
@@ -535,7 +545,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
                 {catName(category.slug, category.name, lang)}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2.5 py-0.5 text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-claude-500/10 px-2.5 py-0.5 text-[11px] font-medium text-claude-600 dark:text-claude-400">
                 <Clock className="size-3" /> {algorithm.time}
               </span>
               <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400">
@@ -556,7 +566,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                 title={t("ws.compare.title")}
                 className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                   comparing
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                    ? "border-claude-500/40 bg-claude-500/10 text-claude-600 dark:text-claude-400"
                     : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
                 }`}
               >
@@ -579,7 +589,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                     type="button"
                     onClick={togglePlay}
                     aria-label={playing ? t("pause") : t("play")}
-                    className="flex size-10 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm transition-colors hover:bg-emerald-500"
+                    className="flex size-10 items-center justify-center rounded-lg bg-claude-600 text-white shadow-sm transition-colors hover:bg-claude-500"
                   >
                     {playing ? (
                       <Pause className="size-4" fill="currentColor" />
@@ -601,7 +611,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       onClick={() => setSpeed(s)}
                       className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                         speed === s
-                          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                          ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
                           : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
@@ -620,7 +630,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             onSubmit={applyInput}
             className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800"
           >
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950">
+            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950">
               <Hash className="size-4 shrink-0 text-zinc-400" />
               <input
                 type="text"
@@ -633,7 +643,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               />
             </label>
             {hasTarget && (
-              <label className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950">
+              <label className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950">
                 <Crosshair className="size-4 shrink-0 text-zinc-400" />
                 <input
                   type="text"
@@ -646,7 +656,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             )}
             <button
               type="submit"
-              className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-emerald-500"
+              className="rounded-xl bg-claude-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-claude-500"
             >
               {t("ws.apply")}
             </button>
@@ -690,7 +700,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               title={t("ws.share.title")}
               className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
                 copied
-                  ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  ? "border-claude-500/40 bg-claude-500/10 text-claude-600 dark:text-claude-400"
                   : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
               }`}
             >
@@ -732,16 +742,16 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             <span
               className={`absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium ${
                 playing || (steps && atEnd)
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                  ? "bg-claude-500/10 text-claude-600 dark:text-claude-400"
                   : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
               }`}
             >
               <span
                 className={`size-1.5 rounded-full ${
                   playing
-                    ? "animate-pulse bg-emerald-500"
+                    ? "animate-pulse bg-claude-500"
                     : steps && atEnd
-                      ? "bg-emerald-500"
+                      ? "bg-claude-500"
                       : "bg-zinc-400"
                 }`}
               />
@@ -830,7 +840,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                         initial={{ opacity: 0, scale: 0.7 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: i * 0.04 }}
-                        className="flex size-12 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/10 font-mono text-sm font-medium text-emerald-700 dark:text-emerald-300"
+                        className="flex size-12 items-center justify-center rounded-xl border border-claude-500/40 bg-claude-500/10 font-mono text-sm font-medium text-claude-700 dark:text-claude-300"
                       >
                         {value}
                       </motion.span>
@@ -925,7 +935,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                           setStepIndex(Number(e.target.value));
                         }}
                         aria-label={t("ws.timeline")}
-                        className="h-1 flex-1 cursor-pointer accent-emerald-600"
+                        className="h-1 flex-1 cursor-pointer accent-claude-600"
                       />
                       <span className="shrink-0 font-mono text-[11px] text-zinc-400">
                         {Math.min(stepIndex, steps.length - 1) + 1}/
@@ -950,13 +960,13 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                                   o: algorithm.time,
                                   n: values.length,
                                 })}
-                                className="inline-flex items-center gap-1.5 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 text-[10px] font-medium text-emerald-700 transition-colors hover:bg-emerald-500/20 dark:text-emerald-300"
+                                className="inline-flex items-center gap-1.5 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 text-[10px] font-medium text-claude-700 transition-colors hover:bg-claude-500/20 dark:text-claude-300"
                               >
                                 {t("stat.total")}
                                 <span className="font-mono tabular-nums font-semibold">
                                   {totalOperations}
                                 </span>
-                                <span className="font-mono text-emerald-600/70 dark:text-emerald-400/70">
+                                <span className="font-mono text-claude-600/70 dark:text-claude-400/70">
                                   {algorithm.time}
                                 </span>
                               </button>
@@ -979,7 +989,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                                 {step.vars.map((v) => (
                                   <span
                                     key={v.label}
-                                    className="inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[10px] text-emerald-700 dark:text-emerald-300"
+                                    className="inline-flex items-center gap-1 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 font-mono text-[10px] text-claude-700 dark:text-claude-300"
                                   >
                                     {v.label}
                                     <span className="tabular-nums font-semibold">
@@ -1027,7 +1037,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="flex size-16 items-center justify-center rounded-2xl border border-dashed border-emerald-500/40 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                className="flex size-16 items-center justify-center rounded-2xl border border-dashed border-claude-500/40 bg-claude-500/10 text-claude-600 dark:text-claude-400"
               >
                 <ScanEye className="size-7" />
               </motion.span>
@@ -1060,7 +1070,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             }`}
           >
             <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-400">
-              <TerminalSquare className="size-4 shrink-0 text-emerald-400" />
+              <TerminalSquare className="size-4 shrink-0 text-claude-400" />
               <span className="truncate">
                 {algorithm.slug}
                 {codeLang === "pseudo" ? ".pseudo" : ".c"}
@@ -1077,7 +1087,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       aria-pressed={codeLang === lang}
                       className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
                         codeLang === lang
-                          ? "bg-emerald-500/15 text-emerald-400"
+                          ? "bg-claude-500/15 text-claude-400"
                           : "text-zinc-500 hover:text-zinc-200"
                       }`}
                     >
@@ -1099,7 +1109,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       onClick={() => setPanelTab(tab)}
                       className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
                         activeTab === tab
-                          ? "bg-emerald-500/15 text-emerald-500 dark:text-emerald-400"
+                          ? "bg-claude-500/15 text-claude-500 dark:text-claude-400"
                           : showCode
                             ? "text-zinc-500 hover:text-zinc-200"
                             : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -1123,7 +1133,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                   title={t("ws.copy")}
                   className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
                     codeCopied
-                      ? "text-emerald-400"
+                      ? "text-claude-400"
                       : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
                   }`}
                 >
@@ -1153,7 +1163,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             />
           ) : (
             <div className="scrollbar-slim flex-1 space-y-5 overflow-y-auto p-5">
-              <InfoBlock title={t("info.how")} accent="text-emerald-600 dark:text-emerald-400">
+              <InfoBlock title={t("info.how")} accent="text-claude-600 dark:text-claude-400">
                 {info!.how}
               </InfoBlock>
               {info!.best && (

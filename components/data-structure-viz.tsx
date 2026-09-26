@@ -130,7 +130,7 @@ function VizShell({
           <p className="flex min-w-0 items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
             <span
               className={`size-2 shrink-0 rounded-full ${
-                busy ? "animate-pulse bg-emerald-500" : "bg-zinc-400"
+                busy ? "animate-pulse bg-claude-500" : "bg-zinc-400"
               }`}
             />
             <span className="truncate">{tn(note)}</span>
@@ -174,7 +174,7 @@ function ValueInput({
       }}
       disabled={disabled}
       aria-label={t("ds.value")}
-      className="w-20 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs outline-none focus:border-emerald-500/60 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950"
+      className="w-20 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 font-mono text-xs outline-none focus:border-claude-500/60 disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950"
     />
   );
 }
@@ -194,7 +194,7 @@ function OpBtn({
 }) {
   const cls =
     tone === "primary"
-      ? "bg-emerald-600 text-white hover:bg-emerald-500"
+      ? "bg-claude-600 text-white hover:bg-claude-500"
       : "border border-zinc-200 bg-zinc-50 text-zinc-700 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:text-zinc-100";
   return (
     <button
@@ -222,7 +222,7 @@ const BOX_BASE =
 const BOX_IDLE =
   "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-200";
 const BOX_ACTIVE =
-  "border-emerald-500/60 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
+  "border-claude-500/60 bg-claude-500/15 text-claude-700 dark:text-claude-300";
 
 // ── Stack (LIFO) ────────────────────────────────────────────────────────
 function StackViz({ speed, onLine }: VizProps) {
@@ -317,7 +317,7 @@ function StackViz({ speed, onLine }: VizProps) {
               >
                 {it.value}
                 {isTop && (
-                  <span className="absolute -right-12 text-[10px] font-medium text-emerald-500">
+                  <span className="absolute -right-12 text-[10px] font-medium text-claude-500">
                     {t("ds.top")}
                   </span>
                 )}
@@ -432,7 +432,7 @@ function QueueViz({ speed, onLine }: VizProps) {
                 >
                   {it.value}
                 </div>
-                <span className="mt-1 h-3 text-[10px] font-medium text-emerald-500">
+                <span className="mt-1 h-3 text-[10px] font-medium text-claude-500">
                   {isFront ? t("ds.front") : isRear ? t("ds.rear") : ""}
                 </span>
               </motion.div>
@@ -717,7 +717,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
             <span
               className={`flex size-7 shrink-0 items-center justify-center rounded-md border font-mono text-[11px] transition-colors ${
                 activeBucket === b
-                  ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                  ? "border-claude-500/60 bg-claude-500/15 text-claude-600 dark:text-claude-400"
                   : "border-zinc-300 text-zinc-400 dark:border-zinc-700 dark:text-zinc-500"
               }`}
             >
@@ -729,7 +729,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
                   const isCursor = cursor === entry.id;
                   const tone =
                     isCursor && flash === "found"
-                      ? "border-emerald-500/70 bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
+                      ? "border-claude-500/70 bg-claude-500/20 text-claude-700 dark:text-claude-300"
                       : isCursor && flash === "missing"
                         ? "border-rose-500/70 bg-rose-500/15 text-rose-600 dark:text-rose-300"
                         : isCursor
@@ -764,7 +764,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
             {activeBucket === b && flash && (
               <span
                 className={`shrink-0 ${
-                  flash === "found" ? "text-emerald-500" : "text-rose-500"
+                  flash === "found" ? "text-claude-500" : "text-rose-500"
                 }`}
               >
                 {flash === "found" ? (

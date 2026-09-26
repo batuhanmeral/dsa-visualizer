@@ -8,7 +8,7 @@ export default function NotFound() {
   const { t } = useLang();
   return (
     <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 px-6 text-center">
-      <span className="flex size-14 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+      <span className="flex size-14 items-center justify-center rounded-2xl bg-claude-500/10 text-claude-600 dark:text-claude-400">
         <Compass className="size-7" />
       </span>
       <div>
@@ -21,7 +21,7 @@ export default function NotFound() {
       </div>
       <Link
         href="/"
-        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-emerald-500"
+        className="rounded-lg bg-claude-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-claude-500"
       >
         {t("nf.back")}
       </Link>

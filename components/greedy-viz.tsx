@@ -28,7 +28,7 @@ export function hasGreedyViz(slug: string): boolean {
 
 const PICK_LEGEND: { key: TKey; dot: string }[] = [
   { key: "greedy.legend.considering", dot: "bg-amber-400" },
-  { key: "greedy.legend.selected", dot: "bg-emerald-500" },
+  { key: "greedy.legend.selected", dot: "bg-claude-500" },
   { key: "greedy.legend.rejected", dot: "bg-rose-500" },
 ];
 
@@ -72,7 +72,7 @@ function ActivityViz({
 
   const tone = (i: number): string => {
     if (step.selected.includes(i))
-      return "border-emerald-500/70 bg-emerald-500/25 text-emerald-700 dark:text-emerald-200";
+      return "border-claude-500/70 bg-claude-500/25 text-claude-700 dark:text-claude-200";
     if (step.rejected.includes(i))
       return "border-rose-500/50 bg-rose-500/15 text-rose-600 dark:text-rose-300 opacity-70";
     if (step.current === i)
@@ -109,7 +109,7 @@ function ActivityViz({
           {/* Greedy frontier: finish time of the last selected activity */}
           {step.lastFinish !== null && (
             <div
-              className="absolute inset-y-0 z-10 w-px bg-emerald-500/70 transition-all duration-300"
+              className="absolute inset-y-0 z-10 w-px bg-claude-500/70 transition-all duration-300"
               style={{ left: `${(step.lastFinish / maxEnd) * 100}%` }}
             />
           )}
@@ -150,7 +150,7 @@ function FracKnapViz({
   const { t } = useLang();
   const legend = useGreedyLegend([
     { key: "greedy.legend.considering", dot: "bg-amber-400" },
-    { key: "greedy.legend.taken", dot: "bg-emerald-500" },
+    { key: "greedy.legend.taken", dot: "bg-claude-500" },
     { key: "greedy.legend.fraction", dot: "bg-sky-500" },
   ]);
   const { items, capacity, steps } = useMemo(
@@ -177,7 +177,7 @@ function FracKnapViz({
           <span className="text-[11px] font-medium text-zinc-400">
             {t("greedy.capacity", { n: capacity })}
           </span>
-          <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-300">
+          <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 font-mono text-[11px] text-claude-700 dark:text-claude-300">
             {t("greedy.total")}
             <span className="font-semibold tabular-nums">
               {Number.isInteger(step.total)
@@ -196,7 +196,7 @@ function FracKnapViz({
             const active = step.current === i;
             const tone = tk
               ? tk.fraction === 1
-                ? "border-emerald-500/70 bg-emerald-500/15"
+                ? "border-claude-500/70 bg-claude-500/15"
                 : "border-sky-500/70 bg-sky-500/15"
               : active
                 ? "border-amber-400/80 bg-amber-400/15"
@@ -240,7 +240,7 @@ function FracKnapViz({
                 <div
                   key={tk.index}
                   className={`flex items-center justify-center font-mono text-[9px] font-medium text-white transition-all duration-300 ${
-                    tk.fraction === 1 ? "bg-emerald-500" : "bg-sky-500"
+                    tk.fraction === 1 ? "bg-claude-500" : "bg-sky-500"
                   }`}
                   style={{ width: `${(w / capacity) * 100}%` }}
                 >
@@ -285,7 +285,7 @@ function JobSeqViz({
 
   const jobTone = (i: number): string => {
     if (step.scheduled.includes(i))
-      return "border-emerald-500/70 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300";
+      return "border-claude-500/70 bg-claude-500/15 text-claude-700 dark:text-claude-300";
     if (step.skipped.includes(i))
       return "border-rose-500/50 bg-rose-500/10 text-rose-600 opacity-70 dark:text-rose-300";
     if (step.current === i)
@@ -304,7 +304,7 @@ function JobSeqViz({
           <span className="text-[11px] font-medium text-zinc-400">
             {t("greedy.jobsHint")}
           </span>
-          <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2 py-1 font-mono text-[11px] text-emerald-700 dark:text-emerald-300">
+          <span className="ml-auto inline-flex items-center gap-1 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 font-mono text-[11px] text-claude-700 dark:text-claude-300">
             {t("greedy.total")}
             <span className="font-semibold tabular-nums">{step.total}</span>
           </span>
@@ -333,7 +333,7 @@ function JobSeqViz({
             const probing = step.probe === hour;
             const tone =
               jobIdx !== null
-                ? "border-emerald-500/70 bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                ? "border-claude-500/70 bg-claude-500/15 text-claude-700 dark:text-claude-300"
                 : probing
                   ? "border-amber-400/80 bg-amber-400/15 text-amber-700 dark:text-amber-200"
                   : "border-dashed border-zinc-300 text-zinc-300 dark:border-zinc-700 dark:text-zinc-600";
@@ -405,7 +405,7 @@ function HuffmanViz({
   const { t } = useLang();
   const legend = useGreedyLegend([
     { key: "greedy.legend.picked", dot: "bg-amber-400" },
-    { key: "greedy.legend.merged", dot: "bg-emerald-500" },
+    { key: "greedy.legend.merged", dot: "bg-claude-500" },
     { key: "greedy.legend.codeEmitted", dot: "bg-sky-500" },
   ]);
   const [text, setText] = useState(HUFF_DEFAULT_TEXT);
@@ -432,7 +432,7 @@ function HuffmanViz({
         ? "fill-amber-400/25 stroke-amber-500"
         : step.phase === "code"
           ? "fill-sky-500/25 stroke-sky-500"
-          : "fill-emerald-500/25 stroke-emerald-500";
+          : "fill-claude-500/25 stroke-claude-500";
     return "fill-zinc-100 stroke-zinc-300 dark:fill-zinc-900 dark:stroke-zinc-700";
   };
 
@@ -462,7 +462,7 @@ function HuffmanViz({
               maxLength={24}
               spellCheck={false}
               onChange={(e) => setText(e.target.value)}
-              className="w-44 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs uppercase tracking-wide text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
+              className="w-44 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs uppercase tracking-wide text-zinc-700 outline-none focus:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200"
             />
           </label>
           {Object.keys(step.codes).length > 0 && (

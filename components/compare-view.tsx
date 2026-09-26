@@ -25,9 +25,9 @@ const KIND_BAR: Record<StepKind, string> = {
   shift: "bg-violet-500",
   select: "bg-sky-500",
   probe: "bg-amber-400",
-  found: "bg-emerald-500",
+  found: "bg-claude-600",
   info: "bg-zinc-300 dark:bg-zinc-700",
-  done: "bg-emerald-500",
+  done: "bg-claude-600",
 };
 
 const STAT_KINDS: { kind: StepKind; key: TKey }[] = [
@@ -38,7 +38,7 @@ const STAT_KINDS: { kind: StepKind; key: TKey }[] = [
 ];
 
 function barClass(step: SimulationStep, i: number): string {
-  if (step.kind === "done" || step.sorted.includes(i)) return "bg-emerald-500";
+  if (step.kind === "done" || step.sorted.includes(i)) return "bg-claude-600";
   if (step.highlights.includes(i)) return KIND_BAR[step.kind];
   if (step.range && (i < step.range[0] || i > step.range[1]))
     return "bg-zinc-200 dark:bg-zinc-800/70";
@@ -89,7 +89,7 @@ function Racer({
             outcome === "win"
               ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
               : done
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                ? "bg-claude-500/10 text-claude-600 dark:text-claude-400"
                 : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
           }`}
         >

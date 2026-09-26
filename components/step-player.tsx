@@ -128,7 +128,7 @@ export function SpeedSelect() {
           onClick={() => ctx.setSpeed(s)}
           className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
             ctx.speed === s
-              ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+              ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
               : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
           }`}
         >
@@ -165,7 +165,7 @@ export function TransportControls({
         type="button"
         onClick={onToggle}
         aria-label={playing ? t("pause") : t("play")}
-        className="flex size-8 items-center justify-center rounded-md bg-emerald-600 text-white transition-colors hover:bg-emerald-500"
+        className="flex size-8 items-center justify-center rounded-md bg-claude-600 text-white transition-colors hover:bg-claude-500"
       >
         {playing ? (
           <Pause className="size-3.5" fill="currentColor" />
@@ -186,7 +186,7 @@ export function PlaybackPanel({
   count,
   note,
   invariant,
-  dotClass = "bg-emerald-500",
+  dotClass = "bg-claude-500",
   legend,
   extra,
   children,
@@ -231,7 +231,7 @@ export function PlaybackPanel({
             value={player.index}
             onChange={(e) => player.seek(Number(e.target.value))}
             aria-label={t("ws.timeline")}
-            className="h-1 flex-1 cursor-pointer accent-emerald-600"
+            className="h-1 flex-1 cursor-pointer accent-claude-600"
           />
           <span className="shrink-0 font-mono text-[11px] text-zinc-400">
             {player.index + 1}/{count}
@@ -323,7 +323,7 @@ export function ChoiceButton({
       disabled={disabled}
       className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors disabled:opacity-40 ${
         active
-          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+          ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
           : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
       }`}
     >

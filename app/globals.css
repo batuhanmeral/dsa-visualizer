@@ -29,6 +29,29 @@
   --font-mono: var(--font-jetbrains-mono);
 }
 
+/* Accent palette — Claude's orange (#d97757) at 500, with a ramp either side.
+   Named `claude` rather than `accent` so `accent-claude-600` still reads as
+   Tailwind's accent-color utility plus a colour, not as a doubled name.
+
+   The steps are chosen for contrast, not just for looks: 600 on the light
+   background and 400 on the dark one both clear 4.5:1, which is why the UI
+   pairs them as `text-claude-600 dark:text-claude-400`. Solid buttons use 600
+   with white text (4.9:1); 500 is reserved for fills and hover states, where
+   it only ever sits under large text or an icon. */
+@theme {
+  --color-claude-50: #fdf5f2;
+  --color-claude-100: #fbe8e1;
+  --color-claude-200: #f6d0c2;
+  --color-claude-300: #efb09a;
+  --color-claude-400: #e59172;
+  --color-claude-500: #d97757;
+  --color-claude-600: #c25e3d;
+  --color-claude-700: #a14a2f;
+  --color-claude-800: #813c29;
+  --color-claude-900: #693324;
+  --color-claude-950: #391810;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
@@ -36,7 +59,7 @@ body {
 }
 
 ::selection {
-  background: rgb(16 185 129 / 0.25);
+  background: rgb(217 119 87 / 0.25);
 }
 
 /* Slim, theme-aware scrollbars for the workspace panels */

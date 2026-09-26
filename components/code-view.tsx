@@ -7,7 +7,7 @@ import { tokenize, type CodeLang, type TokenType } from "@/lib/highlight";
  * Syntax-highlighted code panel, for either the C source or the pseudocode. Tokenizes the snippet once (memoized on the
  * source) and renders it line by line so the workspace's active-line highlight
  * — driven by the current simulation step — can style each row independently.
- * Token colours stay visible on the active line; the emerald left border and
+ * Token colours stay visible on the active line; the orange left border and
  * tint mark which line is executing.
  */
 const TOKEN_CLASS: Record<TokenType, string> = {
@@ -40,7 +40,7 @@ export default function CodeView({
           key={i}
           className={`flex px-4 transition-colors ${
             i === activeLine
-              ? "border-l-2 border-emerald-400 bg-emerald-400/10"
+              ? "border-l-2 border-claude-400 bg-claude-400/10"
               : "border-l-2 border-transparent"
           }`}
         >

@@ -28,7 +28,7 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
           onClick={onNavigate}
           className="flex min-w-0 flex-1 items-center gap-3"
         >
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-claude-500/15 text-claude-600 dark:text-claude-400">
             <Binary className="size-5" />
           </span>
           <span className="leading-tight">
@@ -60,7 +60,7 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
           onClick={onNavigate}
           className={`mb-4 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
             pathname === "/"
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              ? "bg-claude-500/10 text-claude-600 dark:text-claude-400"
               : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
           }`}
         >
@@ -89,12 +89,12 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
                           aria-current={isActive ? "page" : undefined}
                           className={`relative flex items-center rounded-lg py-2 pl-6 pr-3 text-sm transition-colors ${
                             isActive
-                              ? "bg-emerald-500/10 font-medium text-emerald-600 dark:text-emerald-400"
+                              ? "bg-claude-500/10 font-medium text-claude-600 dark:text-claude-400"
                               : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
                           }`}
                         >
                           {isActive && (
-                            <span className="absolute left-2 h-4 w-0.5 rounded-full bg-emerald-500" />
+                            <span className="absolute left-2 h-4 w-0.5 rounded-full bg-claude-500" />
                           )}
                           {algoName(algorithm.slug, algorithm.name, lang)}
                         </Link>

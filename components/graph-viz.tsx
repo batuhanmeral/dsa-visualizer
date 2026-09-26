@@ -23,10 +23,10 @@ export function hasGraphViz(slug: string): boolean {
 }
 
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
-  { key: "graph.legend.current", dot: "bg-emerald-500" },
+  { key: "graph.legend.current", dot: "bg-claude-500" },
   { key: "graph.legend.frontier", dot: "bg-amber-400" },
   { key: "graph.legend.visited", dot: "bg-sky-500" },
-  { key: "graph.legend.treeEdge", dot: "bg-emerald-500" },
+  { key: "graph.legend.treeEdge", dot: "bg-claude-500" },
 ];
 
 /** Config `startLabel` (English, from GRAPH_ALGOS) → translation key. */
@@ -48,13 +48,13 @@ function nodeState(step: GraphStep, id: number): NodeState {
 }
 
 const NODE_FILL: Record<NodeState, string> = {
-  current: "fill-emerald-500",
+  current: "fill-claude-500",
   frontier: "fill-amber-400",
   visited: "fill-sky-500",
   idle: "fill-zinc-200 dark:fill-zinc-800",
 };
 const NODE_STROKE: Record<NodeState, string> = {
-  current: "stroke-emerald-600",
+  current: "stroke-claude-600",
   frontier: "stroke-amber-500",
   visited: "stroke-sky-600",
   idle: "stroke-zinc-300 dark:stroke-zinc-700",
@@ -351,7 +351,7 @@ export default function GraphViz({
                   title={t("graph.directed.title")}
                   className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                     graph.directed
-                      ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                      ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
                       : "border border-zinc-200 text-zinc-500 hover:text-zinc-900 dark:border-zinc-800 dark:hover:text-zinc-100"
                   }`}
                 >
@@ -388,7 +388,7 @@ export default function GraphViz({
                 }}
                 className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
                   editing
-                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                    ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
                     : "border border-zinc-200 text-zinc-500 hover:text-zinc-900 dark:border-zinc-800 dark:hover:text-zinc-100"
                 }`}
               >
@@ -419,7 +419,7 @@ export default function GraphViz({
     >
       <div className="flex w-full max-w-xl flex-col items-center gap-3">
         {editing && (
-          <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+          <p className="text-[11px] text-claude-600 dark:text-claude-400">
             {t("graph.editHint")}
           </p>
         )}
@@ -459,7 +459,7 @@ export default function GraphViz({
                 markerHeight="7"
                 orient="auto-start-reverse"
               >
-                <path d="M 0 1 L 9 5 L 0 9 z" className="fill-emerald-400" />
+                <path d="M 0 1 L 9 5 L 0 9 z" className="fill-claude-400" />
               </marker>
             </defs>
           )}
@@ -483,9 +483,9 @@ export default function GraphViz({
             const my = (a.y + b.y) / 2;
             const stroke =
               role === "active"
-                ? "stroke-emerald-400"
+                ? "stroke-claude-400"
                 : role === "tree"
-                  ? "stroke-emerald-500"
+                  ? "stroke-claude-500"
                   : role === "rejected"
                     ? "stroke-rose-400/60"
                     : "stroke-zinc-300 dark:stroke-zinc-700";
@@ -575,7 +575,7 @@ export default function GraphViz({
                     cy={n.y}
                     r={NODE_R + 5}
                     fill="none"
-                    className="stroke-emerald-500/50"
+                    className="stroke-claude-500/50"
                     strokeWidth={1.5}
                     strokeDasharray="3 3"
                   />
@@ -589,7 +589,7 @@ export default function GraphViz({
                   transition={{ type: "spring", stiffness: 320, damping: 22 }}
                   style={{ transformOrigin: `${n.x}px ${n.y}px` }}
                   className={`${NODE_FILL[state]} ${
-                    isSelected ? "stroke-emerald-500" : NODE_STROKE[state]
+                    isSelected ? "stroke-claude-500" : NODE_STROKE[state]
                   }`}
                   strokeWidth={isSelected ? 4 : 2.5}
                 />
@@ -606,7 +606,7 @@ export default function GraphViz({
                     x={n.x}
                     y={n.y - 27}
                     textAnchor="middle"
-                    className="pointer-events-none fill-emerald-600 text-[11px] font-semibold dark:fill-emerald-400"
+                    className="pointer-events-none fill-claude-600 text-[11px] font-semibold dark:fill-claude-400"
                   >
                     {d}
                   </text>

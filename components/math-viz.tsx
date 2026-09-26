@@ -39,7 +39,7 @@ function SieveViz({
 }) {
   const { t } = useLang();
   const legend = useMathLegend([
-    { key: "math.legend.prime", dot: "bg-emerald-500" },
+    { key: "math.legend.prime", dot: "bg-claude-500" },
     { key: "math.legend.crossing", dot: "bg-rose-500" },
     { key: "math.legend.crossed", dot: "bg-zinc-300 dark:bg-zinc-700" },
   ]);
@@ -56,10 +56,10 @@ function SieveViz({
     if (step.m === i)
       return "border-rose-500/70 bg-rose-500/25 text-rose-700 dark:text-rose-200";
     if (step.p === i)
-      return "border-emerald-500 bg-emerald-500/25 text-emerald-700 ring-1 ring-emerald-500/60 dark:text-emerald-200";
+      return "border-claude-500 bg-claude-500/25 text-claude-700 ring-1 ring-claude-500/60 dark:text-claude-200";
     const s = step.status[i];
     if (s === "prime")
-      return "border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300";
+      return "border-claude-500/50 bg-claude-500/10 text-claude-700 dark:text-claude-300";
     if (s === "crossed")
       return "border-zinc-200 bg-zinc-100 text-zinc-300 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-700";
     return "border-zinc-300 text-zinc-600 dark:border-zinc-700 dark:text-zinc-300";
@@ -129,7 +129,7 @@ function NumField({
         value={value}
         spellCheck={false}
         onChange={(e) => onChange(e.target.value)}
-        className={`${width} rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-emerald-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200`}
+        className={`${width} rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 font-mono text-xs text-zinc-700 outline-none focus:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-200`}
       />
     </label>
   );
@@ -176,7 +176,7 @@ function GcdViz({
         {/* Current pair */}
         <div className="flex items-center gap-3 font-mono text-sm">
           <span className="text-zinc-400">gcd(</span>
-          <span className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 px-3 py-1.5 font-semibold text-emerald-700 dark:text-emerald-300">
+          <span className="rounded-lg border border-claude-500/50 bg-claude-500/10 px-3 py-1.5 font-semibold text-claude-700 dark:text-claude-300">
             {step.a}
           </span>
           <span className="text-zinc-400">,</span>
@@ -210,7 +210,7 @@ function GcdViz({
                   className={
                     row.r === 0
                       ? "font-semibold text-zinc-400"
-                      : "font-semibold text-emerald-600 dark:text-emerald-400"
+                      : "font-semibold text-claude-600 dark:text-claude-400"
                   }
                 >
                   {row.r}
@@ -221,7 +221,7 @@ function GcdViz({
         </div>
 
         {step.result !== undefined && (
-          <div className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-5 py-2 font-mono text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+          <div className="rounded-xl border border-claude-500/50 bg-claude-500/10 px-5 py-2 font-mono text-sm font-semibold text-claude-700 dark:text-claude-300">
             gcd = {step.result}
           </div>
         )}
@@ -286,7 +286,7 @@ function ExtGcdViz({
                   key={i}
                   className={
                     isGcdRow
-                      ? "text-emerald-700 dark:text-emerald-300"
+                      ? "text-claude-700 dark:text-claude-300"
                       : isLast
                         ? "text-amber-700 dark:text-amber-200"
                         : "text-zinc-500 dark:text-zinc-400"
@@ -296,7 +296,7 @@ function ExtGcdViz({
                   <td
                     className={`rounded-md border px-2 py-0.5 text-right tabular-nums ${
                       isGcdRow
-                        ? "border-emerald-500/60 bg-emerald-500/10 font-semibold"
+                        ? "border-claude-500/60 bg-claude-500/10 font-semibold"
                         : isLast
                           ? "border-amber-400/60 bg-amber-400/10"
                           : "border-zinc-200 dark:border-zinc-800"
@@ -313,7 +313,7 @@ function ExtGcdViz({
         </table>
 
         {step.result && (
-          <div className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-5 py-2 font-mono text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+          <div className="rounded-xl border border-claude-500/50 bg-claude-500/10 px-5 py-2 font-mono text-sm font-semibold text-claude-700 dark:text-claude-300">
             gcd = {step.result.g} = {step.result.x}·{a} + {step.result.y}·{b}
           </div>
         )}
@@ -412,7 +412,7 @@ function PowViz({
 
         {/* Accumulators */}
         <div className="flex flex-wrap justify-center gap-2 font-mono text-xs">
-          <span className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 px-3 py-1.5 text-emerald-700 dark:text-emerald-300">
+          <span className="rounded-lg border border-claude-500/50 bg-claude-500/10 px-3 py-1.5 text-claude-700 dark:text-claude-300">
             result = <span className="font-semibold">{step.result}</span>
           </span>
           <span className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-sky-700 dark:text-sky-300">
@@ -424,7 +424,7 @@ function PowViz({
         </div>
 
         {step.final !== undefined && (
-          <div className="rounded-xl border border-emerald-500/50 bg-emerald-500/10 px-5 py-2 font-mono text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+          <div className="rounded-xl border border-claude-500/50 bg-claude-500/10 px-5 py-2 font-mono text-sm font-semibold text-claude-700 dark:text-claude-300">
             {base}^{exp} mod {mod} = {step.final}
           </div>
         )}
