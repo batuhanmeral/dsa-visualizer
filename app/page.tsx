@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRight, ChevronDown, Sparkles } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { categories } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { algoName, catName, catTagline } from "@/lib/content-i18n";
@@ -19,31 +19,17 @@ export default function HomePage() {
       else next.add(slug);
       return next;
     });
-  const algorithmCount = categories.reduce(
-    (sum, c) => sum + c.algorithms.length,
-    0
-  );
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 lg:py-16">
       {/* Hero */}
-      <div className="mb-12">
-        <span className="inline-flex items-center gap-1.5 rounded-full border border-claude-500/30 bg-claude-500/10 px-3 py-1 text-xs font-medium text-claude-600 dark:text-claude-400">
-          <Sparkles className="size-3.5" />
-          {t("home.badge", {
-            count: algorithmCount,
-            categories: categories.length,
-          })}
+      <h1 className="mb-12 text-2xl font-semibold tracking-tight sm:text-3xl">
+        Algorhythm
+        <span className="text-zinc-400 dark:text-zinc-500"> — </span>
+        <span className="text-zinc-500 dark:text-zinc-400">
+          {t("home.heading")}
         </span>
-        <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">
-          {t("home.title.pre")}
-          <span className="text-claude-500">{t("home.title.accent")}</span>
-          {t("home.title.post")}
-        </h1>
-        <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-          {t("home.subtitle")}
-        </p>
-      </div>
+      </h1>
 
       {/* Category grid */}
       <div className="grid gap-5 sm:grid-cols-2">

@@ -16,6 +16,7 @@ export const en = {
 
   // Shell / navigation
   "brand.tagline": "DSA Visualizer",
+  "home.heading": "Data Structures and Algorithm Visualizer",
   "nav.overview": "Overview",
   "nav.open": "Open navigation",
   "nav.close": "Close navigation",
@@ -26,12 +27,6 @@ export const en = {
   "toggle.theme.light": "Switch to light",
 
   // Home
-  "home.badge": "{count} algorithms · {categories} categories",
-  "home.title.pre": "See algorithms ",
-  "home.title.accent": "think",
-  "home.title.post": ".",
-  "home.subtitle":
-    "An interactive workspace for learning data structures and algorithms. Pick a topic, watch every step unfold, and follow along in the code — at your own pace.",
 
   // Category page
   "cat.time": "Time",
@@ -289,6 +284,7 @@ export const tr: Partial<Record<TKey, string>> = {
 
   // Shell / navigation
   "brand.tagline": "DSA Visualizer",
+  "home.heading": "Veri Yapıları ve Algoritma Görselleştirici",
   "nav.overview": "Genel Bakış",
   "nav.open": "Menüyü aç",
   "nav.close": "Menüyü kapat",
@@ -299,12 +295,6 @@ export const tr: Partial<Record<TKey, string>> = {
   "toggle.theme.light": "Açık temaya geç",
 
   // Home
-  "home.badge": "{count} algoritma · {categories} kategori",
-  "home.title.pre": "Algoritmaların ",
-  "home.title.accent": "düşünmesini",
-  "home.title.post": " izle.",
-  "home.subtitle":
-    "Veri yapılarını ve algoritmaları öğrenmek için etkileşimli bir çalışma alanı. Bir konu seç, her adımın nasıl işlediğini izle ve kodu kendi hızında takip et.",
 
   // Category page
   "cat.time": "Süre",
