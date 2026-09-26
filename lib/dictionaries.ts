@@ -15,7 +15,6 @@ export const en = {
   pause: "Pause",
 
   // Shell / navigation
-  "brand.tagline": "DSA Visualizer",
   "home.heading": "Data Structures and Algorithm Visualizer",
   "nav.overview": "Overview",
   "nav.open": "Open navigation",
@@ -283,7 +282,6 @@ export const tr: Partial<Record<TKey, string>> = {
   pause: "Duraklat",
 
   // Shell / navigation
-  "brand.tagline": "DSA Visualizer",
   "home.heading": "Veri Yapıları ve Algoritma Görselleştirici",
   "nav.overview": "Genel Bakış",
   "nav.open": "Menüyü aç",
