@@ -22,11 +22,13 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 lg:py-16">
-      {/* Hero */}
-      <h1 className="mb-12 text-2xl font-semibold tracking-tight sm:text-3xl">
+      {/* Hero: the name carries the weight, the accent carries the subtitle.
+          600/400 rather than 500 because claude-500 is only 3.0:1 on the light
+          page — right on the large-text limit. */}
+      <h1 className="mb-12 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
         Algorhythm
-        <span className="text-zinc-400 dark:text-zinc-500"> — </span>
-        <span className="text-zinc-500 dark:text-zinc-400">
+        <span className="font-normal text-claude-600 dark:text-claude-400">
+          {" \u2014 "}
           {t("home.heading")}
         </span>
       </h1>
