@@ -15,7 +15,6 @@ export const en = {
   pause: "Pause",
 
   // Shell / navigation
-  "home.heading": "Data Structures and Algorithm Visualizer",
   "nav.overview": "Overview",
   "nav.open": "Open navigation",
   "nav.close": "Close navigation",
@@ -282,7 +281,6 @@ export const tr: Partial<Record<TKey, string>> = {
   pause: "Duraklat",
 
   // Shell / navigation
-  "home.heading": "Veri Yapıları ve Algoritma Görselleştirici",
   "nav.overview": "Genel Bakış",
   "nav.open": "Menüyü aç",
   "nav.close": "Menüyü kapat",

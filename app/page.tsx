@@ -9,7 +9,7 @@ import { useLang } from "@/lib/i18n";
 import { algoName, catName, catTagline } from "@/lib/content-i18n";
 
 export default function HomePage() {
-  const { t, lang } = useLang();
+  const { lang } = useLang();
   // Collapsible category cards — click a header to reveal its algorithms.
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (slug: string) =>
@@ -22,17 +22,6 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 lg:py-16">
-      {/* Hero: the name carries the weight, the accent carries the subtitle.
-          600/400 rather than 500 because claude-500 is only 3.0:1 on the light
-          page — right on the large-text limit. */}
-      <h1 className="mb-12 text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
-        Algorhythm
-        <span className="font-normal text-claude-600 dark:text-claude-400">
-          {" \u2014 "}
-          {t("home.heading")}
-        </span>
-      </h1>
-
       {/* Category grid */}
       <div className="grid gap-5 sm:grid-cols-2">
         {categories.map((category) => {
