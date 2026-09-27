@@ -21,8 +21,27 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
 
   return (
     <div className="flex h-full flex-col">
+      {/* Controls bar: language on the left, then theme and the collapse control */}
+      <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
+        <LangToggle />
+        <div className="flex items-center gap-1">
+          <ThemeToggle />
+          {onCollapse && (
+            <button
+              type="button"
+              onClick={onCollapse}
+              aria-label={t("nav.collapse")}
+              title={t("nav.collapse")}
+              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+            >
+              <PanelLeftClose className="size-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Nav */}
-      <nav className="scrollbar-slim flex-1 overflow-y-auto px-3 pb-6 pt-5">
+      <nav className="scrollbar-slim flex-1 overflow-y-auto px-3 pb-6 pt-4">
         <Link
           href="/"
           onClick={onNavigate}
@@ -75,25 +94,6 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
           })}
         </ul>
       </nav>
-
-      {/* Footer: language on the left, then theme and the collapse control */}
-      <div className="flex items-center justify-between gap-2 border-t border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <LangToggle />
-        <div className="flex items-center gap-1">
-          <ThemeToggle />
-          {onCollapse && (
-            <button
-              type="button"
-              onClick={onCollapse}
-              aria-label={t("nav.collapse")}
-              title={t("nav.collapse")}
-              className="flex size-8 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-            >
-              <PanelLeftClose className="size-4" />
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
