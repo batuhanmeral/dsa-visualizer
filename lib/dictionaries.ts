@@ -25,6 +25,12 @@ export const en = {
   "toggle.theme.light": "Switch to light",
 
   // Home
+  "home.title": "Data Structures & Algorithms",
+  "home.desc":
+    "Every algorithm visualized as it runs — the array, the pointers and the " +
+    "executing C line, together at each step. Pick a category below, open it " +
+    "and choose an algorithm, then walk the run forwards or backwards at your " +
+    "own pace.",
 
   // Category page
   "cat.time": "Time",
@@ -291,6 +297,12 @@ export const tr: Partial<Record<TKey, string>> = {
   "toggle.theme.light": "Açık temaya geç",
 
   // Home
+  "home.title": "Veri Yapıları ve Algoritmalar",
+  "home.desc":
+    "Her algoritma çalışırken görselleşir — her adımda diziyi, işaretçileri " +
+    "ve çalışan C satırını aynı anda görürsün. Aşağıdan bir kategori aç, bir " +
+    "algoritma seç, sonra çalışmayı kendi hızında adım adım ileri ya da geri " +
+    "izle.",
 
   // Category page
   "cat.time": "Süre",

@@ -9,7 +9,7 @@ import { useLang } from "@/lib/i18n";
 import { algoName, catName, catTagline } from "@/lib/content-i18n";
 
 export default function HomePage() {
-  const { lang } = useLang();
+  const { t, lang } = useLang();
   // Collapsible category cards — click a header to reveal its algorithms.
   const [open, setOpen] = useState<Set<string>>(new Set());
   const toggle = (slug: string) =>
@@ -22,6 +22,17 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 lg:py-16">
+      {/* Hero: one-colour title, muted supporting line — the accent is left to
+          the wordmark and the active-nav state so it still means something. */}
+      <header className="mb-10">
+        <h1 className="text-balance text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl dark:text-zinc-50">
+          {t("home.title")}
+        </h1>
+        <p className="mt-3 max-w-2xl text-pretty text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">
+          {t("home.desc")}
+        </p>
+      </header>
+
       {/* Category grid */}
       <div className="grid gap-5 sm:grid-cols-2">
         {categories.map((category) => {
