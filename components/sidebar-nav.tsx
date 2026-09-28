@@ -21,10 +21,18 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
 
   return (
     <div className="flex h-full flex-col">
-      {/* Controls bar: language on the left, then theme and the collapse control */}
-      <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-3 dark:border-zinc-800">
-        <LangToggle />
-        <div className="flex items-center gap-1">
+      {/* Top bar: wordmark on the left, controls on the right */}
+      <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-800">
+        <Link
+          href="/"
+          onClick={onNavigate}
+          className="text-[15px] font-bold tracking-tight transition-opacity hover:opacity-80"
+        >
+          Algo
+          <span className="text-claude-600 dark:text-claude-400">rhythm</span>
+        </Link>
+        <div className="flex items-center gap-0.5">
+          <LangToggle />
           <ThemeToggle />
           {onCollapse && (
             <button
