@@ -2,31 +2,24 @@
 
 import { useLang, type Lang } from "@/lib/i18n";
 
-/** Compact EN/TR segmented control. Persists via the i18n provider. */
+/**
+ * Single-button language switch: shows the language in force and flips to the
+ * other one on click. Sized and styled to match ThemeToggle so the two read as
+ * one pair of controls.
+ */
 export default function LangToggle({ className = "" }: { className?: string }) {
   const { lang, setLang, t } = useLang();
-  const langs: Lang[] = ["en", "tr"];
+  const next: Lang = lang === "en" ? "tr" : "en";
 
   return (
-    <div
+    <button
+      type="button"
+      onClick={() => setLang(next)}
+      aria-label={t("toggle.lang")}
       title={t("toggle.lang")}
-      className={`flex items-center rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 dark:border-zinc-800 dark:bg-zinc-900 ${className}`}
+      className={`flex size-9 items-center justify-center rounded-lg text-[11px] font-semibold uppercase text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100 ${className}`}
     >
-      {langs.map((l) => (
-        <button
-          key={l}
-          type="button"
-          onClick={() => setLang(l)}
-          aria-pressed={lang === l}
-          className={`rounded-md px-2 py-1 text-[11px] font-semibold uppercase transition-colors ${
-            lang === l
-              ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
-              : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
-          }`}
-        >
-          {l}
-        </button>
-      ))}
-    </div>
+      {lang}
+    </button>
   );
 }
