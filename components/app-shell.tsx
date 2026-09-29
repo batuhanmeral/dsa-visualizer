@@ -51,7 +51,10 @@ function Shell({ children }: { children: React.ReactNode }) {
           <span className="flex size-7 items-center justify-center rounded-lg bg-claude-500/15 text-claude-600 dark:text-claude-400">
             <Binary className="size-4" />
           </span>
-          Algorhythm
+          <span>
+            Algo
+            <span className="text-claude-600 dark:text-claude-400">rhythm</span>
+          </span>
         </span>
         <div className="ml-auto flex items-center gap-2">
           <LangToggle />

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, PanelLeftClose } from "lucide-react";
+import { Binary, LayoutDashboard, PanelLeftClose } from "lucide-react";
 import { categories } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { algoName, catName } from "@/lib/content-i18n";
@@ -26,10 +26,16 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
         <Link
           href="/"
           onClick={onNavigate}
-          className="text-[15px] font-bold tracking-tight transition-opacity hover:opacity-80"
+          className="flex items-center gap-2 text-[15px] font-bold tracking-tight transition-opacity hover:opacity-80"
         >
-          Algo
-          <span className="text-claude-600 dark:text-claude-400">rhythm</span>
+          {/* The 01/10 glyph, same mark as the mobile top bar. */}
+          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-claude-500/15 text-claude-600 dark:text-claude-400">
+            <Binary className="size-4" />
+          </span>
+          <span>
+            Algo
+            <span className="text-claude-600 dark:text-claude-400">rhythm</span>
+          </span>
         </Link>
         <div className="flex items-center gap-0.5">
           <LangToggle />
