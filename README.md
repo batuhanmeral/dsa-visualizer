@@ -84,7 +84,7 @@ npm run lint
 | <img src="docs/bubble_sort.png" alt="Bubble Sort visualization" width="850"> |
 | *Bubble Sort — step player, stat counters and C code highlighting* |
 | <img src="docs/linked_list.png" alt="Linked List visualization" width="850"> |
-| *N-Queens — backtracking on the board* |
+| *Linked List — interactive operations with C code highlighting* |
 
 ## License
 
