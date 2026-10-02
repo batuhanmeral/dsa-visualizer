@@ -12,14 +12,14 @@ import { tokenize, type CodeLang, type TokenType } from "@/lib/highlight";
  */
 const TOKEN_CLASS: Record<TokenType, string> = {
   comment: "text-zinc-500 italic",
-  preprocessor: "text-rose-400",
-  keyword: "text-violet-400",
-  type: "text-sky-400",
-  constant: "text-orange-400",
-  string: "text-amber-300",
-  number: "text-orange-400",
-  function: "text-yellow-200",
-  plain: "text-zinc-300",
+  preprocessor: "text-rose-600 dark:text-rose-400",
+  keyword: "text-violet-600 dark:text-violet-400",
+  type: "text-sky-700 dark:text-sky-400",
+  constant: "text-orange-700 dark:text-orange-400",
+  string: "text-amber-700 dark:text-amber-300",
+  number: "text-orange-700 dark:text-orange-400",
+  function: "text-yellow-700 dark:text-yellow-200",
+  plain: "text-zinc-800 dark:text-zinc-300",
 };
 
 export default function CodeView({
@@ -40,7 +40,7 @@ export default function CodeView({
           key={i}
           className={`flex px-4 transition-colors ${
             i === activeLine
-              ? "border-l-2 border-claude-400 bg-claude-400/10"
+              ? "border-l-2 border-claude-500 bg-claude-500/10 dark:border-claude-400 dark:bg-claude-400/10"
               : "border-l-2 border-transparent"
           }`}
         >

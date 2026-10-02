@@ -1058,19 +1058,13 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
           aria-label="Code viewer"
           className={`flex min-h-85 flex-col overflow-hidden rounded-2xl border lg:min-h-0 ${
             showCode
-              ? "border-zinc-800 bg-zinc-950"
+              ? "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
               : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
           }`}
         >
-          <div
-            className={`flex items-center justify-between gap-2 border-b px-4 py-2.5 ${
-              showCode
-                ? "border-zinc-800"
-                : "border-zinc-200 dark:border-zinc-800"
-            }`}
-          >
-            <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-400">
-              <TerminalSquare className="size-4 shrink-0 text-claude-400" />
+          <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-800">
+            <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              <TerminalSquare className="size-4 shrink-0 text-claude-600 dark:text-claude-400" />
               <span className="truncate">
                 {algorithm.slug}
                 {codeLang === "pseudo" ? ".pseudo" : ".c"}
@@ -1078,7 +1072,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
             </span>
             <div className="flex shrink-0 items-center gap-2">
               {showCode && (
-                <div className="flex items-center gap-0.5 rounded-lg bg-zinc-900 p-0.5">
+                <div className="flex items-center gap-0.5 rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-900">
                   {(["c", "pseudo"] as const).map((lang) => (
                     <button
                       key={lang}
@@ -1087,8 +1081,8 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       aria-pressed={codeLang === lang}
                       className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
                         codeLang === lang
-                          ? "bg-claude-500/15 text-claude-400"
-                          : "text-zinc-500 hover:text-zinc-200"
+                          ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
                       }`}
                     >
                       {t(lang === "c" ? "ws.lang.c" : "ws.lang.pseudo")}
@@ -1099,7 +1093,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
               {panelTabs.length > 1 && (
                 <div
                   className={`flex items-center gap-0.5 rounded-lg p-0.5 ${
-                    showCode ? "bg-zinc-900" : "bg-zinc-100 dark:bg-zinc-950"
+                    showCode ? "bg-zinc-100 dark:bg-zinc-900" : "bg-zinc-100 dark:bg-zinc-950"
                   }`}
                 >
                   {panelTabs.map((tab) => (
@@ -1110,9 +1104,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                       className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
                         activeTab === tab
                           ? "bg-claude-500/15 text-claude-500 dark:text-claude-400"
-                          : showCode
-                            ? "text-zinc-500 hover:text-zinc-200"
-                            : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
+                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
                       }`}
                     >
                       {t(
@@ -1133,8 +1125,8 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
                   title={t("ws.copy")}
                   className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
                     codeCopied
-                      ? "text-claude-400"
-                      : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-100"
+                      ? "text-claude-600 dark:text-claude-400"
+                      : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                   }`}
                 >
                   {codeCopied ? (
