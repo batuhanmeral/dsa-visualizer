@@ -10,14 +10,19 @@
 }
 
 [data-theme="dark"] {
-  --background: #09090b;
+  --background: #161619;
   --foreground: #e4e4e7;
+  /* Surfaces use zinc-950/900/800 directly; lift them with the page so panels
+     keep their layering instead of turning darker than the background. */
+  --color-zinc-950: #161619;
+  --color-zinc-900: #1f1f23;
+  --color-zinc-800: #2c2c31;
 }
 
 /* No-JS fallback: honor the OS preference until the theme script runs. */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-    --background: #09090b;
+    --background: #161619;
     --foreground: #e4e4e7;
   }
 }
