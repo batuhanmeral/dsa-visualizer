@@ -2,7 +2,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
 import { categories, getAlgorithm } from "@/lib/data";
+import { algoSummary } from "@/lib/content-i18n";
 import type { Lang } from "@/lib/locale";
+import { algorithmTitle, pageMetadata } from "@/lib/seo";
 
 export function algorithmParams() {
   return categories.flatMap((category) =>
@@ -14,15 +16,19 @@ export function algorithmParams() {
 }
 
 export function algorithmMetadata(
+  lang: Lang,
   categorySlug: string,
   algorithmSlug: string
 ): Metadata {
   const match = getAlgorithm(categorySlug, algorithmSlug);
   if (!match) return {};
-  return {
-    title: match.algorithm.name,
-    description: match.algorithm.summary,
-  };
+  const { slug, name, summary } = match.algorithm;
+  return pageMetadata(
+    lang,
+    `/${categorySlug}/${algorithmSlug}`,
+    algorithmTitle(lang, slug, name),
+    algoSummary(slug, summary, lang)
+  );
 }
 
 interface AlgorithmPageProps {

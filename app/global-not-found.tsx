@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Compass } from "lucide-react";
-import { htmlClassName, themeBootScript } from "@/components/root-document";
+import { htmlClassName, themeBootScript } from "@/components/document-head";
 import { translate } from "@/lib/translate";
 import "./globals.css";
 

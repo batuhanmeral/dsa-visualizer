@@ -16,7 +16,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { category } = await params;
-  return categoryMetadata(category);
+  return categoryMetadata("tr", category);
 }
 
 export default async function Page({ params }: Props) {
