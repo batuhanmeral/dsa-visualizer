@@ -8,3 +8,6 @@ import { registerHooks } from "node:module";
 import { resolve } from "./resolve-hook.mjs";
 
 registerHooks({ resolve });
+
+// lib/site.ts validates SITE_URL at import time; give tests a default.
+process.env.SITE_URL ??= "http://localhost:3000";

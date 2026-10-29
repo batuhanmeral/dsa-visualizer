@@ -7,20 +7,13 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { en, tr, type TKey } from "./dictionaries";
+import type { TKey } from "./dictionaries";
+import type { Lang } from "./locale";
 import type { Note, NoteValue } from "./simulations/note";
+import { interpolate, translate, type Vars } from "./translate";
 import { stepNotesEn, stepNotesTr, type StepNoteKey } from "./step-notes";
 
-export type Lang = "en" | "tr";
-
-/** Substitute `{name}` placeholders from a vars map. */
-type Vars = Record<string, string | number>;
-function interpolate(template: string, vars?: Vars): string {
-  if (!vars) return template;
-  return template.replace(/\{(\w+)\}/g, (_, k) =>
-    k in vars ? String(vars[k]) : `{${k}}`
-  );
-}
+export type { Lang };
 
 interface Ctx {
   lang: Lang;
@@ -58,10 +51,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const t = (key: TKey, vars?: Vars) => {
-    const template = (lang === "tr" ? tr[key] : undefined) ?? en[key] ?? key;
-    return interpolate(template, vars);
-  };
+  const t = (key: TKey, vars?: Vars) => translate(lang, key, vars);
 
   const noteTemplate = (key: StepNoteKey): string =>
     (lang === "tr" ? stepNotesTr[key] : undefined) ?? stepNotesEn[key] ?? key;
