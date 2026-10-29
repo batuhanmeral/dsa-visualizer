@@ -15,8 +15,8 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Algorhythm — DSA Visualizer",
-    template: "%s · Algorhythm",
+    default: "Algoritmalar — DSA Visualizer",
+    template: "%s · Algoritmalar",
   },
   description:
     "An interactive platform for visualizing data structures and algorithms — sorting, graphs, dynamic programming, and backtracking.",
