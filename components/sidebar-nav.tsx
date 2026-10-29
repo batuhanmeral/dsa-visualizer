@@ -32,10 +32,7 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
           <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-claude-500/15 text-claude-600 dark:text-claude-400">
             <Binary className="size-4" />
           </span>
-          <span>
-            Algo
-            <span className="text-claude-600 dark:text-claude-400">rhythm</span>
-          </span>
+          <span className="text-claude-600 dark:text-claude-400">Algoritmalar</span>
         </Link>
         <div className="flex items-center gap-0.5">
           <LangToggle />
