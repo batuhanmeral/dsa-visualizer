@@ -7,6 +7,7 @@ import { ArrowRight, ChevronDown } from "lucide-react";
 import { categories } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { algoName, catName, catTagline } from "@/lib/content-i18n";
+import { localePath } from "@/lib/locale";
 
 export default function HomePage() {
   const { t, lang } = useLang();
@@ -85,7 +86,7 @@ export default function HomePage() {
                       {category.algorithms.map((algorithm) => (
                         <li key={algorithm.slug}>
                           <Link
-                            href={`/${category.slug}/${algorithm.slug}`}
+                            href={localePath(lang, `/${category.slug}/${algorithm.slug}`)}
                             className="group flex items-center justify-between rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
                           >
                             {algoName(algorithm.slug, algorithm.name, lang)}

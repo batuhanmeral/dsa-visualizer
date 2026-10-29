@@ -2,12 +2,9 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
 import { categories, getAlgorithm } from "@/lib/data";
+import type { Lang } from "@/lib/locale";
 
-interface AlgorithmPageProps {
-  params: Promise<{ category: string; algorithm: string }>;
-}
-
-export function generateStaticParams() {
+export function algorithmParams() {
   return categories.flatMap((category) =>
     category.algorithms.map((algorithm) => ({
       category: category.slug,
@@ -16,10 +13,10 @@ export function generateStaticParams() {
   );
 }
 
-export async function generateMetadata({
-  params,
-}: AlgorithmPageProps): Promise<Metadata> {
-  const { category: categorySlug, algorithm: algorithmSlug } = await params;
+export function algorithmMetadata(
+  categorySlug: string,
+  algorithmSlug: string
+): Metadata {
   const match = getAlgorithm(categorySlug, algorithmSlug);
   if (!match) return {};
   return {
@@ -28,8 +25,18 @@ export async function generateMetadata({
   };
 }
 
-export default async function AlgorithmPage({ params }: AlgorithmPageProps) {
-  const { category: categorySlug, algorithm: algorithmSlug } = await params;
+interface AlgorithmPageProps {
+  lang: Lang;
+  categorySlug: string;
+  algorithmSlug: string;
+}
+
+// `lang` is part of the contract for server-rendered, language-specific
+// content; Workspace still reads it from LangProvider.
+export default function AlgorithmPage({
+  categorySlug,
+  algorithmSlug,
+}: AlgorithmPageProps) {
   const match = getAlgorithm(categorySlug, algorithmSlug);
   if (!match) notFound();
 
