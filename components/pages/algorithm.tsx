@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import AlgoExplainer from "@/components/algo-explainer";
 import Workspace from "@/components/workspace";
 import { categories, getAlgorithm } from "@/lib/data";
 import JsonLd from "@/components/json-ld";
@@ -68,6 +69,11 @@ export default function AlgorithmPage({
       <Workspace
         category={{ name: category.name, slug: category.slug }}
         algorithm={algorithm}
+      />
+      <AlgoExplainer
+        lang={lang}
+        slug={algorithm.slug}
+        name={algoName(algorithm.slug, algorithm.name, lang)}
       />
     </>
   );
