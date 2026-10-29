@@ -2,9 +2,12 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Workspace from "@/components/workspace";
 import { categories, getAlgorithm } from "@/lib/data";
-import { algoSummary } from "@/lib/content-i18n";
+import JsonLd from "@/components/json-ld";
+import { algoName, algoSummary, catName } from "@/lib/content-i18n";
 import type { Lang } from "@/lib/locale";
-import { algorithmTitle, pageMetadata } from "@/lib/seo";
+import { algorithmTitle, breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
+import { siteUrl } from "@/lib/site";
+import { translate } from "@/lib/translate";
 
 export function algorithmParams() {
   return categories.flatMap((category) =>
@@ -37,19 +40,35 @@ interface AlgorithmPageProps {
   algorithmSlug: string;
 }
 
-// `lang` is part of the contract for server-rendered, language-specific
-// content; Workspace still reads it from LangProvider.
 export default function AlgorithmPage({
+  lang,
   categorySlug,
   algorithmSlug,
 }: AlgorithmPageProps) {
   const match = getAlgorithm(categorySlug, algorithmSlug);
   if (!match) notFound();
 
+  const { category, algorithm } = match;
+  const breadcrumb = breadcrumbJsonLd(
+    lang,
+    [
+      { name: translate(lang, "nav.overview"), path: "/" },
+      { name: catName(category.slug, category.name, lang), path: `/${category.slug}` },
+      {
+        name: algoName(algorithm.slug, algorithm.name, lang),
+        path: `/${category.slug}/${algorithm.slug}`,
+      },
+    ],
+    siteUrl
+  );
+
   return (
-    <Workspace
-      category={{ name: match.category.name, slug: match.category.slug }}
-      algorithm={match.algorithm}
-    />
+    <>
+      <JsonLd data={breadcrumb} />
+      <Workspace
+        category={{ name: category.name, slug: category.slug }}
+        algorithm={algorithm}
+      />
+    </>
   );
 }

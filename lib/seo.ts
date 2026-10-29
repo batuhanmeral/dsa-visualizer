@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, MetadataRoute } from "next";
 import { algoName } from "./content-i18n";
+import { categories } from "./data";
 import { LANGS, localePath, type Lang } from "./locale";
 import { translate } from "./translate";
 
@@ -54,4 +55,60 @@ export function homeMetadata(lang: Lang): Metadata {
     { absolute: HOME_TITLE[lang] },
     translate(lang, "home.desc")
   );
+}
+
+/** Every page in both languages; each entry links its counterpart. */
+export function sitemapEntries(base: URL): MetadataRoute.Sitemap {
+  const paths = [
+    "/",
+    ...categories.flatMap((c) => [
+      `/${c.slug}`,
+      ...c.algorithms.map((a) => `/${c.slug}/${a.slug}`),
+    ]),
+  ];
+  const abs = (lang: Lang, path: string) =>
+    new URL(localePath(lang, path), base).href;
+  return paths.flatMap((path) => {
+    const languages = {
+      tr: abs("tr", path),
+      en: abs("en", path),
+      "x-default": abs("tr", path),
+    };
+    return LANGS.map((lang) => ({
+      url: languages[lang],
+      alternates: { languages },
+    }));
+  });
+}
+
+export function breadcrumbJsonLd(
+  lang: Lang,
+  crumbs: { name: string; path: string }[],
+  base: URL
+): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: crumbs.map((crumb, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: crumb.name,
+      item: new URL(localePath(lang, crumb.path), base).href,
+    })),
+  };
+}
+
+export function websiteJsonLd(lang: Lang, base: URL): object {
+  return {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Algoritmalar",
+    url: new URL(localePath(lang, "/"), base).href,
+    inLanguage: lang,
+  };
+}
+
+/** `<` is escaped so data can never close the script tag. */
+export function jsonLdString(data: object): string {
+  return JSON.stringify(data).replace(/</g, "\\u003c");
 }

@@ -3,7 +3,10 @@ import type { Metadata } from "next";
 import { categories, getCategory } from "@/lib/data";
 import { algoName, catName } from "@/lib/content-i18n";
 import type { Lang } from "@/lib/locale";
-import { pageMetadata } from "@/lib/seo";
+import { breadcrumbJsonLd, pageMetadata } from "@/lib/seo";
+import { siteUrl } from "@/lib/site";
+import { translate } from "@/lib/translate";
+import JsonLd from "@/components/json-ld";
 import CategoryView from "@/components/category-view";
 
 export function categoryParams() {
@@ -30,11 +33,23 @@ interface CategoryPageProps {
   categorySlug: string;
 }
 
-// `lang` is part of the contract for server-rendered, language-specific
-// content; the client view still reads it from LangProvider.
-export default function CategoryPage({ categorySlug }: CategoryPageProps) {
+export default function CategoryPage({ lang, categorySlug }: CategoryPageProps) {
   const category = getCategory(categorySlug);
   if (!category) notFound();
 
-  return <CategoryView slug={category.slug} />;
+  const breadcrumb = breadcrumbJsonLd(
+    lang,
+    [
+      { name: translate(lang, "nav.overview"), path: "/" },
+      { name: catName(category.slug, category.name, lang), path: `/${category.slug}` },
+    ],
+    siteUrl
+  );
+
+  return (
+    <>
+      <JsonLd data={breadcrumb} />
+      <CategoryView slug={category.slug} />
+    </>
+  );
 }

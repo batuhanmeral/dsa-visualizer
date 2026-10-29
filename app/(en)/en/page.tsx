@@ -1,9 +1,16 @@
 import type { Metadata } from "next";
 import HomePage from "@/components/pages/home";
-import { homeMetadata } from "@/lib/seo";
+import JsonLd from "@/components/json-ld";
+import { homeMetadata, websiteJsonLd } from "@/lib/seo";
+import { siteUrl } from "@/lib/site";
 
 export const metadata: Metadata = homeMetadata("en");
 
 export default function Page() {
-  return <HomePage />;
+  return (
+    <>
+      <JsonLd data={websiteJsonLd("en", siteUrl)} />
+      <HomePage />
+    </>
+  );
 }
