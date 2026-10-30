@@ -9,6 +9,13 @@ updates:
     groups:
       minor-and-patch:
         update-types: [minor, patch]
+    ignore:
+      # eslint-config-next's react, import and jsx-a11y plugins don't support ESLint 10 yet.
+      - dependency-name: eslint
+        update-types: [version-update:semver-major]
+      # Types track the Node major CI runs on (24), not the latest.
+      - dependency-name: "@types/node"
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
