@@ -21,6 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { useStepNote } from "@/lib/use-step-note";
 import { msg, type Note } from "@/lib/simulations/note";
 import { InvariantContext, SpeedSelect } from "./step-player";
 
@@ -117,7 +118,8 @@ function VizShell({
   note: Note;
   busy: boolean;
 }) {
-  const { t, tn } = useLang();
+  const { t } = useLang();
+  const tn = useStepNote();
   const invariant = useContext(InvariantContext);
   return (
     <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">

@@ -16,6 +16,7 @@ import {
   StepForward,
 } from "lucide-react";
 import { useLang } from "@/lib/i18n";
+import { useStepNote } from "@/lib/use-step-note";
 import type { Note } from "@/lib/simulations/note";
 
 /**
@@ -207,7 +208,8 @@ export function PlaybackPanel({
   extra?: ReactNode;
   children: ReactNode;
 }) {
-  const { t, tn } = useLang();
+  const { t } = useLang();
+  const tn = useStepNote();
   const contextInvariant = useContext(InvariantContext);
   const shownInvariant = invariant ?? contextInvariant;
   return (

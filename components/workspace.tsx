@@ -30,6 +30,7 @@ import type { AlgoInfo } from "@/lib/algo-info";
 import { shareQuery } from "@/lib/share-url";
 import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
+import { useStepNote } from "@/lib/use-step-note";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
 import CodeView from "./code-view";
@@ -224,7 +225,8 @@ export default function Workspace({
   code,
   info,
 }: WorkspaceProps) {
-  const { t, tn, lang } = useLang();
+  const { t, lang } = useLang();
+  const tn = useStepNote();
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
   const generator = getSimulation(algorithm.slug);
