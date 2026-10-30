@@ -24,6 +24,7 @@ import {
   TerminalSquare,
 } from "lucide-react";
 import { categories, type Algorithm, type Category } from "@/lib/data";
+import type { AlgoCode } from "@/lib/algo-code";
 import { getSimulation, type StepKind } from "@/lib/simulations";
 import { getAlgoInfo } from "@/lib/algo-info";
 import { shareQuery } from "@/lib/share-url";
@@ -211,9 +212,15 @@ function buildInput(shape: InputShape): number[] {
 interface WorkspaceProps {
   category: Pick<Category, "name" | "slug">;
   algorithm: Algorithm;
+  /** Only this page's code is sent; the full table stays on the server. */
+  code: AlgoCode;
 }
 
-export default function Workspace({ category, algorithm }: WorkspaceProps) {
+export default function Workspace({
+  category,
+  algorithm,
+  code,
+}: WorkspaceProps) {
   const { t, tn, lang } = useLang();
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
@@ -236,7 +243,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const [codeLang, setCodeLang] = useState<CodeLang>("c");
   // Pseudocode is aligned line-for-line with the C source (enforced by
   // `npm test`), so the active line from a step needs no remapping.
-  const shownCode = codeLang === "pseudo" ? algorithm.pseudo : algorithm.code;
+  const shownCode = codeLang === "pseudo" ? code.pseudo : code.code;
   const codeLines = useMemo(() => shownCode.split("\n"), [shownCode]);
   const [compareMode, setCompareMode] = useState(false);
   const [panelTab, setPanelTab] = useState<"code" | "about" | "growth">(

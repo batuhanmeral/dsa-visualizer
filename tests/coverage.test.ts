@@ -1,5 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { algoCode } from "../lib/algo-code";
 import { categories } from "../lib/data";
 import { fitCurve, parseComplexity } from "../lib/complexity";
 import {
@@ -13,7 +14,7 @@ import { fixtures } from "./fixtures";
 import * as structures from "../lib/step-notes/structures";
 
 const algorithms = categories.flatMap((c) =>
-  c.algorithms.map((a) => ({ ...a, category: c.slug }))
+  c.algorithms.map((a) => ({ ...a, ...algoCode[a.slug], category: c.slug }))
 );
 
 const placeholders = (template: string) =>
@@ -32,6 +33,14 @@ test("every algorithm with an engine has a fixture", () => {
       algorithms.some((a) => a.slug === slug),
       `fixture "${slug}" is not an algorithm in lib/data.ts`
     );
+});
+
+test("every algorithm has code and only listed algorithms do", () => {
+  // The page indexes the table by slug, so a gap would ship an empty viewer.
+  assert.deepEqual(
+    Object.keys(algoCode).sort(),
+    algorithms.map((a) => a.slug).sort()
+  );
 });
 
 test("every highlighted code line exists in the algorithm's C source", () => {
