@@ -789,10 +789,6 @@ const VIZ: Record<string, ComponentType<VizProps>> = {
   "hash-table": HashTableViz,
 };
 
-export function hasDataStructureViz(slug: string): boolean {
-  return slug in VIZ;
-}
-
 export default function DataStructureViz({
   slug,
   speed,

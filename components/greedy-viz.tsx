@@ -15,17 +15,6 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { PlaybackPanel, useStepPlayer } from "./step-player";
 
-const GREEDY_SLUGS = new Set([
-  "activity-selection",
-  "fractional-knapsack",
-  "job-sequencing",
-  "huffman-coding",
-]);
-
-export function hasGreedyViz(slug: string): boolean {
-  return GREEDY_SLUGS.has(slug);
-}
-
 const PICK_LEGEND: { key: TKey; dot: string }[] = [
   { key: "greedy.legend.considering", dot: "bg-amber-400" },
   { key: "greedy.legend.selected", dot: "bg-claude-500" },

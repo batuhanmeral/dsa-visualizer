@@ -17,19 +17,6 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
-const TREE_SLUGS = new Set([
-  "bst",
-  "avl",
-  "heap",
-  "trie",
-  "segment-tree",
-  "union-find",
-]);
-
-export function hasTreeViz(slug: string): boolean {
-  return TREE_SLUGS.has(slug);
-}
-
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
   { key: "tree.legend.current", dot: "bg-claude-500" },
   { key: "tree.legend.compare", dot: "bg-amber-400" },

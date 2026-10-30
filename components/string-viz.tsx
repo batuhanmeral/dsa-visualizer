@@ -6,10 +6,6 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { PlaybackPanel, useStepPlayer } from "./step-player";
 
-export function hasStringViz(slug: string): boolean {
-  return slug in STRING_ALGOS;
-}
-
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
   { key: "str.legend.pointer", dot: "bg-claude-500" },
   { key: "str.legend.match", dot: "bg-sky-500" },

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -40,17 +41,28 @@ import {
   SpeedSelect,
   TransportControls,
 } from "./step-player";
-import CompareView from "./compare-view";
-import DataStructureViz, {
+import {
+  hasBacktrackViz,
   hasDataStructureViz,
-} from "./data-structure-viz";
-import GraphViz, { hasGraphViz } from "./graph-viz";
-import DpViz, { hasDpViz } from "./dp-viz";
-import BacktrackViz, { hasBacktrackViz } from "./backtracking-viz";
-import TreeViz, { hasTreeViz } from "./tree-viz";
-import StringViz, { hasStringViz } from "./string-viz";
-import GreedyViz, { hasGreedyViz } from "./greedy-viz";
-import MathViz, { hasMathViz } from "./math-viz";
+  hasDpViz,
+  hasGraphViz,
+  hasGreedyViz,
+  hasMathViz,
+  hasStringViz,
+  hasTreeViz,
+} from "@/lib/viz-families";
+
+// Each page draws one family, so the others stay out of its bundle; the one in
+// use is still rendered on the server, so the first paint does not wait for it.
+const CompareView = dynamic(() => import("./compare-view"));
+const DataStructureViz = dynamic(() => import("./data-structure-viz"));
+const GraphViz = dynamic(() => import("./graph-viz"));
+const DpViz = dynamic(() => import("./dp-viz"));
+const BacktrackViz = dynamic(() => import("./backtracking-viz"));
+const TreeViz = dynamic(() => import("./tree-viz"));
+const StringViz = dynamic(() => import("./string-viz"));
+const GreedyViz = dynamic(() => import("./greedy-viz"));
+const MathViz = dynamic(() => import("./math-viz"));
 
 type CustomViz =
   | "ds"

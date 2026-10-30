@@ -18,21 +18,6 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
-const DP_SLUGS = new Set([
-  "lcs",
-  "knapsack",
-  "edit-distance",
-  "coin-change",
-  "fibonacci",
-  "lis",
-  "floyd-warshall",
-  "kadane",
-]);
-
-export function hasDpViz(slug: string): boolean {
-  return DP_SLUGS.has(slug);
-}
-
 /** Values at/above this render as ∞ (unreachable sentinel, e.g. coin change). */
 const INF_DISPLAY = 900;
 const cellText = (v: number | null): string =>
