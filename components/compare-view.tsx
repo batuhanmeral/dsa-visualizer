@@ -6,6 +6,7 @@ import { Trophy } from "lucide-react";
 import type { Algorithm } from "@/lib/data";
 import { getSimulation, type SimulationStep, type StepKind } from "@/lib/simulations";
 import { useLang } from "@/lib/i18n";
+import { useStepNote } from "@/lib/use-step-note";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName } from "@/lib/content-i18n";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
@@ -68,7 +69,8 @@ function Racer({
   /** "win" | "lose" | "tie" once the race ends, else null. */
   outcome: "win" | "lose" | "tie" | null;
 }) {
-  const { t, tn } = useLang();
+  const { t } = useLang();
+  const tn = useStepNote();
   const clamped = Math.min(index, steps.length - 1);
   const step = steps[clamped];
   const done = index >= steps.length - 1;

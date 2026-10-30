@@ -18,10 +18,6 @@ import {
   useStepPlayer,
 } from "./step-player";
 
-export function hasGraphViz(slug: string): boolean {
-  return slug in GRAPH_ALGOS;
-}
-
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
   { key: "graph.legend.current", dot: "bg-claude-500" },
   { key: "graph.legend.frontier", dot: "bg-amber-400" },

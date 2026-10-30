@@ -24,18 +24,6 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
-const BT_SLUGS = new Set([
-  "n-queens",
-  "sudoku",
-  "rat-in-a-maze",
-  "subsets",
-  "permutations",
-]);
-
-export function hasBacktrackViz(slug: string): boolean {
-  return BT_SLUGS.has(slug);
-}
-
 /** Translate a `{key, dot}[]` legend for the active language. */
 function useLegend(keys: { key: TKey; dot: string }[]) {
   const { t } = useLang();

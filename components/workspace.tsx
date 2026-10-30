@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
@@ -23,11 +24,13 @@ import {
   TerminalSquare,
 } from "lucide-react";
 import { categories, type Algorithm, type Category } from "@/lib/data";
+import type { AlgoCode } from "@/lib/algo-code";
 import { getSimulation, type StepKind } from "@/lib/simulations";
-import { getAlgoInfo } from "@/lib/algo-info";
+import type { AlgoInfo } from "@/lib/algo-info";
 import { shareQuery } from "@/lib/share-url";
 import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
+import { useStepNote } from "@/lib/use-step-note";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
 import CodeView from "./code-view";
@@ -40,17 +43,28 @@ import {
   SpeedSelect,
   TransportControls,
 } from "./step-player";
-import CompareView from "./compare-view";
-import DataStructureViz, {
+import {
+  hasBacktrackViz,
   hasDataStructureViz,
-} from "./data-structure-viz";
-import GraphViz, { hasGraphViz } from "./graph-viz";
-import DpViz, { hasDpViz } from "./dp-viz";
-import BacktrackViz, { hasBacktrackViz } from "./backtracking-viz";
-import TreeViz, { hasTreeViz } from "./tree-viz";
-import StringViz, { hasStringViz } from "./string-viz";
-import GreedyViz, { hasGreedyViz } from "./greedy-viz";
-import MathViz, { hasMathViz } from "./math-viz";
+  hasDpViz,
+  hasGraphViz,
+  hasGreedyViz,
+  hasMathViz,
+  hasStringViz,
+  hasTreeViz,
+} from "@/lib/viz-families";
+
+// Each page draws one family, so the others stay out of its bundle; the one in
+// use is still rendered on the server, so the first paint does not wait for it.
+const CompareView = dynamic(() => import("./compare-view"));
+const DataStructureViz = dynamic(() => import("./data-structure-viz"));
+const GraphViz = dynamic(() => import("./graph-viz"));
+const DpViz = dynamic(() => import("./dp-viz"));
+const BacktrackViz = dynamic(() => import("./backtracking-viz"));
+const TreeViz = dynamic(() => import("./tree-viz"));
+const StringViz = dynamic(() => import("./string-viz"));
+const GreedyViz = dynamic(() => import("./greedy-viz"));
+const MathViz = dynamic(() => import("./math-viz"));
 
 type CustomViz =
   | "ds"
@@ -199,10 +213,20 @@ function buildInput(shape: InputShape): number[] {
 interface WorkspaceProps {
   category: Pick<Category, "name" | "slug">;
   algorithm: Algorithm;
+  /** Only this page's code is sent; the full table stays on the server. */
+  code: AlgoCode;
+  /** The About tab's text in the page's language, when there is one. */
+  info: AlgoInfo | undefined;
 }
 
-export default function Workspace({ category, algorithm }: WorkspaceProps) {
-  const { t, tn, lang } = useLang();
+export default function Workspace({
+  category,
+  algorithm,
+  code,
+  info,
+}: WorkspaceProps) {
+  const { t, lang } = useLang();
+  const tn = useStepNote();
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
   const generator = getSimulation(algorithm.slug);
@@ -224,7 +248,7 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   const [codeLang, setCodeLang] = useState<CodeLang>("c");
   // Pseudocode is aligned line-for-line with the C source (enforced by
   // `npm test`), so the active line from a step needs no remapping.
-  const shownCode = codeLang === "pseudo" ? algorithm.pseudo : algorithm.code;
+  const shownCode = codeLang === "pseudo" ? code.pseudo : code.code;
   const codeLines = useMemo(() => shownCode.split("\n"), [shownCode]);
   const [compareMode, setCompareMode] = useState(false);
   const [panelTab, setPanelTab] = useState<"code" | "about" | "growth">(
@@ -232,7 +256,6 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   );
   const restored = useRef(false);
 
-  const info = getAlgoInfo(algorithm.slug, lang);
   const hasGrowth = getSimulation(algorithm.slug) !== undefined;
   const panelTabs = (["code", "about", "growth"] as const).filter(
     (tab) =>

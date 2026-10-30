@@ -11,17 +11,6 @@ import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
 
-const MATH_SLUGS = new Set([
-  "sieve-of-eratosthenes",
-  "euclidean-gcd",
-  "extended-euclidean",
-  "fast-exponentiation",
-]);
-
-export function hasMathViz(slug: string): boolean {
-  return MATH_SLUGS.has(slug);
-}
-
 function useMathLegend(keys: { key: TKey; dot: string }[]) {
   const { t } = useLang();
   return keys.map((l) => ({ label: t(l.key), dot: l.dot }));
