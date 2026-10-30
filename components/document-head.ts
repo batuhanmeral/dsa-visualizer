@@ -7,9 +7,12 @@ const inter = Inter({
   subsets: ["latin", "latin-ext"],
 });
 
+// Only the code panel uses it, so it must not compete with the first paint on
+// slow connections; it swaps in once loaded.
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin", "latin-ext"],
+  preload: false,
 });
 
 /** Shared with global-not-found, which renders outside both root layouts. */
