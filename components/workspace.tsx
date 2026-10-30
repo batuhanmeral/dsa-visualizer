@@ -26,7 +26,7 @@ import {
 import { categories, type Algorithm, type Category } from "@/lib/data";
 import type { AlgoCode } from "@/lib/algo-code";
 import { getSimulation, type StepKind } from "@/lib/simulations";
-import { getAlgoInfo } from "@/lib/algo-info";
+import type { AlgoInfo } from "@/lib/algo-info";
 import { shareQuery } from "@/lib/share-url";
 import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
@@ -214,12 +214,15 @@ interface WorkspaceProps {
   algorithm: Algorithm;
   /** Only this page's code is sent; the full table stays on the server. */
   code: AlgoCode;
+  /** The About tab's text in the page's language, when there is one. */
+  info: AlgoInfo | undefined;
 }
 
 export default function Workspace({
   category,
   algorithm,
   code,
+  info,
 }: WorkspaceProps) {
   const { t, tn, lang } = useLang();
   const hasInput = algorithm.inputKind !== undefined;
@@ -251,7 +254,6 @@ export default function Workspace({
   );
   const restored = useRef(false);
 
-  const info = getAlgoInfo(algorithm.slug, lang);
   const hasGrowth = getSimulation(algorithm.slug) !== undefined;
   const panelTabs = (["code", "about", "growth"] as const).filter(
     (tab) =>
