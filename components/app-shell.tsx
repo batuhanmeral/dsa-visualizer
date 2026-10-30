@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Binary, Menu, PanelLeftOpen, X } from "lucide-react";
-import { LangProvider, useLang } from "@/lib/i18n";
+import { LangProvider, useLang, type Lang } from "@/lib/i18n";
 import SidebarNav from "./sidebar-nav";
 import ThemeToggle from "./theme-toggle";
 import LangToggle from "./lang-toggle";
@@ -102,9 +102,15 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AppShell({ children }: { children: React.ReactNode }) {
+export default function AppShell({
+  lang,
+  children,
+}: {
+  lang: Lang;
+  children: React.ReactNode;
+}) {
   return (
-    <LangProvider>
+    <LangProvider lang={lang}>
       <Shell>{children}</Shell>
     </LangProvider>
   );

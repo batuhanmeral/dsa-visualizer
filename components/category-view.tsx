@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { getCategory } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { algoName, algoSummary, catName, catTagline } from "@/lib/content-i18n";
+import { localePath } from "@/lib/locale";
 
 /** Client body of a category page — server page handles params/metadata/404. */
 export default function CategoryView({ slug }: { slug: string }) {
@@ -33,7 +34,7 @@ export default function CategoryView({ slug }: { slug: string }) {
         {category.algorithms.map((algorithm) => (
           <li key={algorithm.slug}>
             <Link
-              href={`/${category.slug}/${algorithm.slug}`}
+              href={localePath(lang, `/${category.slug}/${algorithm.slug}`)}
               className="group flex items-center justify-between gap-4 rounded-2xl border border-zinc-200 bg-white p-5 transition-colors hover:border-claude-500/40 dark:border-zinc-800 dark:bg-zinc-900/60 dark:hover:border-claude-500/40"
             >
               <div className="min-w-0">

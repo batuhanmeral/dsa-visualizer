@@ -25,6 +25,7 @@ import {
 import { categories, type Algorithm, type Category } from "@/lib/data";
 import { getSimulation, type StepKind } from "@/lib/simulations";
 import { getAlgoInfo } from "@/lib/algo-info";
+import { shareQuery } from "@/lib/share-url";
 import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
@@ -468,11 +469,24 @@ export default function Workspace({ category, algorithm }: WorkspaceProps) {
   // Mirror it back into the URL (replaceState — shareable, no history spam).
   useEffect(() => {
     if (!restored.current || useCustomViz || !hasInput) return;
-    const p = new URLSearchParams();
-    p.set("input", values.join(","));
-    if (hasTarget) p.set("target", String(target));
-    p.set("step", String(Math.min(stepIndex, (steps?.length ?? 1) - 1)));
-    window.history.replaceState(null, "", `${window.location.pathname}?${p}`);
+    const query = shareQuery(
+      {
+        values,
+        target: hasTarget ? target : undefined,
+        step: Math.min(stepIndex, (steps?.length ?? 1) - 1),
+      },
+      {
+        values: parseValues(DEFAULT_INPUT),
+        target: hasTarget ? Number.parseInt(DEFAULT_TARGET, 10) : undefined,
+      }
+    );
+    const { pathname, search } = window.location;
+    if (query) {
+      window.history.replaceState(null, "", `${pathname}?${query}`);
+    } else if (search) {
+      // Back at the defaults: drop the stale query, otherwise leave the URL alone.
+      window.history.replaceState(null, "", pathname);
+    }
   }, [values, target, stepIndex, steps, useCustomViz, hasInput, hasTarget]);
 
   const copyLink = async () => {

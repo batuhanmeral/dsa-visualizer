@@ -6,6 +6,7 @@ import { Binary, LayoutDashboard, PanelLeftClose } from "lucide-react";
 import { categories } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { algoName, catName } from "@/lib/content-i18n";
+import { localePath } from "@/lib/locale";
 import ThemeToggle from "./theme-toggle";
 import LangToggle from "./lang-toggle";
 
@@ -18,13 +19,14 @@ interface SidebarNavProps {
 export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) {
   const pathname = usePathname();
   const { t, lang } = useLang();
+  const homeHref = localePath(lang, "/");
 
   return (
     <div className="flex h-full flex-col">
       {/* Top bar: wordmark on the left, controls on the right */}
       <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-800">
         <Link
-          href="/"
+          href={homeHref}
           onClick={onNavigate}
           className="flex items-center gap-2 text-[15px] font-bold tracking-tight transition-opacity hover:opacity-80"
         >
@@ -54,10 +56,10 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
       {/* Nav */}
       <nav className="scrollbar-slim flex-1 overflow-y-auto px-3 pb-6 pt-4">
         <Link
-          href="/"
+          href={homeHref}
           onClick={onNavigate}
           className={`mb-4 flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-            pathname === "/"
+            pathname === homeHref
               ? "bg-claude-500/10 text-claude-600 dark:text-claude-400"
               : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800/60 dark:hover:text-zinc-100"
           }`}
@@ -77,7 +79,7 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
                 </div>
                 <ul className="space-y-0.5">
                   {category.algorithms.map((algorithm) => {
-                    const href = `/${category.slug}/${algorithm.slug}`;
+                    const href = localePath(lang, `/${category.slug}/${algorithm.slug}`);
                     const isActive = pathname === href;
                     return (
                       <li key={algorithm.slug}>

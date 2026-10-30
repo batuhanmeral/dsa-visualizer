@@ -70,6 +70,7 @@ Lucide icons · Inter + JetBrains Mono (`next/font`).
 
 ```bash
 npm install
+cp .env.example .env.local   # SITE_URL is required
 npm run dev    # http://localhost:3000
 npm run build  # static production build
 npm run lint

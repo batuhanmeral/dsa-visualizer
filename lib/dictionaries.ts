@@ -112,6 +112,10 @@ export const en = {
   "info.best": "Best case",
   "info.worst": "Worst case",
   "info.use": "When to use it",
+  "explainer.title": "How {name} works",
+  "explainer.best": "Best case",
+  "explainer.worst": "Worst case",
+  "explainer.use": "When to use it",
 
   // Legends (sorting / searching)
   "legend.compare": "compare",
@@ -385,6 +389,10 @@ export const tr: Partial<Record<TKey, string>> = {
   "info.best": "En iyi durum",
   "info.worst": "En kötü durum",
   "info.use": "Ne zaman kullanılır?",
+  "explainer.title": "{name} nasıl çalışır?",
+  "explainer.best": "En iyi durum",
+  "explainer.worst": "En kötü durum",
+  "explainer.use": "Ne zaman kullanılır?",
 
   // Legends
   "legend.compare": "karşılaştır",

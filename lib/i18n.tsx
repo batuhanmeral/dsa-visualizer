@@ -1,30 +1,16 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
-import { en, tr, type TKey } from "./dictionaries";
+import { createContext, useContext, type ReactNode } from "react";
+import type { TKey } from "./dictionaries";
+import type { Lang } from "./locale";
 import type { Note, NoteValue } from "./simulations/note";
+import { interpolate, translate, type Vars } from "./translate";
 import { stepNotesEn, stepNotesTr, type StepNoteKey } from "./step-notes";
 
-export type Lang = "en" | "tr";
-
-/** Substitute `{name}` placeholders from a vars map. */
-type Vars = Record<string, string | number>;
-function interpolate(template: string, vars?: Vars): string {
-  if (!vars) return template;
-  return template.replace(/\{(\w+)\}/g, (_, k) =>
-    k in vars ? String(vars[k]) : `{${k}}`
-  );
-}
+export type { Lang };
 
 interface Ctx {
   lang: Lang;
-  setLang: (l: Lang) => void;
   /** Translate a key for the active language, English as fallback. */
   t: (key: TKey, vars?: Vars) => string;
   /** Render a generator's step note in the active language. */
@@ -33,35 +19,15 @@ interface Ctx {
 
 const LangContext = createContext<Ctx | null>(null);
 
-export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
-
-  // The inline boot script in the root layout has already stamped the resolved
-  // language onto <html data-lang> before paint; mirror it into React state
-  // after mount (server + first client render use the "en" default, so there is
-  // no hydration mismatch — this only re-renders post-hydration).
-  /* eslint-disable react-hooks/set-state-in-effect */
-  useEffect(() => {
-    const l = document.documentElement.dataset.lang;
-    if (l === "tr" || l === "en") setLangState(l);
-  }, []);
-  /* eslint-enable react-hooks/set-state-in-effect */
-
-  const setLang = (l: Lang) => {
-    setLangState(l);
-    document.documentElement.dataset.lang = l;
-    document.documentElement.lang = l;
-    try {
-      localStorage.setItem("lang", l);
-    } catch {
-      /* localStorage unavailable — ignore */
-    }
-  };
-
-  const t = (key: TKey, vars?: Vars) => {
-    const template = (lang === "tr" ? tr[key] : undefined) ?? en[key] ?? key;
-    return interpolate(template, vars);
-  };
+/** The language comes from the route's root layout, so it is known on the server. */
+export function LangProvider({
+  lang,
+  children,
+}: {
+  lang: Lang;
+  children: ReactNode;
+}) {
+  const t = (key: TKey, vars?: Vars) => translate(lang, key, vars);
 
   const noteTemplate = (key: StepNoteKey): string =>
     (lang === "tr" ? stepNotesTr[key] : undefined) ?? stepNotesEn[key] ?? key;
@@ -92,7 +58,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <LangContext.Provider value={{ lang, setLang, t, tn }}>
+    <LangContext.Provider value={{ lang, t, tn }}>
       {children}
     </LangContext.Provider>
   );
