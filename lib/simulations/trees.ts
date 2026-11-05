@@ -284,12 +284,21 @@ export function avlSteps(insertSeq: number[]): TreeStep[] {
     return y;
   };
 
+  // The leaf step is emitted once the parent links the node, so the snapshot contains it.
+  let pendingLeaf: { node: BNode; key: number; walked: Map<string, NodeTone> } | null = null;
+  const emitPendingLeaf = () => {
+    if (!pendingLeaf) return;
+    const { node, key, walked } = pendingLeaf;
+    pendingLeaf = null;
+    const t = new Map(walked);
+    t.set(node.id, "insert");
+    emit(22, msg("n.avl.leaf", { key }), t);
+  };
+
   const insert = (n: BNode | null, key: number, walked: Map<string, NodeTone>): BNode => {
     if (!n) {
       const node = mk(key);
-      const t = new Map(walked);
-      t.set(node.id, "insert");
-      emit(22, msg("n.avl.leaf", { key }), t);
+      pendingLeaf = { node, key, walked: new Map(walked) };
       return node;
     }
     const t = new Map(walked);
@@ -298,6 +307,7 @@ export function avlSteps(insertSeq: number[]): TreeStep[] {
     walked.set(n.id, "path");
     if (key < n.key) n.left = insert(n.left, key, walked);
     else n.right = insert(n.right, key, walked);
+    emitPendingLeaf();
 
     const b = bf(n);
     emit(26, msg("n.avl.bf", { node: n.key, bf: `${b > 0 ? "+" : ""}${b}` }), new Map([[n.id, "current"]]));
@@ -333,6 +343,7 @@ export function avlSteps(insertSeq: number[]): TreeStep[] {
 
   for (const key of insertSeq) {
     root = insert(root, key, new Map());
+    emitPendingLeaf();
   }
   emit(39, msg("n.avl.done"), new Map());
   return steps;

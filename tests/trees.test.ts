@@ -229,3 +229,14 @@ test("union-find tracks connectivity and flattens the forest", () => {
       );
   }
 });
+
+test("every AVL leaf step shows the inserted key", () => {
+  for (const seq of [[10, 20, 30, 40, 50, 25], [3, 2, 1], [5], [50, 40, 45]]) {
+    for (const s of avlSteps(seq)) {
+      if (s.note.k !== "n.avl.leaf") continue;
+      const key = String((s.note.v as { key: number }).key);
+      assert.ok(s.nodes.some((n) => n.label === key), `leaf ${key} missing`);
+      assert.ok(s.nodes.some((n) => n.label === key && n.tone === "insert"));
+    }
+  }
+});
