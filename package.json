@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node --import ./tests/register.mjs --test tests/**/*.test.ts",
+    "verify:html": "node --import ./tests/register.mjs scripts/verify-html.ts",
     "check": "tsc --noEmit && eslint && npm test"
   },
   "dependencies": {

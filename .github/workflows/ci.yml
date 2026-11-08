@@ -37,3 +37,5 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      - name: Verify prerendered HTML
+        run: npm run verify:html

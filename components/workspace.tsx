@@ -1,13 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
   Check,
   Clock,
-  Copy,
   Crosshair,
   Database,
   Dices,
@@ -21,20 +20,20 @@ import {
   ScanEye,
   StepBack,
   StepForward,
-  TerminalSquare,
 } from "lucide-react";
 import { categories, type Algorithm, type Category } from "@/lib/data";
 import type { AlgoCode } from "@/lib/algo-code";
+import { codeFor } from "@/lib/code-layout";
 import { getSimulation, type StepKind } from "@/lib/simulations";
-import type { AlgoInfo } from "@/lib/algo-info";
 import { shareQuery } from "@/lib/share-url";
 import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
 import { useStepNote } from "@/lib/use-step-note";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, algoSummary, catName } from "@/lib/content-i18n";
-import CodeView from "./code-view";
+import CodePanel from "./code-panel";
 import type { CodeLang } from "@/lib/highlight";
+import { availableTabs, initialTab } from "@/lib/panel-tab";
 import GrowthChart from "./growth-chart";
 import {
   SPEEDS,
@@ -215,15 +214,15 @@ interface WorkspaceProps {
   algorithm: Algorithm;
   /** Only this page's code is sent; the full table stays on the server. */
   code: AlgoCode;
-  /** The About tab's text in the page's language, when there is one. */
-  info: AlgoInfo | undefined;
+  /** The About tab, rendered on the server so its text is in the initial HTML. */
+  about?: ReactNode;
 }
 
 export default function Workspace({
   category,
   algorithm,
   code,
-  info,
+  about,
 }: WorkspaceProps) {
   const { t, lang } = useLang();
   const tn = useStepNote();
@@ -244,27 +243,16 @@ export default function Workspace({
   );
   const [copied, setCopied] = useState(false);
   const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
-  const [codeCopied, setCodeCopied] = useState(false);
   const [codeLang, setCodeLang] = useState<CodeLang>("c");
-  // Pseudocode is aligned line-for-line with the C source (enforced by
-  // `npm test`), so the active line from a step needs no remapping.
-  const shownCode = codeLang === "pseudo" ? code.pseudo : code.code;
+  const shownCode = codeFor(code, codeLang);
   const codeLines = useMemo(() => shownCode.split("\n"), [shownCode]);
   const [compareMode, setCompareMode] = useState(false);
-  const [panelTab, setPanelTab] = useState<"code" | "about" | "growth">(
-    "code"
-  );
   const restored = useRef(false);
 
   const hasGrowth = getSimulation(algorithm.slug) !== undefined;
-  const panelTabs = (["code", "about", "growth"] as const).filter(
-    (tab) =>
-      tab === "code" ||
-      (tab === "about" && info !== undefined) ||
-      (tab === "growth" && hasGrowth)
-  );
-  const activeTab = panelTabs.includes(panelTab) ? panelTab : "code";
-  const showCode = activeTab === "code";
+  const panelTabs = availableTabs(about !== undefined, hasGrowth);
+  const [panelTab, setPanelTab] = useState(() => initialTab(panelTabs));
+  const activeTab = panelTabs.includes(panelTab) ? panelTab : initialTab(panelTabs);
 
   // Sibling algorithms (same category, same input shape, with an engine) that
   // this one can be raced against in compare mode.
@@ -522,16 +510,6 @@ export default function Workspace({
     }
   };
 
-  const copyCode = async () => {
-    try {
-      await navigator.clipboard.writeText(shownCode);
-      setCodeCopied(true);
-      window.setTimeout(() => setCodeCopied(false), 1500);
-    } catch {
-      /* clipboard unavailable — ignore */
-    }
-  };
-
   // Keyboard shortcuts for the shared transport: space = play/pause, ←/→ = step.
   // Skipped while a custom canvas or compare mode owns playback, and while the
   // user is typing in an input. The handlers are read through a ref so the
@@ -546,6 +524,8 @@ export default function Workspace({
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) return;
+      // Arrows belong to the focused tab list or splitter, not to the run.
+      if (el?.closest?.('[role="tablist"],[role="separator"]')) return;
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
         transportRef.current.togglePlay();
@@ -1090,154 +1070,30 @@ export default function Workspace({
           )}
         </section>
 
-        {/* Code viewer / About */}
-        <section
-          aria-label="Code viewer"
-          className={`flex min-h-85 flex-col overflow-hidden rounded-2xl border lg:min-h-0 ${
-            showCode
-              ? "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-950"
-              : "border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-800">
-            <span className="flex min-w-0 items-center gap-2 text-xs font-medium text-zinc-500 dark:text-zinc-400">
-              <TerminalSquare className="size-4 shrink-0 text-claude-600 dark:text-claude-400" />
-              <span className="truncate">
-                {algorithm.slug}
-                {codeLang === "pseudo" ? ".pseudo" : ".c"}
-              </span>
-            </span>
-            <div className="flex shrink-0 items-center gap-2">
-              {showCode && (
-                <div className="flex items-center gap-0.5 rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-900">
-                  {(["c", "pseudo"] as const).map((lang) => (
-                    <button
-                      key={lang}
-                      type="button"
-                      onClick={() => pickCodeLang(lang)}
-                      aria-pressed={codeLang === lang}
-                      className={`rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
-                        codeLang === lang
-                          ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
-                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200"
-                      }`}
-                    >
-                      {t(lang === "c" ? "ws.lang.c" : "ws.lang.pseudo")}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {panelTabs.length > 1 && (
-                <div
-                  className={`flex items-center gap-0.5 rounded-lg p-0.5 ${
-                    showCode ? "bg-zinc-100 dark:bg-zinc-900" : "bg-zinc-100 dark:bg-zinc-950"
-                  }`}
-                >
-                  {panelTabs.map((tab) => (
-                    <button
-                      key={tab}
-                      type="button"
-                      onClick={() => setPanelTab(tab)}
-                      className={`rounded-md px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                        activeTab === tab
-                          ? "bg-claude-500/15 text-claude-500 dark:text-claude-400"
-                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                      }`}
-                    >
-                      {t(
-                        tab === "code"
-                          ? "ws.tab.code"
-                          : tab === "about"
-                            ? "ws.tab.about"
-                            : "ws.tab.growth"
-                      )}
-                    </button>
-                  ))}
-                </div>
-              )}
-              {showCode && (
-                <button
-                  type="button"
-                  onClick={copyCode}
-                  title={t("ws.copy")}
-                  className={`flex items-center gap-1.5 rounded-md px-2 py-1 text-[11px] font-medium transition-colors ${
-                    codeCopied
-                      ? "text-claude-600 dark:text-claude-400"
-                      : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                  }`}
-                >
-                  {codeCopied ? (
-                    <>
-                      <Check className="size-3.5" />
-                      {t("ws.copied")}
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="size-3.5" />
-                      {t("ws.copy")}
-                    </>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-          {showCode ? (
-            <CodeView code={shownCode} activeLine={activeLine} lang={codeLang} />
-          ) : activeTab === "growth" ? (
-            <GrowthChart
-              algorithm={algorithm}
-              categorySlug={category.slug}
-              liveValues={values}
-              liveTarget={target}
-            />
-          ) : (
-            <div className="scrollbar-slim flex-1 space-y-5 overflow-y-auto p-5">
-              <InfoBlock title={t("info.how")} accent="text-claude-600 dark:text-claude-400">
-                {info!.how}
-              </InfoBlock>
-              {info!.best && (
-                <InfoBlock title={t("info.best")} accent="text-sky-600 dark:text-sky-400">
-                  {info!.best}
-                </InfoBlock>
-              )}
-              {info!.worst && (
-                <InfoBlock title={t("info.worst")} accent="text-rose-600 dark:text-rose-400">
-                  {info!.worst}
-                </InfoBlock>
-              )}
-              <InfoBlock title={t("info.use")} accent="text-amber-600 dark:text-amber-400">
-                {info!.use}
-              </InfoBlock>
-            </div>
-          )}
-        </section>
+        <CodePanel
+          tabs={panelTabs}
+          activeTab={activeTab}
+          onTabChange={setPanelTab}
+          about={about}
+          growth={
+            hasGrowth && (
+              <GrowthChart
+                algorithm={algorithm}
+                categorySlug={category.slug}
+                liveValues={values}
+                liveTarget={target}
+              />
+            )
+          }
+          code={code}
+          codeLang={codeLang}
+          onCodeLangChange={pickCodeLang}
+          activeLine={activeLine}
+        />
       </div>
     </div>
       </InvariantContext.Provider>
     </SpeedContext.Provider>
-  );
-}
-
-function InfoBlock({
-  title,
-  accent,
-  children,
-}: {
-  title: string;
-  accent: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <h3
-        className={`mb-1.5 text-[11px] font-semibold uppercase tracking-wide ${accent}`}
-      >
-        {title}
-      </h3>
-      <p className="text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-300">
-        {children}
-      </p>
-    </div>
   );
 }
 

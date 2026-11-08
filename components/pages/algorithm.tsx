@@ -52,6 +52,7 @@ export default function AlgorithmPage({
   if (!match) notFound();
 
   const { category, algorithm } = match;
+  const info = getAlgoInfo(algorithm.slug, lang);
   const breadcrumb = breadcrumbJsonLd(
     lang,
     [
@@ -72,12 +73,16 @@ export default function AlgorithmPage({
         category={{ name: category.name, slug: category.slug }}
         algorithm={algorithm}
         code={algoCode[algorithm.slug]}
-        info={getAlgoInfo(algorithm.slug, lang)}
-      />
-      <AlgoExplainer
-        lang={lang}
-        slug={algorithm.slug}
-        name={algoName(algorithm.slug, algorithm.name, lang)}
+        about={
+          info ? (
+            <AlgoExplainer
+              lang={lang}
+              slug={algorithm.slug}
+              name={algoName(algorithm.slug, algorithm.name, lang)}
+              summary={algoSummary(algorithm.slug, algorithm.summary, lang)}
+            />
+          ) : undefined
+        }
       />
     </>
   );
