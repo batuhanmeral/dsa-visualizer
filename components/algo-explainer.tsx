@@ -6,14 +6,14 @@ interface AlgoExplainerProps {
   lang: Lang;
   slug: string;
   name: string;
+  summary: string;
 }
 
-// Server-rendered copy of the About tab so crawlers get it in the initial HTML.
-export default function AlgoExplainer({ lang, slug, name }: AlgoExplainerProps) {
+// Content of the About tab, rendered on the server so crawlers get it in the initial HTML.
+export default function AlgoExplainer({ lang, slug, name, summary }: AlgoExplainerProps) {
   const info = getAlgoInfo(slug, lang);
   if (!info) return null;
 
-  const headingId = `explainer-${slug}`;
   const blocks = [
     { key: "explainer.best", text: info.best },
     { key: "explainer.worst", text: info.worst },
@@ -21,14 +21,11 @@ export default function AlgoExplainer({ lang, slug, name }: AlgoExplainerProps) 
   ] as const;
 
   return (
-    <section
-      aria-labelledby={headingId}
-      className="mx-4 mb-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60 lg:mx-6 lg:mb-6"
-    >
-      <h2
-        id={headingId}
-        className="text-base font-semibold text-zinc-900 dark:text-zinc-100"
-      >
+    <div>
+      <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
+        {summary}
+      </p>
+      <h2 className="mt-5 text-base font-semibold text-zinc-900 dark:text-zinc-100">
         {translate(lang, "explainer.title", { name })}
       </h2>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
@@ -49,6 +46,6 @@ export default function AlgoExplainer({ lang, slug, name }: AlgoExplainerProps) 
             )
         )}
       </div>
-    </section>
+    </div>
   );
 }
