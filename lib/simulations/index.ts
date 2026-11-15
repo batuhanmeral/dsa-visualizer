@@ -40,4 +40,12 @@ export function getSimulation(slug: string): StepGenerator | undefined {
   return registry[slug];
 }
 
+// Engines that lift a value out of the array (`SimulationStep.held`); the bar
+// canvas reserves room for its tag only on these pages.
+const HOLDS_VALUE = new Set(["insertion-sort", "shell-sort"]);
+
+export function holdsValue(slug: string): boolean {
+  return HOLDS_VALUE.has(slug);
+}
+
 export type { SimulationStep, StepGenerator, StepKind } from "./types";

@@ -23,7 +23,14 @@ import {
 import { useLang } from "@/lib/i18n";
 import { useStepNote } from "@/lib/use-step-note";
 import { msg, type Note } from "@/lib/simulations/note";
-import { InvariantContext, SpeedSelect } from "./step-player";
+import {
+  InvariantContext,
+  InvariantLine,
+  PlaybackCard,
+  SpeedSelect,
+  StepNoteLine,
+} from "./step-player";
+import { useUserAdvanced } from "./playback-bridge";
 
 /**
  * Interactive data-structure playground. Unlike the sorting/searching engines
@@ -68,6 +75,7 @@ function useRunner(onLine: (line: number) => void, speed: number) {
   const [note, setNote] = useState<Note>(() => msg("n.ds.pickOp"));
   const [busy, setBusy] = useState(false);
   const timers = useRef<number[]>([]);
+  const userAdvanced = useUserAdvanced();
   const speedRef = useRef(speed);
   useEffect(() => {
     speedRef.current = speed;
@@ -83,6 +91,8 @@ function useRunner(onLine: (line: number) => void, speed: number) {
     (frames: OpFrame[]) => {
       clear();
       if (!frames.length) return;
+      // Only user operations call run, and each one walks code lines.
+      userAdvanced();
       setBusy(true);
       const step = 720 / speedRef.current;
       frames.forEach((f, i) => {
@@ -100,7 +110,7 @@ function useRunner(onLine: (line: number) => void, speed: number) {
         );
       });
     },
-    [clear, onLine]
+    [clear, onLine, userAdvanced]
   );
 
   return { run, note, busy };
@@ -118,7 +128,6 @@ function VizShell({
   note: Note;
   busy: boolean;
 }) {
-  const { t } = useLang();
   const tn = useStepNote();
   const invariant = useContext(InvariantContext);
   return (
@@ -126,29 +135,18 @@ function VizShell({
       <div className="scrollbar-slim flex min-h-0 flex-1 items-center justify-center overflow-auto">
         {children}
       </div>
-      <div className="mt-4 rounded-xl border border-zinc-200 bg-white/85 p-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70">
-        <div className="flex flex-wrap items-center gap-2">{controls}</div>
-        <div className="mt-2.5 flex items-end justify-between gap-3">
-          <p className="flex min-w-0 items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
-            <span
-              className={`size-2 shrink-0 rounded-full ${
-                busy ? "animate-pulse bg-claude-500" : "bg-zinc-400"
-              }`}
-            />
-            <span className="truncate">{tn(note)}</span>
-          </p>
-          {invariant && (
-            /* Why the operation is safe, not what it did. */
-            <p className="mt-1.5 flex min-w-0 items-start gap-2 border-l-2 border-sky-500/40 pl-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-              <span className="shrink-0 font-medium text-sky-600 dark:text-sky-400">
-                {t("ws.invariant")}
-              </span>
-              <span>{tn(invariant)}</span>
-            </p>
-          )}
+      <PlaybackCard>
+        <div className="flex flex-wrap items-center gap-2">
+          {controls}
           <SpeedSelect />
         </div>
-      </div>
+        <StepNoteLine
+          dotClass={busy ? "animate-pulse bg-claude-500" : "bg-zinc-400"}
+        >
+          {tn(note)}
+        </StepNoteLine>
+        {invariant && <InvariantLine note={invariant} />}
+      </PlaybackCard>
     </div>
   );
 }
