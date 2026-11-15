@@ -3,44 +3,33 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
-import {
-  ArrowRight,
-  Check,
-  Clock,
-  Crosshair,
-  Database,
-  Dices,
-  Gauge,
-  GitCompareArrows,
-  Hash,
-  Link2,
-  Pause,
-  Play,
-  RotateCcw,
-  ScanEye,
-  StepBack,
-  StepForward,
-} from "lucide-react";
+import { ArrowRight, Clock, Database, ScanEye } from "lucide-react";
 import { categories, type Algorithm, type Category } from "@/lib/data";
 import type { AlgoCode } from "@/lib/algo-code";
 import { codeFor } from "@/lib/code-layout";
-import { getSimulation, type StepKind } from "@/lib/simulations";
+import { getSimulation, holdsValue, type StepKind } from "@/lib/simulations";
 import { shareQuery } from "@/lib/share-url";
 import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
-import { useStepNote } from "@/lib/use-step-note";
 import type { TKey } from "@/lib/dictionaries";
-import { algoName, algoSummary, catName } from "@/lib/content-i18n";
+import { algoName, catName } from "@/lib/content-i18n";
 import CodePanel from "./code-panel";
+import {
+  PlaybackBridgeContext,
+  type PlaybackBridge,
+  type PublishedTransport,
+} from "./playback-bridge";
+import PlaybackDock from "./playback-dock";
 import type { CodeLang } from "@/lib/highlight";
-import { availableTabs, initialTab } from "@/lib/panel-tab";
+import { availableTabs, initialTab, tabAfterUserAdvance } from "@/lib/panel-tab";
 import GrowthChart from "./growth-chart";
+import SortInputForm, { type InputShape } from "./sort-input-form";
 import {
   SPEEDS,
   InvariantContext,
+  PlaybackPanel,
   SpeedContext,
-  SpeedSelect,
-  TransportControls,
+  type StepPlayer,
 } from "./step-player";
 import {
   hasBacktrackViz,
@@ -86,26 +75,6 @@ function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
   if (hasMathViz(slug)) return "math";
   return null;
 }
-
-/** Input shapes offered by the preset menu. */
-type InputShape =
-  | "random"
-  | "sorted"
-  | "reversed"
-  | "nearly"
-  | "equal"
-  | "fewUnique"
-  | "wideRange";
-
-const INPUT_SHAPES: { shape: InputShape; key: TKey }[] = [
-  { shape: "random", key: "ws.shape.random" },
-  { shape: "sorted", key: "ws.shape.sorted" },
-  { shape: "reversed", key: "ws.shape.reversed" },
-  { shape: "nearly", key: "ws.shape.nearly" },
-  { shape: "equal", key: "ws.shape.equal" },
-  { shape: "fewUnique", key: "ws.shape.fewUnique" },
-  { shape: "wideRange", key: "ws.shape.wideRange" },
-];
 
 const MAX_VALUES = 16;
 const DEFAULT_INPUT = "23, 7, 41, 15, 3, 34, 9, 28";
@@ -225,7 +194,6 @@ export default function Workspace({
   about,
 }: WorkspaceProps) {
   const { t, lang } = useLang();
-  const tn = useStepNote();
   const hasInput = algorithm.inputKind !== undefined;
   const hasTarget = algorithm.inputKind === "array-target";
   const generator = getSimulation(algorithm.slug);
@@ -242,7 +210,6 @@ export default function Workspace({
     Number.parseInt(DEFAULT_TARGET, 10)
   );
   const [copied, setCopied] = useState(false);
-  const [shapeMenuOpen, setShapeMenuOpen] = useState(false);
   const [codeLang, setCodeLang] = useState<CodeLang>("c");
   const shownCode = codeFor(code, codeLang);
   const codeLines = useMemo(() => shownCode.split("\n"), [shownCode]);
@@ -252,6 +219,14 @@ export default function Workspace({
   const hasGrowth = getSimulation(algorithm.slug) !== undefined;
   const panelTabs = availableTabs(about !== undefined, hasGrowth);
   const [panelTab, setPanelTab] = useState(() => initialTab(panelTabs));
+  const [transport, setTransport] = useState<PublishedTransport | null>(null);
+  const bridge = useMemo<PlaybackBridge>(
+    () => ({
+      userAdvanced: () => setPanelTab(tabAfterUserAdvance),
+      publish: setTransport,
+    }),
+    []
+  );
   const activeTab = panelTabs.includes(panelTab) ? panelTab : initialTab(panelTabs);
 
   // Sibling algorithms (same category, same input shape, with an engine) that
@@ -389,6 +364,9 @@ export default function Workspace({
   const comparing = compareMode && compareAvailable;
   const activeLine =
     useCustomViz || comparing ? dsLine : step ? step.codeLine : demoLine;
+  // Pages with a step player (not the DS family) can show the mobile dock.
+  const hasDock =
+    customViz !== null ? customViz !== "ds" : hasInput && !asBoxes && steps !== undefined;
 
   const barColor = (i: number): string => {
     if (step) {
@@ -510,31 +488,60 @@ export default function Workspace({
     }
   };
 
+  // The bar canvas rides the shared playback card; its state stays here
+  // because the URL sync and the keyboard shortcuts read it too. These are the
+  // user's controls, so they report the advance; applyInput's reset does not.
+  const { userAdvanced } = bridge;
+  const sortPlayer: StepPlayer | undefined = steps && {
+    index: Math.min(stepIndex, steps.length - 1),
+    playing,
+    atEnd,
+    toggle: () => {
+      if (!playing) userAdvanced();
+      togglePlay();
+    },
+    reset: () => {
+      userAdvanced();
+      reset();
+    },
+    stepBy: (delta: number) => {
+      userAdvanced();
+      stepBy(delta);
+    },
+    seek: (i: number) => {
+      userAdvanced();
+      setIsPlaying(false);
+      setStepIndex(i);
+    },
+  };
+
   // Keyboard shortcuts for the shared transport: space = play/pause, ←/→ = step.
   // Skipped while a custom canvas or compare mode owns playback, and while the
-  // user is typing in an input. The handlers are read through a ref so the
-  // listener always sees fresh state (atEnd, steps) without re-subscribing.
+  // user is typing or choosing in a field. The player is read through a ref so
+  // the listener always sees fresh state (atEnd, steps) without re-subscribing.
   const shortcutsActive = !useCustomViz && !comparing && steps !== undefined;
-  const transportRef = useRef({ togglePlay, stepBy });
+  const transportRef = useRef(sortPlayer);
   useEffect(() => {
-    transportRef.current = { togglePlay, stepBy };
+    transportRef.current = sortPlayer;
   });
   useEffect(() => {
     if (!shortcutsActive) return;
     const onKey = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement | null;
-      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA")) return;
+      if (el && ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName)) return;
       // Arrows belong to the focused tab list or splitter, not to the run.
       if (el?.closest?.('[role="tablist"],[role="separator"]')) return;
+      const player = transportRef.current;
+      if (!player) return;
       if (e.key === " " || e.code === "Space") {
         e.preventDefault();
-        transportRef.current.togglePlay();
+        player.toggle();
       } else if (e.key === "ArrowLeft") {
         e.preventDefault();
-        transportRef.current.stepBy(-1);
+        player.stepBy(-1);
       } else if (e.key === "ArrowRight") {
         e.preventDefault();
-        transportRef.current.stepBy(1);
+        player.stepBy(1);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -547,198 +554,142 @@ export default function Workspace({
       step.highlights.includes(i) ||
       step.sorted.includes(i));
 
+  const bars = renderValues.map((value, i) => (
+    <motion.div
+      key={i}
+      initial={false}
+      animate={{
+        height: `${Math.max((value / maxValue) * 100, 6)}%`,
+      }}
+      transition={{ type: "tween", duration: 0.25 }}
+      className={`relative flex w-full max-w-12 flex-col justify-end rounded-t-md transition-colors duration-200 ${
+        step?.held?.hole === i
+          ? "border-2 border-dashed border-violet-400 bg-transparent dark:border-violet-500"
+          : barColor(i)
+      }`}
+    >
+      {/* Insertion and shell sort lift a value into a local
+          `key` and shift others into its slot. Without this the
+          canvas shows that stale copy as a real element — two
+          bars with the same value and one apparently lost. */}
+      {step?.held?.hole === i && (
+        <span className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-violet-500 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white shadow-sm">
+          {step.held.value}
+        </span>
+      )}
+      <span
+        className={`pb-1 text-center font-mono text-[10px] ${
+          barIsColored(i) ||
+          (!step && hasTarget && value === target)
+            ? "font-semibold text-white"
+            : "text-zinc-600 dark:text-zinc-300"
+        }`}
+      >
+        {step?.held?.hole === i ? "" : value}
+      </span>
+    </motion.div>
+  ));
+
+  const sortStats =
+    step && (activeStats.length > 0 || (step.vars && step.vars.length > 0)) ? (
+      <>
+        {activeStats.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setPanelTab("growth")}
+            title={t("stat.totalHint", {
+              o: algorithm.time,
+              n: values.length,
+            })}
+            className="inline-flex items-center gap-1.5 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 text-[10px] font-medium text-claude-700 transition-colors hover:bg-claude-500/20 dark:text-claude-300"
+          >
+            {t("stat.total")}
+            <span className="font-mono tabular-nums font-semibold">
+              {totalOperations}
+            </span>
+            <span className="font-mono text-claude-600/70 dark:text-claude-400/70">
+              {algorithm.time}
+            </span>
+          </button>
+        )}
+        {activeStats.map((s) => (
+          <span
+            key={s.kind}
+            className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
+          >
+            <span className={`size-1.5 rounded-full ${s.dot}`} />
+            {t(s.key)}
+            <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
+              {runningCounts[s.kind] ?? 0}
+            </span>
+          </span>
+        ))}
+        {step.vars && step.vars.length > 0 && (
+          <>
+            <span className="mx-0.5 h-3.5 w-px bg-zinc-200 dark:bg-zinc-800" />
+            {step.vars.map((v) => (
+              <span
+                key={v.label}
+                className="inline-flex items-center gap-1 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 font-mono text-[10px] text-claude-700 dark:text-claude-300"
+              >
+                {v.label}
+                <span className="tabular-nums font-semibold">{v.value}</span>
+              </span>
+            ))}
+          </>
+        )}
+      </>
+    ) : undefined;
+
+  // One element, so the row follows the reader into compare mode and back.
+  const inputRow =
+    hasInput && !useCustomViz ? (
+      <SortInputForm
+        inputText={inputText}
+        onInputText={setInputText}
+        targetText={hasTarget ? targetText : undefined}
+        onTargetText={hasTarget ? setTargetText : undefined}
+        onApply={applyInput}
+        onShape={applyShape}
+        onShare={copyLink}
+        copied={copied}
+        maxNumbersHint={`${t("ws.maxNumbers", { n: MAX_VALUES })}${
+          algorithm.sortedInput ? t("ws.autoSorted") : ""
+        }`}
+        compare={
+          compareAvailable
+            ? { active: comparing, onToggle: () => setCompareMode((c) => !c) }
+            : undefined
+        }
+      />
+    ) : undefined;
+
   return (
+    <PlaybackBridgeContext.Provider value={bridge}>
     <SpeedContext.Provider value={{ speed, setSpeed }}>
       <InvariantContext.Provider value={staticInvariant}>
-    <div className="flex flex-col gap-4 p-4 lg:h-dvh lg:p-6">
+    {/* Room for the dock (h-20) plus the usual gutter, reserved from the
+        first paint so the dock appearing never moves the page. */}
+    <div
+      className={`flex flex-col gap-4 p-4 lg:h-dvh lg:p-6 ${
+        hasDock ? "pb-[calc(--spacing(24)+env(safe-area-inset-bottom))] lg:pb-6" : ""
+      }`}
+    >
       {/* ── Top bar ─────────────────────────────────────────────── */}
-      <header className="flex flex-col gap-4 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <h1 className="text-lg font-semibold tracking-tight">
-                {algoName(algorithm.slug, algorithm.name, lang)}
-              </h1>
-              <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-                {catName(category.slug, category.name, lang)}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-claude-500/10 px-2.5 py-0.5 text-[11px] font-medium text-claude-600 dark:text-claude-400">
-                <Clock className="size-3" /> {algorithm.time}
-              </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400">
-                <Database className="size-3" /> {algorithm.space}
-              </span>
-            </div>
-            <p className="mt-1.5 text-sm text-zinc-500 dark:text-zinc-400">
-              {algoSummary(algorithm.slug, algorithm.summary, lang)}
-            </p>
-          </div>
-
-          {/* Controls */}
-          <div className="flex flex-wrap items-center gap-2">
-            {compareAvailable && (
-              <button
-                type="button"
-                onClick={() => setCompareMode((c) => !c)}
-                title={t("ws.compare.title")}
-                className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
-                  comparing
-                    ? "border-claude-500/40 bg-claude-500/10 text-claude-600 dark:text-claude-400"
-                    : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
-                }`}
-              >
-                <GitCompareArrows className="size-4" />
-                {t("ws.compare")}
-              </button>
-            )}
-            {/* Fallback-only controls: algorithms without a step engine have no
-                panel below the canvas, so the demo transport + speed stay here. */}
-            {!useCustomViz && !comparing && !steps && (
-              <>
-                <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-                  <ControlButton label={t("reset")} onClick={reset}>
-                    <RotateCcw className="size-4" />
-                  </ControlButton>
-                  <ControlButton label={t("stepBack")} onClick={() => stepBy(-1)}>
-                    <StepBack className="size-4" />
-                  </ControlButton>
-                  <button
-                    type="button"
-                    onClick={togglePlay}
-                    aria-label={playing ? t("pause") : t("play")}
-                    className="flex size-10 items-center justify-center rounded-lg bg-claude-600 text-white shadow-sm transition-colors hover:bg-claude-500"
-                  >
-                    {playing ? (
-                      <Pause className="size-4" fill="currentColor" />
-                    ) : (
-                      <Play className="size-4 translate-x-px" fill="currentColor" />
-                    )}
-                  </button>
-                  <ControlButton label={t("stepForward")} onClick={() => stepBy(1)}>
-                    <StepForward className="size-4" />
-                  </ControlButton>
-                </div>
-
-                <div className="flex items-center gap-1 rounded-xl border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-950">
-                  <Gauge className="ml-1.5 size-4 text-zinc-400" />
-                  {SPEEDS.map((s) => (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => setSpeed(s)}
-                      className={`rounded-lg px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                        speed === s
-                          ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
-                          : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
-                      }`}
-                    >
-                      {s}x
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Custom input */}
-        {hasInput && !useCustomViz && (
-          <form
-            onSubmit={applyInput}
-            className="flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-4 dark:border-zinc-800"
-          >
-            <label className="flex min-w-0 flex-1 items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950">
-              <Hash className="size-4 shrink-0 text-zinc-400" />
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder={t("ws.input.placeholder")}
-                spellCheck={false}
-                aria-label={t("ws.input.aria")}
-                className="w-full min-w-32 bg-transparent font-mono text-xs outline-none placeholder:text-zinc-400"
-              />
-            </label>
-            {hasTarget && (
-              <label className="flex items-center gap-2 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-claude-500/60 dark:border-zinc-800 dark:bg-zinc-950">
-                <Crosshair className="size-4 shrink-0 text-zinc-400" />
-                <input
-                  type="text"
-                  value={targetText}
-                  onChange={(e) => setTargetText(e.target.value)}
-                  aria-label={t("ws.target.aria")}
-                  className="w-14 bg-transparent font-mono text-xs outline-none"
-                />
-              </label>
-            )}
-            <button
-              type="submit"
-              className="rounded-xl bg-claude-600 px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-claude-500"
-            >
-              {t("ws.apply")}
-            </button>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShapeMenuOpen((o) => !o)}
-                aria-expanded={shapeMenuOpen}
-                aria-haspopup="menu"
-                title={t("ws.shape.title")}
-                className="flex items-center gap-1.5 rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-medium text-zinc-600 transition-colors hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
-              >
-                <Dices className="size-4" />
-                {t("ws.shape")}
-              </button>
-              {shapeMenuOpen && (
-                <div
-                  role="menu"
-                  className="absolute bottom-full left-0 z-20 mb-1.5 w-56 overflow-hidden rounded-xl border border-zinc-200 bg-white py-1 shadow-lg dark:border-zinc-800 dark:bg-zinc-900"
-                >
-                  {INPUT_SHAPES.map(({ shape, key }) => (
-                    <button
-                      key={shape}
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        applyShape(shape);
-                        setShapeMenuOpen(false);
-                      }}
-                      className="block w-full px-3 py-1.5 text-left text-xs text-zinc-600 transition-colors hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-                    >
-                      {t(key)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={copyLink}
-              title={t("ws.share.title")}
-              className={`flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium transition-colors ${
-                copied
-                  ? "border-claude-500/40 bg-claude-500/10 text-claude-600 dark:text-claude-400"
-                  : "border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100"
-              }`}
-            >
-              {copied ? (
-                <>
-                  <Check className="size-4" />
-                  {t("ws.copied")}
-                </>
-              ) : (
-                <>
-                  <Link2 className="size-4" />
-                  {t("ws.share")}
-                </>
-              )}
-            </button>
-            <span className="text-[11px] text-zinc-400 dark:text-zinc-500">
-              {t("ws.maxNumbers", { n: MAX_VALUES })}
-              {algorithm.sortedInput && t("ws.autoSorted")}
-            </span>
-          </form>
-        )}
+      {/* One line: the summary lives in the About tab, the input in the card. */}
+      <header className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
+        <h1 className="text-lg font-semibold tracking-tight">
+          {algoName(algorithm.slug, algorithm.name, lang)}
+        </h1>
+        <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+          {catName(category.slug, category.name, lang)}
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-claude-500/10 px-2.5 py-0.5 text-[11px] font-medium text-claude-600 dark:text-claude-400">
+          <Clock className="size-3" /> {algorithm.time}
+        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400">
+          <Database className="size-3" /> {algorithm.space}
+        </span>
       </header>
 
       {/* ── Panels ──────────────────────────────────────────────── */}
@@ -789,6 +740,7 @@ export default function Workspace({
               target={target}
               speed={speed}
               onLine={setDsLine}
+              inputRow={inputRow}
             />
           ) : customViz === "ds" ? (
             <DataStructureViz
@@ -850,6 +802,7 @@ export default function Workspace({
             asBoxes ? (
               /* Data structure preview: boxes */
               <div className="relative flex w-full flex-col items-center gap-6 px-6 py-10">
+                {inputRow}
                 <div className="flex max-w-full flex-wrap items-center justify-center gap-y-3">
                   {renderValues.map((value, i) => (
                     <span key={`${i}-${value}`} className="flex items-center">
@@ -884,165 +837,43 @@ export default function Workspace({
               </div>
             ) : (
               /* Sorting / searching: animated bars */
-              <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
-                <div className="flex min-h-0 flex-1 items-end justify-center gap-1.5 sm:gap-2">
-                  {renderValues.map((value, i) => (
-                    <motion.div
-                      key={i}
-                      initial={false}
-                      animate={{
-                        height: `${Math.max((value / maxValue) * 100, 6)}%`,
-                      }}
-                      transition={{ type: "tween", duration: 0.25 }}
-                      className={`relative flex w-full max-w-12 flex-col justify-end rounded-t-md transition-colors duration-200 ${
-                        step?.held?.hole === i
-                          ? "border-2 border-dashed border-violet-400 bg-transparent dark:border-violet-500"
-                          : barColor(i)
-                      }`}
-                    >
-                      {/* Insertion and shell sort lift a value into a local
-                          `key` and shift others into its slot. Without this the
-                          canvas shows that stale copy as a real element — two
-                          bars with the same value and one apparently lost. */}
-                      {step?.held?.hole === i && (
-                        <span className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-violet-500 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white shadow-sm">
-                          {step.held.value}
-                        </span>
-                      )}
-                      <span
-                        className={`pb-1 text-center font-mono text-[10px] ${
-                          barIsColored(i) ||
-                          (!step && hasTarget && value === target)
-                            ? "font-semibold text-white"
-                            : "text-zinc-600 dark:text-zinc-300"
-                        }`}
-                      >
-                        {step?.held?.hole === i ? "" : value}
-                      </span>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {steps && step ? (
-                  /* Step strip: note + counter + scrubber + legend */
-                  <div className="mt-4 rounded-xl border border-zinc-200 bg-white/85 p-3 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70">
-                    <p className="flex min-w-0 items-center gap-2 text-xs text-zinc-600 dark:text-zinc-300">
-                      <span
-                        className={`size-2 shrink-0 rounded-full ${KIND_STYLES[step.kind].dot}`}
-                      />
-                      <span className="truncate">{tn(step.note)}</span>
-                    </p>
-                    {invariant && (
-                      /* Why the step is allowed, not what it did. */
-                      <p className="mt-1.5 flex min-w-0 items-start gap-2 border-l-2 border-sky-500/40 pl-2 text-[11px] leading-relaxed text-zinc-500 dark:text-zinc-400">
-                        <span className="shrink-0 font-medium text-sky-600 dark:text-sky-400">
-                          {t("ws.invariant")}
-                        </span>
-                        <span>{tn(invariant)}</span>
-                      </p>
-                    )}
-                    <div className="mt-2 flex items-center gap-2">
-                      <input
-                        type="range"
-                        min={0}
-                        max={steps.length - 1}
-                        value={Math.min(stepIndex, steps.length - 1)}
-                        onChange={(e) => {
-                          setIsPlaying(false);
-                          setStepIndex(Number(e.target.value));
-                        }}
-                        aria-label={t("ws.timeline")}
-                        className="h-1 flex-1 cursor-pointer accent-claude-600"
-                      />
-                      <span className="shrink-0 font-mono text-[11px] text-zinc-400">
-                        {Math.min(stepIndex, steps.length - 1) + 1}/
-                        {steps.length}
-                      </span>
-                      <TransportControls
-                        playing={playing}
-                        onToggle={togglePlay}
-                        onReset={reset}
-                        onStep={stepBy}
-                      />
-                    </div>
-                    <div className="mt-2.5 flex items-end justify-between gap-3">
-                      <div className="min-w-0">
-                        {(activeStats.length > 0 || (step.vars && step.vars.length > 0)) && (
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            {activeStats.length > 0 && (
-                              <button
-                                type="button"
-                                onClick={() => setPanelTab("growth")}
-                                title={t("stat.totalHint", {
-                                  o: algorithm.time,
-                                  n: values.length,
-                                })}
-                                className="inline-flex items-center gap-1.5 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 text-[10px] font-medium text-claude-700 transition-colors hover:bg-claude-500/20 dark:text-claude-300"
-                              >
-                                {t("stat.total")}
-                                <span className="font-mono tabular-nums font-semibold">
-                                  {totalOperations}
-                                </span>
-                                <span className="font-mono text-claude-600/70 dark:text-claude-400/70">
-                                  {algorithm.time}
-                                </span>
-                              </button>
-                            )}
-                            {activeStats.map((s) => (
-                              <span
-                                key={s.kind}
-                                className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
-                              >
-                                <span className={`size-1.5 rounded-full ${s.dot}`} />
-                                {t(s.key)}
-                                <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
-                                  {runningCounts[s.kind] ?? 0}
-                                </span>
-                              </span>
-                            ))}
-                            {step.vars && step.vars.length > 0 && (
-                              <>
-                                <span className="mx-0.5 h-3.5 w-px bg-zinc-200 dark:bg-zinc-800" />
-                                {step.vars.map((v) => (
-                                  <span
-                                    key={v.label}
-                                    className="inline-flex items-center gap-1 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 font-mono text-[10px] text-claude-700 dark:text-claude-300"
-                                  >
-                                    {v.label}
-                                    <span className="tabular-nums font-semibold">
-                                      {v.value}
-                                    </span>
-                                  </span>
-                                ))}
-                              </>
-                            )}
-                          </div>
-                        )}
-                        <div className="mt-2.5 hidden flex-wrap gap-x-4 gap-y-1 sm:flex">
-                          {legend.map((item) => (
-                            <span
-                              key={item.key}
-                              className="flex items-center gap-1.5 text-[10px] text-zinc-400 dark:text-zinc-500"
-                            >
-                              <span
-                                className={`size-1.5 rounded-full ${item.dot}`}
-                              />
-                              {t(item.key)}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <SpeedSelect />
-                    </div>
+              steps && step && sortPlayer ? (
+                <PlaybackPanel
+                  player={sortPlayer}
+                  count={steps.length}
+                  note={step.note}
+                  invariant={invariant}
+                  dotClass={KIND_STYLES[step.kind].dot}
+                  legend={legend.map((item) => ({
+                    label: t(item.key),
+                    dot: item.dot,
+                  }))}
+                  stats={sortStats}
+                  extra={inputRow}
+                >
+                  {/* Top padding keeps the held-value tag of a full-height bar
+                      inside the panel's scroll box; only engines that lift a value pay it. */}
+                  <div
+                    className={`flex h-full w-full items-end justify-center gap-1.5 sm:gap-2 ${
+                      holdsValue(algorithm.slug) ? "pt-6" : ""
+                    }`}
+                  >
+                    {bars}
                   </div>
-                ) : (
+                </PlaybackPanel>
+              ) : (
+                <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
+                  <div className="flex min-h-0 flex-1 items-end justify-center gap-1.5 sm:gap-2">
+                    {bars}
+                  </div>
+                  <div className="mt-4">{inputRow}</div>
                   <p className="mt-4 text-center text-xs text-zinc-500 dark:text-zinc-400">
                     {hasTarget
                       ? t("ws.hint.search", { target })
                       : t("ws.hint.sort")}
                   </p>
-                )}
-              </div>
+                </div>
+              )
             )
           ) : (
             /* Placeholder for algorithms without numeric input */
@@ -1091,30 +922,10 @@ export default function Workspace({
           activeLine={activeLine}
         />
       </div>
+      {transport && !comparing && <PlaybackDock transport={transport} />}
     </div>
       </InvariantContext.Provider>
     </SpeedContext.Provider>
-  );
-}
-
-function ControlButton({
-  label,
-  onClick,
-  children,
-}: {
-  label: string;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={label}
-      title={label}
-      className="flex size-10 items-center justify-center rounded-lg text-zinc-500 transition-colors hover:bg-zinc-200/60 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
-    >
-      {children}
-    </button>
+    </PlaybackBridgeContext.Provider>
   );
 }

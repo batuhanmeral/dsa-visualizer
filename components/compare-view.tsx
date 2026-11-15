@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { Trophy } from "lucide-react";
 import type { Algorithm } from "@/lib/data";
@@ -141,6 +141,7 @@ export default function CompareView({
   target,
   speed,
   onLine,
+  inputRow,
 }: {
   left: Algorithm;
   opponents: Algorithm[];
@@ -148,6 +149,8 @@ export default function CompareView({
   target: number;
   speed: number;
   onLine: (line: number) => void;
+  /** The page's input row, kept reachable while racing. */
+  inputRow?: ReactNode;
 }) {
   const { t, lang } = useLang();
   const [rightSlug, setRightSlug] = useState(opponents[0]?.slug ?? "");
@@ -210,6 +213,11 @@ export default function CompareView({
 
   const selector = (
     <>
+      {inputRow && (
+        <div className="basis-full border-b border-zinc-200 pb-2.5 dark:border-zinc-800">
+          {inputRow}
+        </div>
+      )}
       <span className="text-[11px] font-medium text-zinc-400">{t("cmp.vs")}</span>
       {opponents.map((o) => (
         <ChoiceButton

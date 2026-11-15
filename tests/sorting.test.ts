@@ -13,6 +13,7 @@ import {
   shellSortSteps,
 } from "../lib/simulations/sorting";
 import type { SimulationStep } from "../lib/simulations/types";
+import { holdsValue } from "../lib/simulations";
 import { arrayCases, ascending, bag } from "./helpers";
 
 const engines = {
@@ -156,5 +157,12 @@ test("insertion and shell sort report the value they are holding", () => {
         s.held !== undefined,
         "a shift leaves a hole, so the held key must be reported"
       );
+  }
+});
+
+test("holdsValue names exactly the engines whose steps lift a value", () => {
+  for (const [slug, engine] of Object.entries(engines)) {
+    const lifts = arrayCases().some((input) => engine(input).some((s) => s.held));
+    assert.equal(holdsValue(slug), lifts, slug);
   }
 });
