@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, Database, ScanEye } from "lucide-react";
@@ -20,6 +20,8 @@ import {
   type PublishedTransport,
 } from "./playback-bridge";
 import PlaybackDock from "./playback-dock";
+import PanelSplitter from "./panel-splitter";
+import { SPLIT_MIN_CANVAS_PX } from "@/lib/split-ratio";
 import type { CodeLang } from "@/lib/highlight";
 import { availableTabs, initialTab, tabAfterUserAdvance } from "@/lib/panel-tab";
 import GrowthChart from "./growth-chart";
@@ -521,6 +523,7 @@ export default function Workspace({
   // the listener always sees fresh state (atEnd, steps) without re-subscribing.
   const shortcutsActive = !useCustomViz && !comparing && steps !== undefined;
   const transportRef = useRef(sortPlayer);
+  const panelsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     transportRef.current = sortPlayer;
   });
@@ -693,7 +696,13 @@ export default function Workspace({
       </header>
 
       {/* ── Panels ──────────────────────────────────────────────── */}
-      <div className="grid flex-1 grid-cols-1 gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,13fr)_minmax(0,7fr)]">
+      {/* lg+: the splitter column is the gutter and the ratio splits what is left, with a px floor
+          so the playback card fits; 65 mirrors SPLIT_DEFAULT for a page whose boot script could not run. */}
+      <div
+        ref={panelsRef}
+        style={{ "--split-floor": `${SPLIT_MIN_CANVAS_PX}px` } as CSSProperties}
+        className="grid flex-1 grid-cols-1 gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,max(var(--split-floor),calc((100%_-_--spacing(4))*var(--split,65)/100)))_--spacing(4)_minmax(0,1fr)] lg:gap-x-0"
+      >
         {/* Visualization canvas */}
         <section
           aria-label="Visualization area"
@@ -900,6 +909,8 @@ export default function Workspace({
             </div>
           )}
         </section>
+
+        <PanelSplitter containerRef={panelsRef} />
 
         <CodePanel
           tabs={panelTabs}

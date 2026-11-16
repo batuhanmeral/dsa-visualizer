@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { siteUrl } from "@/lib/site";
+import { splitBootSnippet } from "@/lib/split-ratio";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,6 +29,8 @@ export const rootMetadata: Metadata = {
     "An interactive platform for visualizing data structures and algorithms — sorting, graphs, dynamic programming, and backtracking.",
 };
 
-// Runs before first paint: applies the saved theme (or OS preference) so there
-// is no flash of the wrong colour scheme before React hydrates.
-export const themeBootScript = `(function(){try{var t=localStorage.getItem('theme');document.documentElement.dataset.theme=(t==='light'||t==='dark')?t:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}})();`;
+// Runs before first paint: applies the saved theme (or OS preference) and panel
+// split, so neither the colour scheme nor the lg+ layout changes on hydration.
+export const themeBootScript =
+  `(function(){try{var t=localStorage.getItem('theme');document.documentElement.dataset.theme=(t==='light'||t==='dark')?t:(window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');}catch(e){}})();` +
+  splitBootSnippet();

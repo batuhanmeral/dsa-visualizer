@@ -17,6 +17,10 @@ import {
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
+import { FitStage } from "./fit-stage";
+
+/** Upper limit for the canvas scale, so a small table does not fill the screen. */
+const MAX_SCALE = 1.75;
 
 /** Values at/above this render as ∞ (unreachable sentinel, e.g. coin change). */
 const INF_DISPLAY = 900;
@@ -172,12 +176,14 @@ function StringPairViz({
         </>
       }
     >
-      <DPTable
-        step={step}
-        corner="ε"
-        rowHeads={["ε", ...ca.split("")]}
-        colHeads={["ε", ...cb.split("")]}
-      />
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <DPTable
+          step={step}
+          corner="ε"
+          rowHeads={["ε", ...ca.split("")]}
+          colHeads={["ε", ...cb.split("")]}
+        />
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -240,12 +246,14 @@ function KnapsackViz({
         </div>
       }
     >
-      <DPTable
-        step={step}
-        corner="i\c"
-        rowHeads={["∅", ...items.map((_, i) => `#${i + 1}`)]}
-        colHeads={Array.from({ length: capacity + 1 }, (_, c) => String(c))}
-      />
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <DPTable
+          step={step}
+          corner="i\c"
+          rowHeads={["∅", ...items.map((_, i) => `#${i + 1}`)]}
+          colHeads={Array.from({ length: capacity + 1 }, (_, c) => String(c))}
+        />
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -304,12 +312,14 @@ function CoinChangeViz({
         </div>
       }
     >
-      <DPTable
-        step={step}
-        corner="c\a"
-        rowHeads={["∅", ...coins.map((c) => `${c}`)]}
-        colHeads={Array.from({ length: amount + 1 }, (_, a) => String(a))}
-      />
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <DPTable
+          step={step}
+          corner="c\a"
+          rowHeads={["∅", ...coins.map((c) => `${c}`)]}
+          colHeads={Array.from({ length: amount + 1 }, (_, a) => String(a))}
+        />
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -363,7 +373,9 @@ function FloydViz({
         </div>
       }
     >
-      <DPTable step={step} corner="i\j" rowHeads={heads} colHeads={heads} />
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <DPTable step={step} corner="i\j" rowHeads={heads} colHeads={heads} />
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -410,12 +422,14 @@ function FibonacciViz({
         </>
       }
     >
-      <DPTable
-        step={step}
-        corner="i"
-        rowHeads={["fib"]}
-        colHeads={Array.from({ length: n + 1 }, (_, i) => String(i))}
-      />
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <DPTable
+          step={step}
+          corner="i"
+          rowHeads={["fib"]}
+          colHeads={Array.from({ length: n + 1 }, (_, i) => String(i))}
+        />
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -470,17 +484,19 @@ function LISViz({
         </label>
       }
     >
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-          {t("dp.lisNote")}
-        </span>
-        <DPTable
-          step={step}
-          corner="a"
-          rowHeads={["dp"]}
-          colHeads={v.map((x) => String(x))}
-        />
-      </div>
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+            {t("dp.lisNote")}
+          </span>
+          <DPTable
+            step={step}
+            corner="a"
+            rowHeads={["dp"]}
+            colHeads={v.map((x) => String(x))}
+          />
+        </div>
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -535,17 +551,19 @@ function KadaneViz({
         </label>
       }
     >
-      <div className="flex flex-col items-center gap-1">
-        <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
-          {t("dp.kadaneNote")}
-        </span>
-        <DPTable
-          step={step}
-          corner="a"
-          rowHeads={["cur"]}
-          colHeads={v.map((x) => String(x))}
-        />
-      </div>
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <div className="flex flex-col items-center gap-1">
+          <span className="text-[10px] font-medium uppercase tracking-wide text-zinc-400">
+            {t("dp.kadaneNote")}
+          </span>
+          <DPTable
+            step={step}
+            corner="a"
+            rowHeads={["cur"]}
+            colHeads={v.map((x) => String(x))}
+          />
+        </div>
+      </FitStage>
     </PlaybackPanel>
   );
 }
