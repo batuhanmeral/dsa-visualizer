@@ -280,7 +280,7 @@ export default function GraphViz({
       extra={
         <>
           {config.usesStart && (
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <span className="mr-1 text-[11px] font-medium text-zinc-400">
                 {t(START_LABEL_KEY[config.startLabel] ?? "graph.start.node")}
               </span>
@@ -296,7 +296,7 @@ export default function GraphViz({
             </div>
           )}
           {config.usesGoal && (
-            <div className="flex items-center gap-1">
+            <div className="flex flex-wrap items-center gap-1">
               <span className="mr-1 text-[11px] font-medium text-zinc-400">
                 {t("graph.goal")}
               </span>

@@ -9,7 +9,7 @@ import {
   type ComponentType,
   type ReactNode,
 } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   ArrowRight,
   Check,
@@ -31,6 +31,7 @@ import {
   StepNoteLine,
 } from "./step-player";
 import { useUserAdvanced } from "./playback-bridge";
+import { FitStage, useFitScale } from "./fit-stage";
 
 /**
  * Interactive data-structure playground. Unlike the sorting/searching engines
@@ -117,23 +118,42 @@ function useRunner(onLine: (line: number) => void, speed: number) {
 }
 
 // ── Shared UI atoms ─────────────────────────────────────────────────────
+/** Upper limit for the canvas scale: a three-box stack should not fill the screen. */
+const MAX_SCALE = 1.75;
+
+/** Layout animations measure screen pixels; undo the stage scale so the boxes start where they were. */
+function ScaledLayout({ children }: { children: ReactNode }) {
+  const scale = useFitScale();
+  const toLocal = useCallback(
+    (p: { x: number; y: number }) => ({ x: p.x / scale, y: p.y / scale }),
+    [scale]
+  );
+  return <MotionConfig transformPagePoint={toLocal}>{children}</MotionConfig>;
+}
+
 function VizShell({
   children,
   controls,
   note,
   busy,
+  resetKey,
 }: {
   children: ReactNode;
   controls: ReactNode;
   note: Note;
   busy: boolean;
+  /** Bumped by Clear: the scale may grow back only on a fresh start. */
+  resetKey: number;
 }) {
   const tn = useStepNote();
   const invariant = useContext(InvariantContext);
   return (
     <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
       <div className="scrollbar-slim flex min-h-0 flex-1 items-center justify-center overflow-auto">
-        {children}
+        {/* Never re-fit mid-operation: the boxes would grow and shrink while they move. */}
+        <FitStage resetKey={resetKey} maxScale={MAX_SCALE} frozen={busy}>
+          <ScaledLayout>{children}</ScaledLayout>
+        </FitStage>
       </div>
       <PlaybackCard>
         <div className="flex flex-wrap items-center gap-2">
@@ -228,6 +248,7 @@ const BOX_ACTIVE =
 function StackViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
+  const [clears, setClears] = useState(0);
   const [items, setItems] = useState<Item[]>(() => toItems([12, 5, 27]));
   const [val, setVal] = useState("42");
 
@@ -270,6 +291,7 @@ function StackViz({ speed, onLine }: VizProps) {
     <VizShell
       busy={busy}
       note={note}
+      resetKey={clears}
       controls={
         <>
           <ValueInput
@@ -288,6 +310,7 @@ function StackViz({ speed, onLine }: VizProps) {
             tone="neutral"
             icon={Eraser}
             onClick={() => {
+              setClears((c) => c + 1);
               setItems([]);
               run([{ line: 4, note: msg("n.stack.cleared") }]);
             }}
@@ -298,7 +321,8 @@ function StackViz({ speed, onLine }: VizProps) {
         </>
       }
     >
-      <div className="flex flex-col-reverse items-center gap-1.5">
+      {/* Side padding keeps the "← top" label inside the measured, scaled box. */}
+      <div className="flex flex-col-reverse items-center gap-1.5 px-12">
         <div className="mt-1 h-1 w-32 rounded-full bg-zinc-300 dark:bg-zinc-700" />
         <AnimatePresence mode="popLayout">
           {items.map((it, i) => {
@@ -335,6 +359,7 @@ function StackViz({ speed, onLine }: VizProps) {
 function QueueViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
+  const [clears, setClears] = useState(0);
   const [items, setItems] = useState<Item[]>(() => toItems([12, 5, 27]));
   const [val, setVal] = useState("42");
 
@@ -382,6 +407,7 @@ function QueueViz({ speed, onLine }: VizProps) {
     <VizShell
       busy={busy}
       note={note}
+      resetKey={clears}
       controls={
         <>
           <ValueInput
@@ -400,6 +426,7 @@ function QueueViz({ speed, onLine }: VizProps) {
             tone="neutral"
             icon={Eraser}
             onClick={() => {
+              setClears((c) => c + 1);
               setItems([]);
               run([{ line: 4, note: msg("n.queue.cleared") }]);
             }}
@@ -449,6 +476,7 @@ function QueueViz({ speed, onLine }: VizProps) {
 function LinkedListViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
+  const [clears, setClears] = useState(0);
   const [items, setItems] = useState<Item[]>(() => toItems([27, 5, 12]));
   const [cursor, setCursor] = useState<number | null>(null);
   const [val, setVal] = useState("9");
@@ -515,6 +543,7 @@ function LinkedListViz({ speed, onLine }: VizProps) {
     <VizShell
       busy={busy}
       note={note}
+      resetKey={clears}
       controls={
         <>
           <ValueInput
@@ -533,6 +562,7 @@ function LinkedListViz({ speed, onLine }: VizProps) {
             tone="neutral"
             icon={Eraser}
             onClick={() => {
+              setClears((c) => c + 1);
               setItems([]);
               setCursor(null);
               run([{ line: 13, note: msg("n.list.cleared") }]);
@@ -584,6 +614,7 @@ const BUCKETS = 8;
 function HashTableViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
+  const [clears, setClears] = useState(0);
   const [buckets, setBuckets] = useState<Item[][]>(() => {
     const b: Item[][] = Array.from({ length: BUCKETS }, () => []);
     [12, 5, 27, 20].forEach((k) => b[k % BUCKETS].unshift({ id: nextId(), value: k }));
@@ -680,6 +711,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
     <VizShell
       busy={busy}
       note={note}
+      resetKey={clears}
       controls={
         <>
           <ValueInput
@@ -698,6 +730,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
             tone="neutral"
             icon={Eraser}
             onClick={() => {
+              setClears((c) => c + 1);
               setBuckets(Array.from({ length: BUCKETS }, () => []));
               setActiveBucket(null);
               setCursor(null);

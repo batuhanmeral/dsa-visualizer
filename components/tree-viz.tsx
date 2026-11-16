@@ -16,6 +16,8 @@ import {
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
+import { FitStage } from "./fit-stage";
+import type { Size } from "@/lib/fit-scale";
 
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
   { key: "tree.legend.current", dot: "bg-claude-500" },
@@ -41,19 +43,39 @@ const GAP_X = 52;
 const GAP_Y = 72;
 const NODE_R = 17;
 const PAD = 28;
+/** Upper limit for the canvas scale; nodes past it read as oversized. */
+const MAX_SCALE = 1.5;
 
-function TreeCanvas({ step }: { step: TreeStep }) {
-  const width = PAD * 2 + Math.max(step.cols - 1, 0) * GAP_X + NODE_R * 2;
-  const height = PAD * 2 + Math.max(step.depth - 1, 0) * GAP_Y + NODE_R * 2;
-  const cx = (x: number) => PAD + NODE_R + x * GAP_X;
+function treeSize(step: TreeStep): Size {
+  return {
+    width: PAD * 2 + Math.max(step.cols - 1, 0) * GAP_X + NODE_R * 2,
+    height: PAD * 2 + Math.max(step.depth - 1, 0) * GAP_Y + NODE_R * 2,
+  };
+}
+
+/** The run's widest and tallest tree, so the canvas and its scale stay put across steps. */
+function treeExtent(steps: TreeStep[]): Size {
+  return steps.reduce(
+    (acc, step) => {
+      const { width, height } = treeSize(step);
+      return { width: Math.max(acc.width, width), height: Math.max(acc.height, height) };
+    },
+    { width: 0, height: 0 }
+  );
+}
+
+function TreeCanvas({ step, extent }: { step: TreeStep; extent: Size }) {
+  // Centred in the run's extent through the node coordinates, so recentring animates.
+  const offsetX = (extent.width - treeSize(step).width) / 2;
+  const cx = (x: number) => offsetX + PAD + NODE_R + x * GAP_X;
   const cy = (y: number) => PAD + NODE_R + y * GAP_Y;
   const coord = new Map(step.nodes.map((n) => [n.id, n]));
 
   return (
     <svg
-      viewBox={`0 0 ${width} ${height}`}
-      className="h-auto max-h-full w-auto max-w-full"
-      style={{ minWidth: Math.min(width, 320) }}
+      width={extent.width}
+      height={extent.height}
+      viewBox={`0 0 ${extent.width} ${extent.height}`}
     >
       {step.edges.map((e) => {
         const a = coord.get(e.from);
@@ -160,6 +182,7 @@ function TreeFrame({
   const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
   const player = useStepPlayer(steps.length, speed, steps);
   const step = steps[player.index];
+  const extent = useMemo(() => treeExtent(steps), [steps]);
 
   useEffect(() => {
     if (step) onLine(step.codeLine);
@@ -192,8 +215,11 @@ function TreeFrame({
         </>
       }
     >
-      <div className="flex flex-col items-center gap-4">
-        <TreeCanvas step={step} />
+      {/* The array strip keeps its size; only the tree scales into the room above it. */}
+      <div className="flex min-w-0 flex-1 flex-col items-center gap-4 self-stretch">
+        <FitStage resetKey={steps} maxScale={MAX_SCALE} extent={extent}>
+          <TreeCanvas step={step} extent={extent} />
+        </FitStage>
         {step.arrayView && <ArrayStrip view={step.arrayView} />}
       </div>
     </PlaybackPanel>

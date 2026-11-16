@@ -9,11 +9,19 @@ import {
   type Activity,
   type FracItem,
   type HuffNode,
+  type HuffStep,
   type Job,
 } from "@/lib/simulations/greedy";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { PlaybackPanel, useStepPlayer } from "./step-player";
+import { FitStage } from "./fit-stage";
+import type { Size } from "@/lib/fit-scale";
+
+/** Upper limit for the box views (jobs, knapsack) so a few boxes do not fill the screen. */
+const MAX_SCALE = 1.75;
+/** The Huffman forest is a node drawing like the trees, which read oversized past 1.5. */
+const FOREST_MAX_SCALE = 1.5;
 
 const PICK_LEGEND: { key: TKey; dot: string }[] = [
   { key: "greedy.legend.considering", dot: "bg-amber-400" },
@@ -177,71 +185,73 @@ function FracKnapViz({
         </>
       }
     >
-      <div className="flex w-full max-w-lg flex-col gap-6">
-        {/* Items, best ratio first */}
-        <div className="flex flex-wrap justify-center gap-3">
-          {items.map((it, i) => {
-            const tk = takenOf(i);
-            const active = step.current === i;
-            const tone = tk
-              ? tk.fraction === 1
-                ? "border-claude-500/70 bg-claude-500/15"
-                : "border-sky-500/70 bg-sky-500/15"
-              : active
-                ? "border-amber-400/80 bg-amber-400/15"
-                : "border-zinc-200 dark:border-zinc-800";
-            return (
-              <div
-                key={i}
-                className={`flex w-28 flex-col items-center gap-1 rounded-xl border p-3 transition-colors ${tone}`}
-              >
-                <span className="font-mono text-xs font-semibold">
-                  w{it.weight} · v{it.value}
-                </span>
-                <span className="font-mono text-[10px] text-zinc-400">
-                  {(it.value / it.weight).toFixed(1)}/kg
-                </span>
-                <span className="text-[10px] font-medium">
-                  {tk
-                    ? tk.fraction === 1
-                      ? "100%"
-                      : `${Math.round(tk.fraction * 100)}%`
-                    : "—"}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Bag fill bar */}
-        <div>
-          <div className="mb-1 flex justify-between font-mono text-[10px] text-zinc-400">
-            <span>{t("greedy.bag")}</span>
-            <span>
-              {capacity - step.remaining}/{capacity}
-            </span>
-          </div>
-          <div className="flex h-6 w-full overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
-            {step.taken.map((tk) => {
-              const it = items[tk.index];
-              const w = it.weight * tk.fraction;
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <div className="flex w-full max-w-lg flex-col gap-6">
+          {/* Items, best ratio first */}
+          <div className="flex flex-wrap justify-center gap-3">
+            {items.map((it, i) => {
+              const tk = takenOf(i);
+              const active = step.current === i;
+              const tone = tk
+                ? tk.fraction === 1
+                  ? "border-claude-500/70 bg-claude-500/15"
+                  : "border-sky-500/70 bg-sky-500/15"
+                : active
+                  ? "border-amber-400/80 bg-amber-400/15"
+                  : "border-zinc-200 dark:border-zinc-800";
               return (
                 <div
-                  key={tk.index}
-                  className={`flex items-center justify-center font-mono text-[9px] font-medium text-white transition-all duration-300 ${
-                    tk.fraction === 1 ? "bg-claude-500" : "bg-sky-500"
-                  }`}
-                  style={{ width: `${(w / capacity) * 100}%` }}
+                  key={i}
+                  className={`flex w-28 flex-col items-center gap-1 rounded-xl border p-3 transition-colors ${tone}`}
                 >
-                  {tk.fraction === 1
-                    ? it.weight
-                    : `${Math.round(tk.fraction * 100)}%`}
+                  <span className="font-mono text-xs font-semibold">
+                    w{it.weight} · v{it.value}
+                  </span>
+                  <span className="font-mono text-[10px] text-zinc-400">
+                    {(it.value / it.weight).toFixed(1)}/kg
+                  </span>
+                  <span className="text-[10px] font-medium">
+                    {tk
+                      ? tk.fraction === 1
+                        ? "100%"
+                        : `${Math.round(tk.fraction * 100)}%`
+                      : "—"}
+                  </span>
                 </div>
               );
             })}
           </div>
+
+          {/* Bag fill bar */}
+          <div>
+            <div className="mb-1 flex justify-between font-mono text-[10px] text-zinc-400">
+              <span>{t("greedy.bag")}</span>
+              <span>
+                {capacity - step.remaining}/{capacity}
+              </span>
+            </div>
+            <div className="flex h-6 w-full overflow-hidden rounded-lg border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-900">
+              {step.taken.map((tk) => {
+                const it = items[tk.index];
+                const w = it.weight * tk.fraction;
+                return (
+                  <div
+                    key={tk.index}
+                    className={`flex items-center justify-center font-mono text-[9px] font-medium text-white transition-all duration-300 ${
+                      tk.fraction === 1 ? "bg-claude-500" : "bg-sky-500"
+                    }`}
+                    style={{ width: `${(w / capacity) * 100}%` }}
+                  >
+                    {tk.fraction === 1
+                      ? it.weight
+                      : `${Math.round(tk.fraction * 100)}%`}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
-      </div>
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -300,47 +310,49 @@ function JobSeqViz({
         </>
       }
     >
-      <div className="flex flex-col items-center gap-8">
-        {/* Jobs, highest profit first */}
-        <div className="flex flex-wrap justify-center gap-2.5">
-          {jobs.map((job, i) => (
-            <div
-              key={job.id}
-              className={`flex w-20 flex-col items-center rounded-xl border px-2 py-2 transition-colors ${jobTone(i)}`}
-            >
-              <span className="text-sm font-semibold">{job.id}</span>
-              <span className="font-mono text-[10px]">d≤{job.deadline}</span>
-              <span className="font-mono text-[10px]">+{job.profit}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Hour slots */}
-        <div className="flex gap-2">
-          {step.slots.map((jobIdx, s) => {
-            const hour = s + 1;
-            const probing = step.probe === hour;
-            const tone =
-              jobIdx !== null
-                ? "border-claude-500/70 bg-claude-500/15 text-claude-700 dark:text-claude-300"
-                : probing
-                  ? "border-amber-400/80 bg-amber-400/15 text-amber-700 dark:text-amber-200"
-                  : "border-dashed border-zinc-300 text-zinc-300 dark:border-zinc-700 dark:text-zinc-600";
-            return (
-              <div key={s} className="flex flex-col items-center gap-1">
-                <div
-                  className={`flex size-14 items-center justify-center rounded-xl border text-lg font-semibold transition-colors ${tone}`}
-                >
-                  {jobIdx !== null ? jobs[jobIdx].id : "·"}
-                </div>
-                <span className="font-mono text-[10px] text-zinc-400">
-                  {t("greedy.hour")} {hour}
-                </span>
+      <FitStage resetKey={steps} maxScale={MAX_SCALE}>
+        <div className="flex flex-col items-center gap-8">
+          {/* Jobs, highest profit first */}
+          <div className="flex flex-wrap justify-center gap-2.5">
+            {jobs.map((job, i) => (
+              <div
+                key={job.id}
+                className={`flex w-20 flex-col items-center rounded-xl border px-2 py-2 transition-colors ${jobTone(i)}`}
+              >
+                <span className="text-sm font-semibold">{job.id}</span>
+                <span className="font-mono text-[10px]">d≤{job.deadline}</span>
+                <span className="font-mono text-[10px]">+{job.profit}</span>
               </div>
-            );
-          })}
+            ))}
+          </div>
+
+          {/* Hour slots */}
+          <div className="flex gap-2">
+            {step.slots.map((jobIdx, s) => {
+              const hour = s + 1;
+              const probing = step.probe === hour;
+              const tone =
+                jobIdx !== null
+                  ? "border-claude-500/70 bg-claude-500/15 text-claude-700 dark:text-claude-300"
+                  : probing
+                    ? "border-amber-400/80 bg-amber-400/15 text-amber-700 dark:text-amber-200"
+                    : "border-dashed border-zinc-300 text-zinc-300 dark:border-zinc-700 dark:text-zinc-600";
+              return (
+                <div key={s} className="flex flex-col items-center gap-1">
+                  <div
+                    className={`flex size-14 items-center justify-center rounded-xl border text-lg font-semibold transition-colors ${tone}`}
+                  >
+                    {jobIdx !== null ? jobs[jobIdx].id : "·"}
+                  </div>
+                  <span className="font-mono text-[10px] text-zinc-400">
+                    {t("greedy.hour")} {hour}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </FitStage>
     </PlaybackPanel>
   );
 }
@@ -372,6 +384,22 @@ function layoutForest(nodes: Record<number, HuffNode>, roots: number[]) {
   let maxH = 0;
   for (const r of roots) maxH = Math.max(maxH, walk(r).h);
   return { pos, slots: slot, maxH };
+}
+
+function forestSize(slots: number, maxH: number): Size {
+  return { width: slots * SLOT_W + PAD * 2, height: maxH * LEVEL_H + PAD * 2 + 24 };
+}
+
+/** The run's widest and tallest forest, so the drawing and its scale stay put across steps. */
+function forestExtent(steps: HuffStep[]): { slots: number; maxH: number } {
+  let slots = 0;
+  let maxH = 0;
+  for (const step of steps) {
+    const f = layoutForest(step.nodes, step.roots);
+    slots = Math.max(slots, f.slots);
+    maxH = Math.max(maxH, f.maxH);
+  }
+  return { slots, maxH };
 }
 
 function textToFreqs(text: string): { ch: string; freq: number }[] {
@@ -406,14 +434,16 @@ function HuffmanViz({
     onLine(step.codeLine);
   }, [step.codeLine, onLine]);
 
-  const { pos, slots, maxH } = useMemo(
+  const { pos, slots } = useMemo(
     () => layoutForest(step.nodes, step.roots),
     [step]
   );
-  const width = slots * SLOT_W + PAD * 2;
-  const height = maxH * LEVEL_H + PAD * 2 + 24;
-  const px = (x: number) => PAD + x * SLOT_W + SLOT_W / 2;
-  const py = (h: number) => PAD + (maxH - h) * LEVEL_H;
+  const run = useMemo(() => forestExtent(steps), [steps]);
+  const extent = forestSize(run.slots, run.maxH);
+  // Leaves sit on the run's bottom row, so merges grow the forest upwards without moving it.
+  const offsetX = (extent.width - forestSize(slots, 0).width) / 2;
+  const px = (x: number) => offsetX + PAD + x * SLOT_W + SLOT_W / 2;
+  const py = (h: number) => PAD + (run.maxH - h) * LEVEL_H;
 
   const nodeTone = (id: number): string => {
     if (step.highlight.includes(id))
@@ -472,87 +502,90 @@ function HuffmanViz({
         </>
       }
     >
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        className="max-h-full w-full max-w-2xl"
-        role="img"
-        aria-label="Huffman forest"
-      >
-        {/* Edges (0 = left, 1 = right) */}
-        {visible.map((id) => {
-          const n = step.nodes[id];
-          if (n.left === null || n.right === null) return null;
-          const p = pos.get(id);
-          if (!p) return null;
-          return [n.left, n.right].map((childId, k) => {
-            const c = pos.get(childId);
-            if (!c) return null;
-            const x1 = px(p.x);
-            const y1 = py(p.h);
-            const x2 = px(c.x);
-            const y2 = py(c.h);
+      <FitStage resetKey={steps} maxScale={FOREST_MAX_SCALE} extent={extent}>
+        <svg
+          width={extent.width}
+          height={extent.height}
+          viewBox={`0 0 ${extent.width} ${extent.height}`}
+          role="img"
+          aria-label="Huffman forest"
+        >
+          {/* Edges (0 = left, 1 = right) */}
+          {visible.map((id) => {
+            const n = step.nodes[id];
+            if (n.left === null || n.right === null) return null;
+            const p = pos.get(id);
+            if (!p) return null;
+            return [n.left, n.right].map((childId, k) => {
+              const c = pos.get(childId);
+              if (!c) return null;
+              const x1 = px(p.x);
+              const y1 = py(p.h);
+              const x2 = px(c.x);
+              const y2 = py(c.h);
+              return (
+                <g key={`${id}-${childId}`}>
+                  <line
+                    x1={x1}
+                    y1={y1}
+                    x2={x2}
+                    y2={y2}
+                    className="stroke-zinc-300 dark:stroke-zinc-700"
+                    strokeWidth={1.5}
+                  />
+                  <text
+                    x={(x1 + x2) / 2 + (k === 0 ? -7 : 7)}
+                    y={(y1 + y2) / 2}
+                    textAnchor="middle"
+                    className="fill-zinc-400 font-mono text-[9px]"
+                  >
+                    {k}
+                  </text>
+                </g>
+              );
+            });
+          })}
+
+          {/* Nodes */}
+          {visible.map((id) => {
+            const n = step.nodes[id];
+            const p = pos.get(id);
+            if (!p) return null;
+            const x = px(p.x);
+            const y = py(p.h);
+            const leaf = n.left === null && n.right === null;
             return (
-              <g key={`${id}-${childId}`}>
-                <line
-                  x1={x1}
-                  y1={y1}
-                  x2={x2}
-                  y2={y2}
-                  className="stroke-zinc-300 dark:stroke-zinc-700"
+              <g key={id}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  r={R}
                   strokeWidth={1.5}
+                  className={`transition-colors ${nodeTone(id)}`}
                 />
                 <text
-                  x={(x1 + x2) / 2 + (k === 0 ? -7 : 7)}
-                  y={(y1 + y2) / 2}
+                  x={x}
+                  y={y + 3.5}
                   textAnchor="middle"
-                  className="fill-zinc-400 font-mono text-[9px]"
+                  className="fill-zinc-700 font-mono text-[10px] font-semibold dark:fill-zinc-200"
                 >
-                  {k}
+                  {n.freq}
                 </text>
+                {leaf && (
+                  <text
+                    x={x}
+                    y={y + R + 13}
+                    textAnchor="middle"
+                    className="fill-zinc-500 font-mono text-[11px] font-semibold dark:fill-zinc-400"
+                  >
+                    {n.ch}
+                  </text>
+                )}
               </g>
             );
-          });
-        })}
-
-        {/* Nodes */}
-        {visible.map((id) => {
-          const n = step.nodes[id];
-          const p = pos.get(id);
-          if (!p) return null;
-          const x = px(p.x);
-          const y = py(p.h);
-          const leaf = n.left === null && n.right === null;
-          return (
-            <g key={id}>
-              <circle
-                cx={x}
-                cy={y}
-                r={R}
-                strokeWidth={1.5}
-                className={`transition-colors ${nodeTone(id)}`}
-              />
-              <text
-                x={x}
-                y={y + 3.5}
-                textAnchor="middle"
-                className="fill-zinc-700 font-mono text-[10px] font-semibold dark:fill-zinc-200"
-              >
-                {n.freq}
-              </text>
-              {leaf && (
-                <text
-                  x={x}
-                  y={y + R + 13}
-                  textAnchor="middle"
-                  className="fill-zinc-500 font-mono text-[11px] font-semibold dark:fill-zinc-400"
-                >
-                  {n.ch}
-                </text>
-              )}
-            </g>
-          );
-        })}
-      </svg>
+          })}
+        </svg>
+      </FitStage>
     </PlaybackPanel>
   );
 }
