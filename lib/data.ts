@@ -115,7 +115,7 @@ export const categories: Category[] = [
         slug: "counting-sort",
         name: "Counting Sort",
         summary:
-          "Tallies how many times each value occurs, prefix-sums the counts into final positions, then places each element directly — no comparisons.",
+          "Tallies how many times each value occurs, prefix-sums the counts into final positions, then places each element directly: no comparisons.",
         time: "O(n + k)",
         space: "O(n + k)",
         inputKind: "array",
@@ -124,7 +124,7 @@ export const categories: Category[] = [
         slug: "bucket-sort",
         name: "Bucket Sort",
         summary:
-          "Scatters values into a few range buckets, sorts each bucket, then concatenates them back — fast when the data spreads evenly.",
+          "Scatters values into a few range buckets, sorts each bucket, then concatenates them back: fast when the data spreads evenly.",
         time: "O(n + k)",
         space: "O(n + k)",
         inputKind: "array",
@@ -141,7 +141,7 @@ export const categories: Category[] = [
         slug: "linear-search",
         name: "Linear Search",
         summary:
-          "Walks the array element by element until the target is found — works on any array, sorted or not.",
+          "Walks the array element by element until the target is found: works on any array, sorted or not.",
         time: "O(n)",
         space: "O(1)",
         inputKind: "array-target",
@@ -170,7 +170,7 @@ export const categories: Category[] = [
         slug: "interpolation-search",
         name: "Interpolation Search",
         summary:
-          "Estimates the probe position from the target's value relative to the window's endpoints — near O(log log n) on uniformly spread data.",
+          "Estimates the probe position from the target's value relative to the window's endpoints: near O(log log n) on uniformly spread data.",
         time: "O(log log n)",
         space: "O(1)",
         inputKind: "array-target",
@@ -240,7 +240,7 @@ export const categories: Category[] = [
         slug: "bfs",
         name: "Breadth-First Search",
         summary:
-          "Explores a graph level by level using a queue — the backbone of shortest paths in unweighted graphs.",
+          "Explores a graph level by level using a queue: the backbone of shortest paths in unweighted graphs.",
         time: "O(V + E)",
         space: "O(V)",
       },
@@ -248,7 +248,7 @@ export const categories: Category[] = [
         slug: "dfs",
         name: "Depth-First Search",
         summary:
-          "Dives as deep as possible along each branch before backtracking — implemented with recursion or a stack.",
+          "Dives as deep as possible along each branch before backtracking: implemented with recursion or a stack.",
         time: "O(V + E)",
         space: "O(V)",
       },
@@ -272,7 +272,7 @@ export const categories: Category[] = [
         slug: "topological-sort",
         name: "Topological Sort",
         summary:
-          "Linear ordering of a DAG's nodes so every edge points forward — Kahn's algorithm peels off in-degree-0 nodes.",
+          "Linear ordering of a DAG's nodes so every edge points forward. Kahn's algorithm peels off in-degree-0 nodes.",
         time: "O(V + E)",
         space: "O(V)",
       },
@@ -352,7 +352,7 @@ export const categories: Category[] = [
         slug: "fibonacci",
         name: "Fibonacci (Tabulation)",
         summary:
-          "Builds the Fibonacci sequence bottom-up, each term being the sum of the two before it — no repeated work.",
+          "Builds the Fibonacci sequence bottom-up, each term being the sum of the two before it: no repeated work.",
         time: "O(n)",
         space: "O(n)",
       },
@@ -432,7 +432,7 @@ export const categories: Category[] = [
         slug: "sudoku",
         name: "Sudoku Solver",
         summary:
-          "Fills empty cells one at a time, trying digits 1–9 and backtracking whenever a digit breaks the rules.",
+          "Fills empty cells one at a time, trying digits 1-9 and backtracking whenever a digit breaks the rules.",
         time: "O(9^m)",
         space: "O(m)",
       },
@@ -472,7 +472,7 @@ export const categories: Category[] = [
         slug: "bst",
         name: "Binary Search Tree",
         summary:
-          "Ordered tree where every left subtree is smaller and every right subtree larger — insert, search and delete all follow one root-to-leaf path.",
+          "Ordered tree where every left subtree is smaller and every right subtree larger: insert, search and delete all follow one root-to-leaf path.",
         time: "O(h)",
         space: "O(n)",
       },
@@ -520,7 +520,7 @@ export const categories: Category[] = [
         slug: "kmp",
         name: "KMP",
         summary:
-          "Knuth-Morris-Pratt: precomputes a longest-prefix-suffix table so a mismatch never rescans the text — linear-time pattern matching.",
+          "Knuth-Morris-Pratt: precomputes a longest-prefix-suffix table so a mismatch never rescans the text; linear-time pattern matching.",
         time: "O(n + m)",
         space: "O(m)",
       },
@@ -536,7 +536,7 @@ export const categories: Category[] = [
         slug: "z-algorithm",
         name: "Z-Algorithm",
         summary:
-          "Computes, for every position, the length of the longest substring starting there that matches a prefix of the string — reusing a [l, r) window.",
+          "Computes, for every position, the length of the longest substring starting there that matches a prefix of the string (reusing a [l, r) window).",
         time: "O(n)",
         space: "O(n)",
       },
@@ -544,7 +544,7 @@ export const categories: Category[] = [
         slug: "boyer-moore",
         name: "Boyer-Moore",
         summary:
-          "Compares the pattern right to left and uses the bad-character table to leap past hopeless alignments — often sublinear in practice.",
+          "Compares the pattern right to left and uses the bad-character table to leap past hopeless alignments: often sublinear in practice.",
         time: "O(n/m) best",
         space: "O(σ)",
       },
@@ -584,7 +584,7 @@ export const categories: Category[] = [
         slug: "extended-euclidean",
         name: "Extended Euclidean Algorithm",
         summary:
-          "Runs Euclid while tracking Bézout coefficients, so it ends with gcd(a, b) = x·a + y·b — the key to modular inverses.",
+          "Runs Euclid while tracking Bézout coefficients, so it ends with gcd(a, b) = x·a + y·b: the key to modular inverses.",
         time: "O(log min(a, b))",
         space: "O(1)",
       },

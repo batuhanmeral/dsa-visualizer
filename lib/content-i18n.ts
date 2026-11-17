@@ -15,7 +15,7 @@ const categoryTr: Record<string, { name: string; tagline: string }> = {
   graphs: { name: "Graflar", tagline: "Gezinme ve en kısa yollar" },
   "dynamic-programming": {
     name: "Dinamik Programlama",
-    tagline: "Optimal alt yapı ve hafızalama",
+    tagline: "Optimal altyapı ve hafızalama",
   },
   greedy: {
     name: "Açgözlü Algoritmalar",
@@ -78,19 +78,19 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   "counting-sort": {
     name: "Sayarak Sıralama",
     summary:
-      "Her değerin kaç kez geçtiğini sayar, sayımları önek toplamıyla son konumlara çevirir, sonra her elemanı doğrudan yerleştirir — karşılaştırmasız.",
+      "Her değerin kaç kez geçtiğini sayar, sayımları önek toplamıyla son konumlara çevirir, sonra her elemanı doğrudan yerleştirir: karşılaştırmasız.",
   },
   "bucket-sort": {
     name: "Kovalı Sıralama",
     summary:
-      "Değerleri birkaç aralık kovasına dağıtır, her kovayı sıralar, sonra birleştirir — veri düzgün yayıldığında hızlıdır.",
+      "Değerleri birkaç aralık kovasına dağıtır, her kovayı sıralar, sonra birleştirir: veri düzgün yayıldığında hızlıdır.",
   },
 
   // ── Searching ──
   "linear-search": {
     name: "Doğrusal Arama",
     summary:
-      "Hedef bulunana dek diziyi eleman eleman gezer — sıralı olsun olmasın her dizide çalışır.",
+      "Hedef bulunana dek diziyi eleman eleman gezer: sıralı olsun olmasın her dizide çalışır.",
   },
   "binary-search": {
     name: "İkili Arama",
@@ -105,7 +105,7 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   "interpolation-search": {
     name: "Aradeğerlemeli Arama",
     summary:
-      "Sonda konumunu, hedefin değerinin pencerenin uçlarına oranından tahmin eder — düzgün yayılmış veride O(log log n)'e yakındır.",
+      "Sonda konumunu, hedefin değerinin pencerenin uçlarına oranından tahmin eder: düzgün yayılmış veride O(log log n)'e yakındır.",
   },
 
   // ── Data structures ──
@@ -139,12 +139,12 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   bfs: {
     name: "Enlemesine Arama (BFS)",
     summary:
-      "Bir kuyruk kullanarak grafı seviye seviye keşfeder — ağırlıksız graflarda en kısa yolların temelidir.",
+      "Bir kuyruk kullanarak grafı seviye seviye keşfeder: ağırlıksız graflarda en kısa yolların temelidir.",
   },
   dfs: {
     name: "Derinlemesine Arama (DFS)",
     summary:
-      "Geri izlemeden önce her dalda olabildiğince derine dalar — özyineleme veya yığınla gerçeklenir.",
+      "Geri izlemeden önce her dalda olabildiğince derine dalar: özyineleme veya yığınla gerçeklenir.",
   },
   dijkstra: {
     name: "Dijkstra Algoritması",
@@ -159,7 +159,7 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   "topological-sort": {
     name: "Topolojik Sıralama",
     summary:
-      "Bir YYG'nin düğümlerini her kenar ileri bakacak şekilde doğrusal sıralar — Kahn algoritması giriş derecesi 0 olan düğümleri ayıklar.",
+      "Bir YYG'nin düğümlerini her kenar ileri bakacak şekilde doğrusal sıralar. Kahn algoritması giriş derecesi 0 olan düğümleri ayıklar.",
   },
   prim: {
     name: "Prim MST",
@@ -206,7 +206,7 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   fibonacci: {
     name: "Fibonacci (Tablolama)",
     summary:
-      "Fibonacci dizisini aşağıdan yukarıya kurar; her terim kendinden önceki ikinin toplamıdır — tekrar iş yok.",
+      "Fibonacci dizisini aşağıdan yukarıya kurar; her terim kendinden önceki ikinin toplamıdır: tekrar iş yok.",
   },
   kadane: {
     name: "Kadane Algoritması",
@@ -250,7 +250,7 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   sudoku: {
     name: "Sudoku Çözücü",
     summary:
-      "Boş hücreleri teker teker doldurur; 1–9 rakamlarını dener ve bir rakam kuralları bozduğunda geri izler.",
+      "Boş hücreleri teker teker doldurur; 1-9 rakamlarını dener ve bir rakam kuralları bozduğunda geri izler.",
   },
   "rat-in-a-maze": {
     name: "Labirentteki Fare",
@@ -272,7 +272,7 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   bst: {
     name: "İkili Arama Ağacı",
     summary:
-      "Her sol alt ağacın daha küçük, her sağ alt ağacın daha büyük olduğu sıralı ağaç — ekleme, arama ve silme tek bir kök-yaprak yolunu izler.",
+      "Her sol alt ağacın daha küçük, her sağ alt ağacın daha büyük olduğu sıralı ağaç: ekleme, arama ve silme tek bir kök-yaprak yolunu izler.",
   },
   avl: {
     name: "AVL Ağacı",
@@ -299,7 +299,7 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   kmp: {
     name: "KMP",
     summary:
-      "Knuth-Morris-Pratt: bir uyumsuzluk metni asla yeniden taramasın diye en-uzun-önek-sonek tablosunu önceden hesaplar — doğrusal zamanda desen eşleme.",
+      "Knuth-Morris-Pratt: bir uyumsuzluk metni asla yeniden taramasın diye en-uzun-önek-sonek tablosunu önceden hesaplar; doğrusal zamanda desen eşleme.",
   },
   "rabin-karp": {
     name: "Rabin-Karp",
@@ -309,12 +309,12 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   "z-algorithm": {
     name: "Z-Algoritması",
     summary:
-      "Her konum için, oradan başlayıp dizenin önekiyle eşleşen en uzun alt dizenin uzunluğunu hesaplar — bir [l, r) penceresini yeniden kullanarak.",
+      "Her konum için, oradan başlayıp dizenin önekiyle eşleşen en uzun alt dizenin uzunluğunu hesaplar (bir [l, r) penceresini yeniden kullanarak).",
   },
   "boyer-moore": {
     name: "Boyer-Moore",
     summary:
-      "Deseni sağdan sola karşılaştırır ve kötü-karakter tablosuyla umutsuz hizalamaların üzerinden atlar — pratikte çoğu zaman alt-doğrusal.",
+      "Deseni sağdan sola karşılaştırır ve kötü-karakter tablosuyla umutsuz hizalamaların üzerinden atlar: pratikte çoğu zaman alt-doğrusal.",
   },
   manacher: {
     name: "Manacher Algoritması",
@@ -336,7 +336,7 @@ const algoTr: Record<string, { name: string; summary: string }> = {
   "extended-euclidean": {
     name: "Genişletilmiş Öklid Algoritması",
     summary:
-      "Öklid'i Bézout katsayılarını izleyerek çalıştırır; gcd(a, b) = x·a + y·b ile biter — modüler tersin anahtarı.",
+      "Öklid'i Bézout katsayılarını izleyerek çalıştırır; gcd(a, b) = x·a + y·b ile biter: modüler tersin anahtarı.",
   },
   "fast-exponentiation": {
     name: "Hızlı Üs Alma",

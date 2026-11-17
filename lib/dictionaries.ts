@@ -27,7 +27,7 @@ export const en = {
   // Home
   "home.title": "Data Structures & Algorithms",
   "home.desc":
-    "Every algorithm visualized as it runs — the array, the pointers and the " +
+    "Every algorithm visualized as it runs: the array, the pointers and the " +
     "executing C line, together at each step. Pick a category below, open it " +
     "and choose an algorithm, then walk the run forwards or backwards at your " +
     "own pace.",
@@ -53,7 +53,7 @@ export const en = {
   "ws.input.aria": "Input numbers",
   "ws.input.placeholder": "e.g. 23, 7, 41, 15",
   "ws.target.aria": "Target value",
-  "ws.maxNumbers": "max {n} numbers (0–999)",
+  "ws.maxNumbers": "max {n} numbers (0-999)",
   "ws.code.showPseudo": "Show pseudocode",
   "ws.code.showC": "Show C code",
   "ws.code.aria": "Code viewer",
@@ -67,7 +67,7 @@ export const en = {
   "ws.status.done": "Done",
   "ws.status.idle": "Idle",
   "ws.hint.search":
-    "Looking for {target} — matches are highlighted. Step-by-step animation coming next.",
+    "Looking for {target}: matches are highlighted. Step-by-step animation coming next.",
   "ws.hint.sort":
     "Your input, ready to sort. Step-by-step animation coming next.",
   "ws.ds.preview":
@@ -101,7 +101,7 @@ export const en = {
   "stat.totalHint":
     "Comparisons, swaps, moves and probes so far. This algorithm is {o}; open the Growth tab to see the count for n = {n} against that curve.",
   "growth.hint.ops":
-    "Comparisons, swaps, moves and probes on the same random input at growing sizes — this is what the O(…) bound is about.",
+    "Comparisons, swaps, moves and probes on the same random input at growing sizes: this is what the O(…) bound is about.",
   "growth.hint.steps":
     "Animation frames, narration included. The shape matches the operations, but the constant is the visualization's, not the algorithm's.",
   "growth.metric.ops": "operations",
@@ -109,7 +109,7 @@ export const en = {
   "growth.theory": "{o}, fitted to the measurements",
   "growth.legend.theory": "{o} (fitted)",
   "growth.legend.live": "your input (n = {n})",
-  "growth.live": "your input — n={n}: {value}",
+  "growth.live": "your input (n={n}): {value}",
   "growth.steps": "steps",
   "growth.others": "other algorithms ({n})",
   "growth.table": "Show data table",
@@ -207,8 +207,8 @@ export const en = {
   "greedy.legend.picked": "picked (two minima)",
   "greedy.legend.merged": "merged",
   "greedy.legend.codeEmitted": "code emitted",
-  "greedy.activityHint": "Sorted by finish time — the line marks the last finish.",
-  "greedy.jobsHint": "Sorted by profit — each job grabs the latest free hour.",
+  "greedy.activityHint": "Sorted by finish time: the line marks the last finish.",
+  "greedy.jobsHint": "Sorted by profit: each job grabs the latest free hour.",
   "greedy.capacity": "capacity {n}",
   "greedy.total": "total",
   "greedy.bag": "Bag",
@@ -243,7 +243,7 @@ export const en = {
   "bt.legend.recorded": "recorded",
   "bt.boardSize": "Board size",
   "bt.sudokuHint":
-    "Solving one preset puzzle — watch digits get tried, placed and undone.",
+    "Solving one preset puzzle: watch digits get tried, placed and undone.",
   "bt.mazeHint":
     "Rat starts top-left, exit is bottom-right. Walls are dark cells.",
   "bt.building": "building",
@@ -276,8 +276,8 @@ export const en = {
   // Compare mode
   "cmp.vs": "vs",
   "cmp.steps": "{n} steps",
-  "cmp.racing": "Racing on the same input — {a} vs {b}.",
-  "cmp.tie": "Tie — both finished in {n} steps.",
+  "cmp.racing": "Racing on the same input: {a} vs {b}.",
+  "cmp.tie": "Tie: both finished in {n} steps.",
   "cmp.wins": "{name} wins: {a} vs {b} steps.",
 } as const;
 
@@ -304,7 +304,7 @@ export const tr: Partial<Record<TKey, string>> = {
   // Home
   "home.title": "Veri Yapıları ve Algoritmalar",
   "home.desc":
-    "Her algoritma çalışırken görselleşir — her adımda diziyi, işaretçileri " +
+    "Her algoritma çalışırken görselleşir: her adımda diziyi, işaretçileri " +
     "ve çalışan C satırını aynı anda görürsün. Aşağıdan bir kategori aç, bir " +
     "algoritma seç, sonra çalışmayı kendi hızında adım adım ileri ya da geri " +
     "izle.",
@@ -331,7 +331,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "ws.input.aria": "Girdi sayıları",
   "ws.input.placeholder": "örn. 23, 7, 41, 15",
   "ws.target.aria": "Hedef değer",
-  "ws.maxNumbers": "en fazla {n} sayı (0–999)",
+  "ws.maxNumbers": "en fazla {n} sayı (0-999)",
   "ws.code.showPseudo": "Sözde kodu göster",
   "ws.code.showC": "C kodunu göster",
   "ws.code.aria": "Kod görüntüleyici",
@@ -345,7 +345,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "ws.status.done": "Bitti",
   "ws.status.idle": "Boşta",
   "ws.hint.search":
-    "{target} aranıyor — eşleşmeler vurgulanır. Adım adım animasyon yakında.",
+    "{target} aranıyor: eşleşmeler vurgulanır. Adım adım animasyon yakında.",
   "ws.hint.sort":
     "Girdin sıralanmaya hazır. Adım adım animasyon yakında.",
   "ws.ds.preview":
@@ -379,7 +379,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "stat.totalHint":
     "Şimdiye kadarki karşılaştırma, takas, hareket ve yoklama sayısı. Bu algoritma {o}; n = {n} için bu sayının eğriye oturuşunu Büyüme sekmesinde görebilirsiniz.",
   "growth.hint.ops":
-    "Aynı rastgele girdide, büyüyen boyutlarda karşılaştırma, takas, hareket ve yoklama sayısı — O(…) sınırının konusu tam olarak bu.",
+    "Aynı rastgele girdide, büyüyen boyutlarda karşılaştırma, takas, hareket ve yoklama sayısı: O(…) sınırının konusu tam olarak bu.",
   "growth.hint.steps":
     "Anlatım adımları dahil animasyon kareleri. Şekil işlem sayısıyla aynı, ama sabit çarpan algoritmanın değil görselleştirmenin.",
   "growth.metric.ops": "işlem",
@@ -387,7 +387,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "growth.theory": "{o}, ölçümlere oturtuldu",
   "growth.legend.theory": "{o} (oturtulmuş)",
   "growth.legend.live": "sizin girdiniz (n = {n})",
-  "growth.live": "sizin girdiniz — n={n}: {value}",
+  "growth.live": "sizin girdiniz (n={n}): {value}",
   "growth.steps": "adım",
   "growth.others": "diğer algoritmalar ({n})",
   "growth.table": "Veri tablosunu göster",
@@ -486,9 +486,9 @@ export const tr: Partial<Record<TKey, string>> = {
   "greedy.legend.merged": "birleştirildi",
   "greedy.legend.codeEmitted": "kod üretildi",
   "greedy.activityHint":
-    "Bitiş zamanına göre sıralı — çizgi son bitişi gösterir.",
+    "Bitiş zamanına göre sıralı: çizgi son bitişi gösterir.",
   "greedy.jobsHint":
-    "Kâra göre sıralı — her iş en geç boş saati kapar.",
+    "Kâra göre sıralı: her iş en geç boş saati kapar.",
   "greedy.capacity": "kapasite {n}",
   "greedy.total": "toplam",
   "greedy.bag": "Çanta",
@@ -523,7 +523,7 @@ export const tr: Partial<Record<TKey, string>> = {
   "bt.legend.recorded": "kaydedildi",
   "bt.boardSize": "Tahta boyutu",
   "bt.sudokuHint":
-    "Hazır bir bulmaca çözülüyor — rakamların denenip yerleştirilip geri alınışını izleyin.",
+    "Hazır bir bulmaca çözülüyor: rakamların denenip yerleştirilip geri alınışını izleyin.",
   "bt.mazeHint":
     "Fare sol üstten başlar, çıkış sağ alttadır. Duvarlar koyu hücrelerdir.",
   "bt.building": "oluşturuluyor",
@@ -556,7 +556,7 @@ export const tr: Partial<Record<TKey, string>> = {
   // Compare
   "cmp.vs": "vs",
   "cmp.steps": "{n} adım",
-  "cmp.racing": "Aynı girdide yarışıyor — {a} vs {b}.",
-  "cmp.tie": "Berabere — ikisi de {n} adımda bitti.",
+  "cmp.racing": "Aynı girdide yarışıyor: {a} vs {b}.",
+  "cmp.tie": "Berabere: ikisi de {n} adımda bitti.",
   "cmp.wins": "{name} kazandı: {a} - {b} adım.",
 };
