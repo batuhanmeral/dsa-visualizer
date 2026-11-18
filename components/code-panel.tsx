@@ -14,8 +14,9 @@ import CodeView from "./code-view";
 const TAB_LABEL: Record<PanelTab, TKey> = {
   about: "ws.tab.about",
   code: "ws.tab.code",
-  growth: "ws.tab.growth",
 };
+
+export const GROWTH_SECTION_ID = "growth";
 
 const COPIED_FEEDBACK_MS = 1500;
 
@@ -31,7 +32,7 @@ interface CodePanelProps {
   activeLine: number;
 }
 
-/** Code viewer with About / Code / Growth tabs (WAI-ARIA tabs pattern). */
+/** Code viewer with About and Code tabs (WAI-ARIA tabs pattern). */
 export default function CodePanel({
   tabs,
   activeTab,
@@ -115,10 +116,24 @@ export default function CodePanel({
   );
 
   const panelContent = (tab: PanelTab): ReactNode => {
-    if (tab === "about") return about;
-    // Code and Growth only render while selected; About stays in the DOM for crawlers.
+    // Keep the explainer in the server HTML even when Code is selected.
+    if (tab === "about") {
+      const growthHeadingId = `${idPrefix}-growth-heading`;
+      return (
+        <>
+          {about}
+          {growth && (
+            <section id={GROWTH_SECTION_ID} aria-labelledby={growthHeadingId} className="mt-5 scroll-mt-18 lg:scroll-mt-0">
+              <h3 id={growthHeadingId} className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                {t("explainer.growth")}
+              </h3>
+              {growth}
+            </section>
+          )}
+        </>
+      );
+    }
     if (tab !== activeTab) return null;
-    if (tab === "growth") return growth;
     return (
       <CodeView code={shownCode} activeLine={activeLine} lang={codeLang} corner={codeActions} />
     );
