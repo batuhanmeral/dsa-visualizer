@@ -45,10 +45,10 @@ export const en = {
 
   // Trie
   "n.trie.create": "Insert \"{word}\": create node for '{ch}'.",
-  "n.trie.descend": "Insert \"{word}\": '{ch}' already exists: descend.",
+  "n.trie.descend": "Insert \"{word}\": '{ch}' already exists, descend.",
   "n.trie.end": "Mark end of word \"{word}\".",
-  "n.trie.missing": "Search \"{query}\": '{ch}' missing: not found.",
-  "n.trie.match": "Search \"{query}\": match '{ch}': descend.",
+  "n.trie.missing": "Search \"{query}\": '{ch}' is missing, not found.",
+  "n.trie.match": "Search \"{query}\": '{ch}' matches, descend.",
   "n.trie.word": "\"{query}\" is a complete word.",
   "n.trie.prefix": "\"{query}\" is a valid prefix.",
 
@@ -64,15 +64,15 @@ export const en = {
 
   // Union-Find
   "n.uf.makeSets": "makeSets({n}): every element is its own root with rank 0.",
-  "n.uf.walk": "find({x}): {node} is not a root: follow parent[{node}] = {parent}.",
+  "n.uf.walk": "find({x}): {node} is not a root, follow parent[{node}] = {parent}.",
   "n.uf.root": "find({x}) = {root}: the root represents the set.",
   "n.uf.compressOne": "Path compression: {nodes} now points straight at {root}.",
   "n.uf.compress": "Path compression: {nodes} now point straight at {root}.",
-  "n.uf.sameSet": "{op}: both are already in set {root}: nothing to do.",
-  "n.uf.unionLess": "{op}: rank {rankA} < {rankB}: hang root {ra} under {rb}.",
-  "n.uf.unionGreater": "{op}: rank {rankA} > {rankB}: hang root {rb} under {ra}.",
+  "n.uf.sameSet": "{op}: both are already in set {root}, nothing to do.",
+  "n.uf.unionLess": "{op}: rank {rankA} < {rankB}, so hang root {ra} under {rb}.",
+  "n.uf.unionGreater": "{op}: rank {rankA} > {rankB}, so hang root {rb} under {ra}.",
   "n.uf.unionEqual":
-    "{op}: equal ranks: hang {rb} under {ra} and bump rank[{ra}] to {rank}.",
+    "{op}: ranks are equal, so hang {rb} under {ra} and bump rank[{ra}] to {rank}.",
   "n.uf.done":
     "Done. find({key}) = {root}; repeated finds have flattened the forest.",
 } as const;
@@ -119,10 +119,10 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.heap.swapDown": "{value} aşağı takas ediliyor.",
 
   "n.trie.create": "\"{word}\" ekleniyor: '{ch}' için düğüm oluşturuluyor.",
-  "n.trie.descend": "\"{word}\" ekleniyor: '{ch}' zaten var: aşağı iniliyor.",
+  "n.trie.descend": "\"{word}\" ekleniyor: '{ch}' zaten var, aşağı iniliyor.",
   "n.trie.end": "\"{word}\" kelimesinin sonu işaretleniyor.",
-  "n.trie.missing": "\"{query}\" aranıyor: '{ch}' yok: bulunamadı.",
-  "n.trie.match": "\"{query}\" aranıyor: '{ch}' eşleşti: aşağı iniliyor.",
+  "n.trie.missing": "\"{query}\" aranıyor: '{ch}' yok, bulunamadı.",
+  "n.trie.match": "\"{query}\" aranıyor: '{ch}' eşleşti, aşağı iniliyor.",
   "n.trie.word": "\"{query}\" tam bir kelime.",
   "n.trie.prefix": "\"{query}\" geçerli bir ön ek.",
 
@@ -136,15 +136,15 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.seg.total": "[{ql}, {qr}] aralığının toplamı = {total}.",
 
   "n.uf.makeSets": "makeSets({n}): her eleman rütbesi 0 olan kendi köküdür.",
-  "n.uf.walk": "find({x}): {node} bir kök değil: parent[{node}] = {parent} izleniyor.",
+  "n.uf.walk": "find({x}): {node} bir kök değil, parent[{node}] = {parent} izleniyor.",
   "n.uf.root": "find({x}) = {root}: kök, kümeyi temsil eder.",
   "n.uf.compressOne": "Yol sıkıştırma: {nodes} artık doğrudan {root} düğümünü gösteriyor.",
   "n.uf.compress": "Yol sıkıştırma: {nodes} artık doğrudan {root} düğümünü gösteriyor.",
-  "n.uf.sameSet": "{op}: ikisi de zaten {root} kümesinde: yapacak bir şey yok.",
-  "n.uf.unionLess": "{op}: rütbe {rankA} < {rankB}: kök {ra}, {rb} altına bağlanıyor.",
-  "n.uf.unionGreater": "{op}: rütbe {rankA} > {rankB}: kök {rb}, {ra} altına bağlanıyor.",
+  "n.uf.sameSet": "{op}: ikisi de zaten {root} kümesinde, yapacak bir şey yok.",
+  "n.uf.unionLess": "{op}: rütbe {rankA} < {rankB}, bu yüzden {ra} kökü {rb} altına bağlanıyor.",
+  "n.uf.unionGreater": "{op}: rütbe {rankA} > {rankB}, bu yüzden {rb} kökü {ra} altına bağlanıyor.",
   "n.uf.unionEqual":
-    "{op}: rütbeler eşit: {rb}, {ra} altına bağlanıyor ve rank[{ra}] {rank} yapılıyor.",
+    "{op}: rütbeler eşit, {rb} kökü {ra} altına bağlanıyor ve rank[{ra}] {rank} yapılıyor.",
   "n.uf.done":
     "Tamamlandı. find({key}) = {root}; tekrarlanan find'lar ormanı düzleştirdi.",
 };

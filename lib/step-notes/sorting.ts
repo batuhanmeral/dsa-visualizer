@@ -149,7 +149,7 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.counting.tally": "{value} sayılıyor: count[{value}] artık {count}.",
   "n.counting.prefix": "Sayaçların kümülatif toplamı: her göz bir nihai konum tutar.",
   "n.counting.stable":
-    "Girdi sondan başa taranıyor: {value}, {slot}. gözü alıyor: böylece eşit anahtarlar özgün sırasını korur.",
+    "Girdi sondan başa taranıyor: {value}, {slot}. gözü alıyor. Böylece eşit anahtarlar özgün sırasını korur.",
   "n.counting.copyBack": "Geri kopyalama: {value}, sıralı {index}. indeksine yerleşiyor.",
 
   "n.bucket.start": "{n} eleman üzerinde Bucket Sort başlıyor ({buckets} kova).",

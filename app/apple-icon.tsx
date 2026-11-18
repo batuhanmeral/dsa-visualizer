@@ -3,8 +3,8 @@ import { ImageResponse } from "next/og";
 export const size = { width: 180, height: 180 };
 export const contentType = "image/png";
 
-// ImageResponse cannot read CSS variables; value mirrors --color-claude-500.
-const ACCENT = "#d97757";
+// ImageResponse cannot read CSS variables; value mirrors --color-claude-600.
+const ACCENT = "#c25e3d";
 
 export default function AppleIcon() {
   return new ImageResponse(
@@ -20,12 +20,12 @@ export default function AppleIcon() {
         }}
       >
         <svg
-          width="110"
-          height="110"
-          viewBox="0 0 24 24"
+          width="113"
+          height="144"
+          viewBox="4.6 2.6 14.8 18.8"
           fill="none"
           stroke="#ffffff"
-          strokeWidth="2"
+          strokeWidth="2.4"
           strokeLinecap="round"
           strokeLinejoin="round"
         >

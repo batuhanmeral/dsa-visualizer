@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Binary, LayoutDashboard, PanelLeftClose } from "lucide-react";
+import { LayoutDashboard, PanelLeftClose } from "lucide-react";
 import { categories } from "@/lib/data";
 import { useLang } from "@/lib/i18n";
 import { algoName, catName } from "@/lib/content-i18n";
 import { localePath } from "@/lib/locale";
 import ThemeToggle from "./theme-toggle";
 import LangToggle from "./lang-toggle";
+import BrandMark from "./brand-mark";
 
 interface SidebarNavProps {
   onNavigate?: () => void;
@@ -24,19 +25,20 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
   return (
     <div className="flex h-full flex-col">
       {/* Top bar: wordmark on the left, controls on the right */}
-      <div className="flex items-center justify-between gap-2 border-b border-zinc-200 px-4 py-2.5 dark:border-zinc-800">
+      <div className={`flex items-center gap-1 border-b border-zinc-200 py-2.5 dark:border-zinc-800 ${
+        onCollapse ? "justify-between px-2" : "flex-wrap gap-y-2 pr-13 pl-3"
+      }`}>
         <Link
           href={homeHref}
           onClick={onNavigate}
-          className="flex items-center gap-2 text-[15px] font-bold tracking-tight transition-opacity hover:opacity-80"
+          className="flex min-h-10 shrink-0 items-center gap-1.5 rounded-lg transition-opacity hover:opacity-80 focus-visible:outline-2 focus-visible:outline-claude-500 lg:min-h-9"
         >
-          {/* The 01/10 glyph, same mark as the mobile top bar. */}
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-claude-500/15 text-claude-600 dark:text-claude-400">
-            <Binary className="size-4" />
+          <BrandMark />
+          <span className="font-brand text-[17px] leading-none font-bold tracking-[0.02em] text-zinc-900 uppercase dark:text-zinc-100">
+            Algoritmalar
           </span>
-          <span className="text-claude-600 dark:text-claude-400">Algoritmalar</span>
         </Link>
-        <div className="flex items-center gap-0.5">
+        <div className={`flex shrink-0 items-center gap-0.5 ${onCollapse ? "[&>*]:size-7" : "[&>*]:size-10"}`}>
           <LangToggle />
           <ThemeToggle />
           {onCollapse && (

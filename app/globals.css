@@ -32,6 +32,7 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
   --font-mono: var(--font-jetbrains-mono);
+  --font-brand: var(--font-space-grotesk);
 }
 
 /* Accent palette — Claude's orange (#d97757) at 500, with a ramp either side.

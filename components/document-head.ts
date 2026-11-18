@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Space_Grotesk } from "next/font/google";
 import { siteUrl } from "@/lib/site";
 import { splitBootSnippet } from "@/lib/split-ratio";
 
@@ -16,8 +16,15 @@ const jetbrainsMono = JetBrains_Mono({
   preload: false,
 });
 
+// Wordmark only: one weight, so the logo face costs a single small file.
+const spaceGrotesk = Space_Grotesk({
+  variable: "--font-space-grotesk",
+  subsets: ["latin", "latin-ext"],
+  weight: "700",
+});
+
 /** Shared with global-not-found, which renders outside both root layouts. */
-export const htmlClassName = `${inter.variable} ${jetbrainsMono.variable} h-full antialiased`;
+export const htmlClassName = `${inter.variable} ${jetbrainsMono.variable} ${spaceGrotesk.variable} h-full antialiased`;
 
 export const rootMetadata: Metadata = {
   metadataBase: siteUrl,
