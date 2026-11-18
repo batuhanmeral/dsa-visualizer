@@ -7,19 +7,19 @@ import { translate } from "./translate";
 const OG_LOCALE: Record<Lang, string> = { tr: "tr_TR", en: "en_US" };
 
 const HOME_TITLE: Record<Lang, string> = {
-  tr: "Algoritmalar — Veri Yapıları ve Algoritmaları Adım Adım İzle",
-  en: "Algoritmalar — Data Structures & Algorithms, Step by Step",
+  tr: "Algoritmalar: Veri Yapıları ve Algoritmaları Adım Adım İzle",
+  en: "Algoritmalar: Data Structures & Algorithms, Step by Step",
 };
 
 /** Turkish titles carry both names so English searches ("bubble sort") still match. */
 export function algorithmTitle(lang: Lang, slug: string, enName: string): string {
-  if (lang === "en") return `${enName}: How It Works`;
+  if (lang === "en") return `What is ${enName}? How does it work?`;
   const trName = algoName(slug, enName, "tr");
   const names =
     trName.toLowerCase() === enName.toLowerCase()
       ? trName
       : `${trName} (${enName})`;
-  return `${names}: Nasıl Çalışır?`;
+  return `${names} nedir? Nasıl çalışır?`;
 }
 
 export function pageMetadata(

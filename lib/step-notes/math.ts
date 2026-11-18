@@ -22,10 +22,10 @@ export const en = {
 
   // Extended Euclidean
   "n.ext.seed":
-    "Seed two rows: {a} = 1·a + 0·b and {b} = 0·a + 1·b: every row keeps r = s·a + t·b.",
+    "Seed two rows, {a} = 1·a + 0·b and {b} = 0·a + 1·b. Every row keeps r = s·a + t·b.",
   "n.ext.quotient": "q = ⌊{oldR} / {r}⌋ = {q}.",
   "n.ext.row":
-    "New row: r = {r}, s = {s}, t = {t}: check: {s}·{a} + {t}·{b} = {check}.",
+    "New row: r = {r}, s = {s}, t = {t}. Check: {s}·{a} + {t}·{b} = {check}.",
   "n.ext.done":
     "Done. gcd({a}, {b}) = {g} = {x}·{a} + {y}·{b}: the Bézout identity.",
 
@@ -34,7 +34,7 @@ export const en = {
   "n.pow.reduce": "Reduce the base: {base} mod {mod} = {reduced}.",
   "n.pow.bit": "exp = {exp} ({bits}₂): its low bit is {bit}.",
   "n.pow.multiply":
-    "Bit is 1: multiply it in: result = {prev} × {base} mod {mod} = {result}.",
+    "Bit is 1, so multiply it in: result = {prev} × {base} mod {mod} = {result}.",
   "n.pow.square": "Square the base for the next bit: {prev}² mod {mod} = {base}.",
   "n.pow.shift": "Shift the exponent right: exp = {exp}.",
   "n.pow.done": "Done. {base}^{exp} mod {mod} = {result}.",
@@ -60,10 +60,10 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
     "Tamamlandı. gcd = {g}: sıfırdan farklı son kalan, üstündeki her şeyi böler.",
 
   "n.ext.seed":
-    "İki satır tohumlanıyor: {a} = 1·a + 0·b ve {b} = 0·a + 1·b: her satır r = s·a + t·b değişmezini korur.",
+    "İki satır tohumlanıyor, {a} = 1·a + 0·b ve {b} = 0·a + 1·b. Her satır r = s·a + t·b değişmezini korur.",
   "n.ext.quotient": "q = ⌊{oldR} / {r}⌋ = {q}.",
   "n.ext.row":
-    "Yeni satır: r = {r}, s = {s}, t = {t}: kontrol: {s}·{a} + {t}·{b} = {check}.",
+    "Yeni satır: r = {r}, s = {s}, t = {t}. Kontrol: {s}·{a} + {t}·{b} = {check}.",
   "n.ext.done":
     "Tamamlandı. gcd({a}, {b}) = {g} = {x}·{a} + {y}·{b}: Bézout kimliği.",
 
@@ -71,7 +71,7 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.pow.reduce": "Taban indirgeniyor: {base} mod {mod} = {reduced}.",
   "n.pow.bit": "exp = {exp} ({bits}₂): en düşük biti {bit}.",
   "n.pow.multiply":
-    "Bit 1: çarpıma katılıyor: result = {prev} × {base} mod {mod} = {result}.",
+    "Bit 1, çarpıma katılıyor: result = {prev} × {base} mod {mod} = {result}.",
   "n.pow.square": "Sonraki bit için taban kareleniyor: {prev}² mod {mod} = {base}.",
   "n.pow.shift": "Üs sağa kaydırılıyor: exp = {exp}.",
   "n.pow.done": "Tamamlandı. {base}^{exp} mod {mod} = {result}.",

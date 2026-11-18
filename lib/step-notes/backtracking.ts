@@ -2,8 +2,8 @@
 export const en = {
   // N-Queens
   "n.queens.start": "Start solving the {n}×{n} board from row 0.",
-  "n.queens.trySafe": "Row {row}: try column {col}: safe.",
-  "n.queens.tryAttacked": "Row {row}: try column {col}: attacked, skip.",
+  "n.queens.trySafe": "Row {row}: column {col} is safe.",
+  "n.queens.tryAttacked": "Row {row}: column {col} is attacked, skip it.",
   "n.queens.place": "Place a queen at (row {row}, col {col}).",
   "n.queens.backtrack":
     "Dead end below: remove the queen from row {row} and try the next column.",
@@ -49,8 +49,8 @@ export const en = {
 
 export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.queens.start": "{n}×{n} tahtada 0. satırdan çözmeye başlanıyor.",
-  "n.queens.trySafe": "Satır {row}: {col}. kolon deneniyor: güvenli.",
-  "n.queens.tryAttacked": "Satır {row}: {col}. kolon deneniyor: tehdit altında, atlanıyor.",
+  "n.queens.trySafe": "Satır {row}: {col}. kolon güvenli.",
+  "n.queens.tryAttacked": "Satır {row}: {col}. kolon tehdit altında, atlanıyor.",
   "n.queens.place": "(satır {row}, kolon {col}) konumuna vezir yerleştiriliyor.",
   "n.queens.backtrack":
     "Aşağıda çıkmaz sokak: {row}. satırdaki vezir kaldırılıp sonraki kolon deneniyor.",

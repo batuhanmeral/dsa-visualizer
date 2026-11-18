@@ -13,7 +13,7 @@ import { shareQuery } from "@/lib/share-url";
 import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
-import { algoName, catName } from "@/lib/content-i18n";
+import { algoName } from "@/lib/content-i18n";
 import CodePanel, { GROWTH_SECTION_ID } from "./code-panel";
 import {
   PlaybackBridgeContext,
@@ -696,15 +696,12 @@ export default function Workspace({
       <div
         ref={panelsRef}
         style={{ "--split-floor": `${SPLIT_MIN_CANVAS_PX}px` } as CSSProperties}
-        className="grid flex-1 grid-cols-1 gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,max(var(--split-floor),calc((100%_-_--spacing(4))*var(--split,65)/100)))_--spacing(4)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-x-0 lg:[&>[role=separator]]:col-start-2 lg:[&>[role=separator]]:row-span-2 lg:[&>[role=separator]]:row-start-1 lg:[&>section:last-child]:col-start-3 lg:[&>section:last-child]:row-start-2"
+        className="grid flex-1 grid-cols-1 gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,max(var(--split-floor),calc((100%_-_--spacing(4))*var(--split,65)/100)))_--spacing(4)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-x-0 lg:gap-y-0 lg:[&>[role=separator]]:col-start-2 lg:[&>[role=separator]]:row-span-2 lg:[&>[role=separator]]:row-start-1 lg:[&>section:last-child]:col-start-3 lg:[&>section:last-child]:row-start-2 lg:[&>section:last-child]:rounded-t-none"
       >
-        <header className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 lg:col-start-3 lg:row-start-1 dark:bg-zinc-900/60">
+        <header className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 lg:col-start-3 lg:row-start-1 lg:rounded-b-none lg:border-b-0 dark:bg-zinc-900/60">
           <h1 className="min-w-0 wrap-break-word text-lg font-semibold tracking-tight">
             {algoName(algorithm.slug, algorithm.name, lang)}
           </h1>
-          <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-            {catName(category.slug, category.name, lang)}
-          </span>
           <span className="inline-flex items-center gap-1 rounded-full bg-claude-500/10 px-2.5 py-0.5 text-[11px] font-medium text-claude-600 dark:text-claude-400">
             <Clock className="size-3" /> {algorithm.time}
           </span>

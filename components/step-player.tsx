@@ -160,15 +160,15 @@ export function SpeedSelect() {
       <div
         role="group"
         aria-label={t("ws.speed")}
-        className="ml-auto hidden shrink-0 items-center gap-0.5 rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 @sm:flex dark:border-zinc-800 dark:bg-zinc-950"
+        className="ml-auto hidden min-h-8.5 shrink-0 items-stretch gap-0.5 self-stretch rounded-lg border border-zinc-200 bg-zinc-50 p-0.5 @sm:flex dark:border-zinc-800 dark:bg-zinc-950"
       >
-        <Gauge className="ml-1 size-3.5 text-zinc-400" />
+        <Gauge className="ml-1 size-3.5 self-center text-zinc-400" />
         {SPEEDS.map((s) => (
           <button
             key={s}
             type="button"
             onClick={() => ctx.setSpeed(s)}
-            className={`min-h-10 min-w-10 rounded-md px-2 py-1 text-[11px] font-medium transition-colors lg:min-h-0 lg:min-w-0 ${FOCUS_RING} ${
+            className={`min-w-10 rounded-md px-2 text-[11px] font-medium transition-colors lg:min-w-0 ${FOCUS_RING} ${
               ctx.speed === s
                 ? "bg-claude-500/15 text-claude-600 dark:text-claude-400"
                 : "text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100"
@@ -185,7 +185,7 @@ export function SpeedSelect() {
           const next = SPEEDS.find((s) => String(s) === e.target.value);
           if (next !== undefined) ctx.setSpeed(next);
         }}
-        className={`ml-auto h-10 shrink-0 cursor-pointer rounded-lg border border-zinc-200 bg-zinc-50 px-2 text-[11px] font-medium text-zinc-600 @sm:hidden lg:h-8 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 ${FOCUS_RING}`}
+        className={`ml-auto min-h-8.5 shrink-0 cursor-pointer self-stretch rounded-lg border border-zinc-200 bg-zinc-50 px-2 text-[11px] font-medium text-zinc-600 @sm:hidden dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 ${FOCUS_RING}`}
       >
         {SPEEDS.map((s) => (
           <option key={s} value={s}>

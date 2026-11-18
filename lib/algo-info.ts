@@ -20,25 +20,25 @@ const en: Record<string, AlgoInfo> = {
   // ── Sorting ──
   "bubble-sort": {
     how: "Sweep the array left to right, swapping any adjacent pair that is out of order. Each pass floats the largest remaining value to the end, so the sorted suffix grows by one every pass.",
-    best: "Already sorted: one pass, no swaps, the swapped flag exits early: O(n).",
-    worst: "Reverse-sorted input: every pair must be swapped: O(n²) comparisons and swaps.",
+    best: "Already sorted: one pass with no swaps, and the swapped flag exits early, so O(n).",
+    worst: "Reverse-sorted input: every pair must be swapped, so O(n²) comparisons and swaps.",
     use: "Teaching and tiny inputs only; in practice it is dominated by insertion sort.",
   },
   "selection-sort": {
     how: "Scan the unsorted part for its minimum and swap it into the next slot of the sorted prefix. The prefix grows one element per pass, and each element is moved at most once.",
-    best: "No best case: it always scans the full unsorted part: O(n²) comparisons even when sorted.",
+    best: "No best case. It always scans the full unsorted part, so O(n²) comparisons even when sorted.",
     worst: "Same O(n²) comparisons, but never more than n−1 swaps in total.",
     use: "When writes are expensive (e.g. flash memory), since it minimizes the number of swaps.",
   },
   "insertion-sort": {
     how: "Keep the left part sorted. Take the next element, shift everything larger one step right, and drop it into the gap, as when sorting playing cards in your hand.",
-    best: "Already (or nearly) sorted: each element shifts at most a step: O(n).",
-    worst: "Reverse-sorted: every element travels all the way left: O(n²).",
+    best: "Already (or nearly) sorted: each element shifts at most a step, so O(n).",
+    worst: "Reverse-sorted: every element travels all the way left, so O(n²).",
     use: "Small or nearly-sorted arrays; the standard finishing pass inside hybrid sorts like Timsort.",
   },
   "shell-sort": {
     how: "Run insertion sort over elements a gap apart, then shrink the gap. Distant elements jump close to their final spot early, so the final gap-1 pass finds an almost-sorted array.",
-    best: "Already sorted: every gap pass just verifies order: about O(n log n).",
+    best: "Already sorted: every gap pass just verifies order, about O(n log n).",
     worst: "Depends on the gap sequence; with n/2ᵏ gaps it degrades to O(n²).",
     use: "Simple in-place sort that beats plain insertion sort without recursion or extra memory.",
   },
@@ -51,7 +51,7 @@ const en: Record<string, AlgoInfo> = {
   "quick-sort": {
     how: "Pick a pivot and partition: smaller values to its left, larger to its right. The pivot lands in its final place. Recurse on the two sides. Everything happens in place.",
     best: "Balanced partitions (good pivots): O(n log n) with a very small constant.",
-    worst: "Sorted input with a bad pivot rule: one-sided partitions: O(n²).",
+    worst: "Sorted input with a bad pivot rule gives one-sided partitions: O(n²).",
     use: "The default general-purpose in-memory sort when stability is not required.",
   },
   "heap-sort": {
@@ -74,8 +74,8 @@ const en: Record<string, AlgoInfo> = {
   },
   "bucket-sort": {
     how: "Split the value range into a few buckets, scatter elements into them, sort each small bucket (insertion sort), then concatenate the buckets in order.",
-    best: "Uniformly spread data: buckets stay small: about O(n + k).",
-    worst: "All values land in one bucket: degenerates to that bucket's sort: O(n²).",
+    best: "Uniformly spread data keeps buckets small: about O(n + k).",
+    worst: "All values land in one bucket, so it degenerates to that bucket's sort: O(n²).",
     use: "Data known to spread evenly over a range (e.g. uniform floats in [0,1)).",
   },
 
@@ -122,14 +122,14 @@ const en: Record<string, AlgoInfo> = {
   },
   "hash-table": {
     how: "A hash function maps each key to one of a few buckets. Lookups jump straight to the right bucket and only walk its (short) chain of colliding keys.",
-    best: "Even spread: chains of length ~1: O(1) per operation.",
+    best: "An even spread keeps chains at length ~1: O(1) per operation.",
     worst: "All keys collide into one bucket: O(n) chain walk.",
     use: "The default dictionary/set: constant-time lookups when order doesn't matter.",
   },
   "union-find": {
     how: "Each set is a tree; the root is the set's representative. find(x) walks to the root, union links one root under the other. Path compression makes every visited node point straight at the root, flattening trees as a side effect of use.",
-    best: "Flattened trees: find is a single hop: effectively O(1).",
-    worst: "With union by rank + path compression: amortized O(α(n)): inverse Ackermann, ≤ 4 in practice.",
+    best: "Flattened trees make find a single hop: effectively O(1).",
+    worst: "With union by rank and path compression: amortized O(α(n)), the inverse Ackermann function, ≤ 4 in practice.",
     use: "Dynamic connectivity: Kruskal's MST, cycle detection, grouping equivalent items.",
   },
 
@@ -173,7 +173,7 @@ const en: Record<string, AlgoInfo> = {
     use: "Pathfinding with a geometric goal: games, robotics, maps (straight-line distance as h).",
   },
   "floyd-warshall": {
-    how: "Dynamic programming over intermediate nodes: after round k, dist[i][j] is the shortest path using only nodes 0..k as stopovers. Round k asks one question per pair: is going through k shorter?",
+    how: "Dynamic programming over intermediate nodes. After round k, dist[i][j] is the shortest path using only nodes 0..k as stopovers. Round k asks one question per pair: is going through k shorter?",
     worst: "Θ(V³) always: but with a tiny constant and no data structures.",
     use: "All-pairs shortest paths on small/dense graphs; handles negative edges (no negative cycles).",
   },
@@ -205,7 +205,7 @@ const en: Record<string, AlgoInfo> = {
     use: "Longest trend detection, patience sorting, box-stacking style problems.",
   },
   kadane: {
-    how: "Walk the array once keeping the best sum that ends here: either extend the running sum or restart at the current element if the running sum went negative: a negative prefix can never help.",
+    how: "Walk the array once, keeping the best sum that ends here. Either extend the running sum or, if it went negative, restart at the current element, since a negative prefix can never help.",
     best: "Always one pass: O(n), O(1) space.",
     worst: "All-negative arrays still work: the answer is the largest single element.",
     use: "Maximum subarray sum: best trading window, brightest image strip, 1-D profit runs.",
@@ -243,7 +243,7 @@ const en: Record<string, AlgoInfo> = {
     use: "Path existence in grids and simple maze solving; a stepping stone to BFS/DFS on grids.",
   },
   subsets: {
-    how: "For every element make a binary decision: in or out. The recursion tree has 2ⁿ leaves: each leaf is exactly one subset.",
+    how: "For every element make a binary decision: in or out. The recursion tree has 2ⁿ leaves, and each leaf is exactly one subset.",
     use: "Enumerating all combinations for brute-force checks, power sets, feature subsets.",
   },
   permutations: {
@@ -256,7 +256,7 @@ const en: Record<string, AlgoInfo> = {
     how: "The invariant (left subtree smaller, right subtree larger) turns every operation into a single root-to-leaf walk. Deleting a two-child node swaps in its in-order successor and deletes that instead.",
     best: "Balanced tree: O(log n) walks.",
     worst: "Sorted insertions degrade it to a linked list: O(n).",
-    use: "Ordered maps: range queries, predecessor/successor, sorted iteration: when balancing is added.",
+    use: "Ordered maps (range queries, predecessor/successor, sorted iteration), once balancing is added.",
   },
   avl: {
     how: "A BST that measures each node's balance factor after insertions and repairs any ±2 tilt with one or two rotations. Height stays within 1.44·log n, so walks stay logarithmic.",
@@ -296,7 +296,7 @@ const en: Record<string, AlgoInfo> = {
   },
   "boyer-moore": {
     how: "Compare the pattern right to left. On a mismatch, the bad-character rule slides the pattern so its last occurrence of the offending text character lines up: often skipping many positions in one jump.",
-    best: "Alphabet-rich text: about n/m character looks: sublinear.",
+    best: "Alphabet-rich text: about n/m character looks, which is sublinear.",
     worst: "Degenerate repetitive inputs: O(n·m) for the bad-character-only variant.",
     use: "Long patterns over large alphabets: text editors' find, grep-style scanning.",
   },
@@ -324,25 +324,25 @@ const tr: Record<string, AlgoInfo> = {
   // ── Sıralama ──
   "bubble-sort": {
     how: "Diziyi soldan sağa tara ve sırası bozuk her komşu çifti takas et. Her geçiş kalan en büyük değeri sona taşır; sıralı sondaki bölüm her geçişte bir büyür.",
-    best: "Zaten sıralı: tek geçiş, takas yok, swapped bayrağı erken çıkar: O(n).",
-    worst: "Ters sıralı girdi: her çift takas edilmek zorunda: O(n²) karşılaştırma ve takas.",
+    best: "Zaten sıralı: tek geçişte takas olmaz ve swapped bayrağı erken çıkar, bu yüzden O(n).",
+    worst: "Ters sıralı girdi: her çift takas edilmek zorunda, bu yüzden O(n²) karşılaştırma ve takas.",
     use: "Yalnızca öğretim ve çok küçük girdiler; pratikte eklemeli sıralama her zaman daha iyidir.",
   },
   "selection-sort": {
     how: "Sıralanmamış kısımda en küçüğü bul ve sıralı önekin bir sonraki yerine takas et. Önek her geçişte bir eleman büyür ve her eleman en fazla bir kez taşınır.",
-    best: "En iyi durum yok: sıralı olsa bile tüm sıralanmamış kısmı tarar: O(n²) karşılaştırma.",
+    best: "En iyi durum yok. Sıralı olsa bile sıralanmamış kısmın tamamını tarar, bu yüzden O(n²) karşılaştırma.",
     worst: "Yine O(n²) karşılaştırma; ama toplamda en fazla n−1 takas.",
     use: "Takas sayısını en aza indirdiği için yazmanın pahalı olduğu durumlarda (ör. flash bellek).",
   },
   "insertion-sort": {
     how: "Sol kısmı sıralı tut. Sıradaki elemanı al, ondan büyük her şeyi bir sağa kaydır ve boşluğa bırak: eldeki iskambil kartlarını sıralamak gibi.",
-    best: "Zaten (veya neredeyse) sıralı: her eleman en fazla bir adım kayar: O(n).",
-    worst: "Ters sıralı: her eleman en sola kadar yürür: O(n²).",
+    best: "Zaten (veya neredeyse) sıralı: her eleman en fazla bir adım kayar, bu yüzden O(n).",
+    worst: "Ters sıralı: her eleman en sola kadar yürür, bu yüzden O(n²).",
     use: "Küçük veya neredeyse sıralı diziler; Timsort gibi hibrit sıralamaların bitirme geçişi.",
   },
   "shell-sort": {
     how: "Aralarında gap kadar mesafe olan elemanlara eklemeli sıralama uygula, sonra gap'i küçült. Uzak elemanlar erken aşamada son yerlerine yaklaşır; son gap-1 geçişi neredeyse sıralı bir dizi bulur.",
-    best: "Zaten sıralı: her gap geçişi yalnızca doğrular: yaklaşık O(n log n).",
+    best: "Zaten sıralı: her gap geçişi yalnızca sırayı doğrular, yaklaşık O(n log n).",
     worst: "Gap dizisine bağlı; n/2ᵏ gap'lerle O(n²)'ye düşer.",
     use: "Özyineleme ve ek bellek olmadan düz eklemeli sıralamayı geçen basit yerinde sıralama.",
   },
@@ -353,9 +353,9 @@ const tr: Record<string, AlgoInfo> = {
     use: "Kararlı sıralama, bağlı listeler, belleğe sığmayan veriler (dış sıralama) ve garanti sınırlar.",
   },
   "quick-sort": {
-    how: "Bir eksen (pivot) seç ve böl: küçükler sola, büyükler sağa: pivot son yerine oturur. İki tarafta özyinele. Her şey yerinde olur.",
+    how: "Bir eksen (pivot) seç ve diziyi böl: küçükler sola, büyükler sağa geçer ve pivot son yerine oturur. İki tarafta özyinele. Her şey yerinde olur.",
     best: "Dengeli bölmeler (iyi pivotlar): çok küçük sabitli O(n log n).",
-    worst: "Kötü pivot kuralıyla sıralı girdi: tek taraflı bölmeler: O(n²).",
+    worst: "Kötü pivot kuralıyla sıralı girdi tek taraflı bölmeler üretir: O(n²).",
     use: "Kararlılık gerekmiyorsa bellek içi genel amaçlı sıralamanın varsayılanı.",
   },
   "heap-sort": {
@@ -378,8 +378,8 @@ const tr: Record<string, AlgoInfo> = {
   },
   "bucket-sort": {
     how: "Değer aralığını birkaç kovaya böl, elemanları kovalara dağıt, her küçük kovayı sırala (eklemeli), sonra kovaları sırayla birleştir.",
-    best: "Düzgün yayılmış veri: kovalar küçük kalır: yaklaşık O(n + k).",
-    worst: "Tüm değerler tek kovaya düşer: o kovanın sıralamasına döner: O(n²).",
+    best: "Düzgün yayılmış veride kovalar küçük kalır: yaklaşık O(n + k).",
+    worst: "Tüm değerler tek kovaya düşer ve iş o kovanın sıralamasına kalır: O(n²).",
     use: "Aralığa düzgün yayıldığı bilinen veriler (ör. [0,1) aralığında düzgün ondalıklar).",
   },
 
@@ -426,20 +426,20 @@ const tr: Record<string, AlgoInfo> = {
   },
   "hash-table": {
     how: "Hash fonksiyonu her anahtarı bir kovaya eşler. Arama doğru kovaya doğrudan atlar ve yalnızca o kovanın (kısa) çakışma zincirini yürür.",
-    best: "Düzgün dağılım: ~1 uzunluklu zincirler: işlem başına O(1).",
+    best: "Düzgün dağılımda zincirler ~1 uzunlukta kalır: işlem başına O(1).",
     worst: "Tüm anahtarlar tek kovada çakışır: O(n) zincir yürüyüşü.",
     use: "Varsayılan sözlük/küme: sıra önemli değilken sabit zamanlı erişim.",
   },
   "union-find": {
     how: "Her küme bir ağaçtır; kök kümenin temsilcisidir. find(x) köke yürür, union bir kökü diğerinin altına bağlar. Yol sıkıştırma, ziyaret edilen her düğümü doğrudan köke bağlar: kullanım yan etkisi olarak ağaçlar düzleşir.",
-    best: "Düzleşmiş ağaçlar: find tek sıçrama: fiilen O(1).",
-    worst: "Rütbeye göre birleştirme + yol sıkıştırmayla: amorti O(α(n)): ters Ackermann, pratikte ≤ 4.",
+    best: "Düzleşmiş ağaçlarda find tek sıçramadır: fiilen O(1).",
+    worst: "Rütbeye göre birleştirme ve yol sıkıştırmayla amorti O(α(n)); bu ters Ackermann fonksiyonudur ve pratikte ≤ 4.",
     use: "Dinamik bağlantılılık: Kruskal MST, döngü tespiti, eşdeğer öğeleri gruplama.",
   },
 
   // ── Graflar ──
   bfs: {
-    how: "Halkalar hâlinde dışa doğru keşfet: önce 1 uzaklıktaki tüm düğümler, sonra 2, …: FIFO kuyrukla. Bir düğüme ilk ulaşma her zaman en az kenarlı yoldan olur.",
+    how: "FIFO kuyrukla halkalar hâlinde dışa doğru keşfet: önce 1 uzaklıktaki tüm düğümler, sonra 2 uzaklıktakiler. Bir düğüme ilk ulaşma her zaman en az kenarlı yoldan olur.",
     use: "Ağırlıksız graflarda en kısa yol, seviye seviye işleme, bağlantılılık kontrolleri.",
   },
   dfs: {
@@ -471,13 +471,13 @@ const tr: Record<string, AlgoInfo> = {
     use: "Seyrek graflar / düz kenar listelerinde MST; en büyük kenarları keserek kümeleme.",
   },
   "a-star": {
-    how: "Yön duygusu olan Dijkstra: sınırı g(n) + h(n) ile sırala: o ana dek maliyet artı hedefe iyimser tahmin. Kabul edilebilir h ile asla daha kısa yolu kaçırmaz ama grafın çoğunu görmezden gelir.",
+    how: "Yön duygusu olan Dijkstra. Sınırı g(n) + h(n) ile sırala (o ana dek maliyet artı hedefe iyimser tahmin). Kabul edilebilir h ile asla daha kısa yolu kaçırmaz ama grafın çoğunu görmezden gelir.",
     best: "Mükemmel sezgisel: yalnızca optimal yolun düğümlerini genişletir.",
     worst: "h ≡ 0 düz Dijkstra'ya döner.",
     use: "Geometrik hedefli yol bulma: oyunlar, robotik, haritalar (h olarak kuş uçuşu mesafe).",
   },
   "floyd-warshall": {
-    how: "Ara düğümler üzerinde dinamik programlama: k. turdan sonra dist[i][j], yalnızca 0..k düğümlerini durak olarak kullanan en kısa yoldur. k. tur her çifte tek soru sorar: k üzerinden gitmek daha mı kısa?",
+    how: "Ara düğümler üzerinde dinamik programlama. k. turdan sonra dist[i][j], yalnızca 0..k düğümlerini durak olarak kullanan en kısa yoldur. k. tur her çifte tek soru sorar: k üzerinden gitmek daha mı kısa?",
     worst: "Her zaman Θ(V³): ama çok küçük sabitle ve veri yapısız.",
     use: "Küçük/yoğun graflarda tüm-çiftler en kısa yol; negatif kenarları da işler (negatif döngü yoksa).",
   },
@@ -509,7 +509,7 @@ const tr: Record<string, AlgoInfo> = {
     use: "En uzun eğilim tespiti, patience sorting, kutu istifleme tarzı problemler.",
   },
   kadane: {
-    how: "Diziyi tek geçişte yürü ve burada biten en iyi toplamı tut: ya süregelen toplamı uzat ya da toplam negatife düştüyse mevcut elemandan yeniden başla: negatif önek asla yardım edemez.",
+    how: "Diziyi tek geçişte yürü ve burada biten en iyi toplamı tut. Ya süregelen toplamı uzat ya da toplam negatife düştüyse mevcut elemandan yeniden başla, çünkü negatif önek asla yardım edemez.",
     best: "Her zaman tek geçiş: O(n), O(1) alan.",
     worst: "Tamamı negatif diziler de çalışır: yanıt en büyük tek elemandır.",
     use: "Maksimum alt dizi toplamı: en iyi alım-satım penceresi, en parlak görüntü şeridi, 1B kâr aralıkları.",
@@ -547,7 +547,7 @@ const tr: Record<string, AlgoInfo> = {
     use: "Izgaralarda yol varlığı ve basit labirent çözümü; ızgarada BFS/DFS'e geçiş taşı.",
   },
   subsets: {
-    how: "Her eleman için ikili karar ver: içeride mi dışarıda mı. Özyineleme ağacının 2ⁿ yaprağı vardır: her yaprak tam olarak bir alt kümedir.",
+    how: "Her eleman için ikili karar ver: içeride mi dışarıda mı. Özyineleme ağacının 2ⁿ yaprağı vardır ve her yaprak tam olarak bir alt kümedir.",
     use: "Kaba kuvvet kontrolleri, kuvvet kümeleri, öznitelik alt kümeleri için tüm kombinasyonları sayma.",
   },
   permutations: {
@@ -560,7 +560,7 @@ const tr: Record<string, AlgoInfo> = {
     how: "Değişmez kural (sol alt ağaç küçük, sağ alt ağaç büyük) her işlemi tek bir kök-yaprak yürüyüşüne çevirir. İki çocuklu düğüm silinirken sıradaki ardıl kopyalanır ve onun yerine o silinir.",
     best: "Dengeli ağaç: O(log n) yürüyüş.",
     worst: "Sıralı eklemeler onu bağlı listeye düşürür: O(n).",
-    use: "Sıralı eşlemeler: aralık sorguları, öncel/ardıl, sıralı gezinme: dengeleme eklenince.",
+    use: "Sıralı eşlemeler (aralık sorguları, öncel/ardıl, sıralı gezinme), dengeleme eklendiğinde.",
   },
   avl: {
     how: "Her eklemeden sonra düğümlerin denge faktörünü ölçen ve ±2 eğilmeyi bir-iki döndürmeyle onaran bir İAA. Yükseklik 1.44·log n içinde kalır; yürüyüşler logaritmik kalır.",
@@ -600,7 +600,7 @@ const tr: Record<string, AlgoInfo> = {
   },
   "boyer-moore": {
     how: "Deseni sağdan sola karşılaştır. Uyumsuzlukta kötü-karakter kuralı deseni, sorunlu metin karakterinin desendeki son geçtiği yer hizalanacak şekilde kaydırır: çoğu zaman tek sıçrayışta çok konum atlanır.",
-    best: "Zengin alfabeli metin: yaklaşık n/m karakter bakışı: alt-doğrusal.",
+    best: "Zengin alfabeli metin: yaklaşık n/m karakter bakışı, yani alt-doğrusal.",
     worst: "Yozlaşmış tekrarlı girdiler: yalnız kötü-karakterli türev için O(n·m).",
     use: "Büyük alfabede uzun desenler: editörlerin 'bul'u, grep tarzı tarama.",
   },

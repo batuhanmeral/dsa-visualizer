@@ -6,14 +6,14 @@ export const en = {
   "n.lcs.compare": "Compare a[{i}]='{ca}' with b[{j}]='{cb}'.",
   "n.lcs.match":
     "Match! Extend the diagonal: dp[{i}][{j}] = dp[{pi}][{pj}] + 1 = {value}.",
-  "n.lcs.noMatch": "No match: carry the best neighbour: max({up}, {left}) = {value}.",
+  "n.lcs.noMatch": "No match, so carry the best neighbour: max({up}, {left}) = {value}.",
   "n.lcs.done":
     "Done. The longest common subsequence of \"{a}\" and \"{b}\" has length {value}.",
 
   // 0/1 Knapsack
   "n.knap.base": "Base case (no items or no capacity) → dp[{i}][{c}] = 0.",
   "n.knap.tooHeavy":
-    "Item {i} (w={w}) is heavier than capacity {c}: skip it: dp[{i}][{c}] = {value}.",
+    "Item {i} (w={w}) is heavier than capacity {c}, so skip it: dp[{i}][{c}] = {value}.",
   "n.knap.choose":
     "Item {i}: skip={skip} vs take={take} ({prev}+{v}). Best = {value}.",
   "n.knap.done": "Done. Max value within capacity {W} is {value}.",
@@ -61,8 +61,8 @@ export const en = {
   "n.kadane.empty": "No values to scan: enter at least one number.",
   "n.kadane.start": "Start: best = cur = a[0] = {value}.",
   "n.kadane.ask": "Extend the run ({cur} + {value} = {sum}) or restart at {value}?",
-  "n.kadane.extend": "Extend: the prefix helps: cur = {cur}.",
-  "n.kadane.restart": "Restart: the prefix only drags the sum down: cur = {cur}.",
+  "n.kadane.extend": "Extend, since the prefix helps: cur = {cur}.",
+  "n.kadane.restart": "Restart, since the prefix only drags the sum down: cur = {cur}.",
   "n.kadane.newBest": "New best subarray sum: {best}.",
   "n.kadane.done": "Done. Maximum subarray sum is {best}.",
 
@@ -82,13 +82,13 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.lcs.compare": "a[{i}]='{ca}' ile b[{j}]='{cb}' karşılaştırılıyor.",
   "n.lcs.match":
     "Eşleşme! Köşegen uzatılıyor: dp[{i}][{j}] = dp[{pi}][{pj}] + 1 = {value}.",
-  "n.lcs.noMatch": "Eşleşme yok: en iyi komşu taşınıyor: max({up}, {left}) = {value}.",
+  "n.lcs.noMatch": "Eşleşme yok, en iyi komşu taşınıyor: max({up}, {left}) = {value}.",
   "n.lcs.done":
     "Tamamlandı. \"{a}\" ve \"{b}\" dizgilerinin en uzun ortak alt dizisinin uzunluğu {value}.",
 
   "n.knap.base": "Taban durum (eşya yok veya kapasite yok) → dp[{i}][{c}] = 0.",
   "n.knap.tooHeavy":
-    "Eşya {i} (a={w}), {c} kapasitesinden ağır: atlanıyor: dp[{i}][{c}] = {value}.",
+    "Eşya {i} (a={w}), {c} kapasitesinden ağır, atlanıyor: dp[{i}][{c}] = {value}.",
   "n.knap.choose":
     "Eşya {i}: atla={skip}, al={take} ({prev}+{v}). En iyi = {value}.",
   "n.knap.done": "Tamamlandı. {W} kapasitesiyle en yüksek değer {value}.",
@@ -131,8 +131,8 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.kadane.empty": "Taranacak değer yok: en az bir sayı girin.",
   "n.kadane.start": "Başlangıç: best = cur = a[0] = {value}.",
   "n.kadane.ask": "Diziyi uzat ({cur} + {value} = {sum}) mı, {value} ile baştan başla mı?",
-  "n.kadane.extend": "Uzat: önek işe yarıyor: cur = {cur}.",
-  "n.kadane.restart": "Baştan başla: önek toplamı yalnızca aşağı çekiyor: cur = {cur}.",
+  "n.kadane.extend": "Uzat, önek işe yarıyor: cur = {cur}.",
+  "n.kadane.restart": "Baştan başla, önek toplamı yalnızca aşağı çekiyor: cur = {cur}.",
   "n.kadane.newBest": "Yeni en iyi alt dizi toplamı: {best}.",
   "n.kadane.done": "Tamamlandı. En büyük alt dizi toplamı {best}.",
 

@@ -1,19 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Binary, Menu, PanelLeftOpen, X } from "lucide-react";
+import { Menu, PanelLeftOpen, X } from "lucide-react";
 import { LangProvider, useLang, type Lang } from "@/lib/i18n";
 import SidebarNav from "./sidebar-nav";
 import ThemeToggle from "./theme-toggle";
 import LangToggle from "./lang-toggle";
+import BrandMark from "./brand-mark";
+import { localePath } from "@/lib/locale";
 
 function Shell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   // Desktop sidebar: collapsible; when closed the content spans (and centres
   // on) the full viewport width.
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const { t } = useLang();
+  const { lang, t } = useLang();
 
   return (
     <div className="min-h-dvh">
@@ -43,17 +46,20 @@ function Shell({ children }: { children: React.ReactNode }) {
           type="button"
           onClick={() => setDrawerOpen(true)}
           aria-label={t("nav.open")}
-          className="flex size-9 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          className="flex size-10 shrink-0 items-center justify-center rounded-lg text-zinc-600 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800"
         >
           <Menu className="size-5" />
         </button>
-        <span className="flex items-center gap-2 text-sm font-semibold tracking-tight">
-          <span className="flex size-7 items-center justify-center rounded-lg bg-claude-500/15 text-claude-600 dark:text-claude-400">
-            <Binary className="size-4" />
+        <Link
+          href={localePath(lang, "/")}
+          className="flex min-h-10 shrink-0 items-center gap-2 rounded-lg focus-visible:outline-2 focus-visible:outline-claude-500"
+        >
+          <BrandMark />
+          <span className="font-brand text-[17px] leading-none font-bold tracking-[0.02em] text-zinc-900 uppercase dark:text-zinc-100">
+            Algoritmalar
           </span>
-          <span className="text-claude-600 dark:text-claude-400">Algoritmalar</span>
-        </span>
-        <div className="ml-auto flex items-center gap-2">
+        </Link>
+        <div className="ml-auto flex items-center gap-2 [&>*]:size-10">
           <LangToggle />
           <ThemeToggle />
         </div>
@@ -84,7 +90,7 @@ function Shell({ children }: { children: React.ReactNode }) {
                 type="button"
                 onClick={() => setDrawerOpen(false)}
                 aria-label={t("nav.close")}
-                className="absolute right-3 top-4 flex size-9 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="absolute right-3 top-2.5 flex size-10 items-center justify-center rounded-lg text-zinc-500 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
               >
                 <X className="size-5" />
               </button>

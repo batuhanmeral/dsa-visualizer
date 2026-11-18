@@ -20,8 +20,8 @@ export const en = {
 
   // Rabin-Karp
   "n.rk.precompute": "Precompute pattern hash and hash of the first window.",
-  "n.rk.equal": "Window at {i}: compare hashes {th} vs {ph}: equal.",
-  "n.rk.differ": "Window at {i}: compare hashes {th} vs {ph}: differ.",
+  "n.rk.equal": "Window at {i}: hashes {th} and {ph} are equal.",
+  "n.rk.differ": "Window at {i}: hashes {th} and {ph} differ.",
   "n.rk.verify": "Hash hit: verifying characters ({k}/{m}).",
   "n.rk.confirmed": "Confirmed match at index {i}.",
   "n.rk.spurious": "Spurious hit: characters differ at offset {k}.",
@@ -80,8 +80,8 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
   "n.kmp.advanceI": "j = 0 ile uyuşmazlık: i ilerletiliyor.",
 
   "n.rk.precompute": "Desen özeti ve ilk pencerenin özeti ön hesaplanıyor.",
-  "n.rk.equal": "{i}. penceredeki özetler karşılaştırılıyor: {th} ve {ph}: eşit.",
-  "n.rk.differ": "{i}. penceredeki özetler karşılaştırılıyor: {th} ve {ph}: farklı.",
+  "n.rk.equal": "{i}. pencere: {th} ve {ph} özetleri eşit.",
+  "n.rk.differ": "{i}. pencere: {th} ve {ph} özetleri farklı.",
   "n.rk.verify": "Özet tuttu: karakterler doğrulanıyor ({k}/{m}).",
   "n.rk.confirmed": "{i}. indekste eşleşme doğrulandı.",
   "n.rk.spurious": "Yanlış alarm: karakterler {k}. konumda farklı.",
