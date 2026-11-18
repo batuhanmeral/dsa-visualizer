@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { flushSync } from "react-dom";
 import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { ArrowRight, Clock, Database, ScanEye } from "lucide-react";
@@ -13,7 +14,7 @@ import { invariantFor, staticInvariantFor } from "@/lib/invariants";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
 import { algoName, catName } from "@/lib/content-i18n";
-import CodePanel from "./code-panel";
+import CodePanel, { GROWTH_SECTION_ID } from "./code-panel";
 import {
   PlaybackBridgeContext,
   type PlaybackBridge,
@@ -24,7 +25,6 @@ import PanelSplitter from "./panel-splitter";
 import { SPLIT_MIN_CANVAS_PX } from "@/lib/split-ratio";
 import type { CodeLang } from "@/lib/highlight";
 import { availableTabs, initialTab, tabAfterUserAdvance } from "@/lib/panel-tab";
-import GrowthChart from "./growth-chart";
 import SortInputForm, { type InputShape } from "./sort-input-form";
 import {
   SPEEDS,
@@ -43,6 +43,9 @@ import {
   hasStringViz,
   hasTreeViz,
 } from "@/lib/viz-families";
+
+// Render SVG tooltips on the client so their titles hydrate correctly.
+const GrowthChart = dynamic(() => import("./growth-chart"), { ssr: false });
 
 // Each page draws one family, so the others stay out of its bundle; the one in
 // use is still rendered on the server, so the first paint does not wait for it.
@@ -218,8 +221,8 @@ export default function Workspace({
   const [compareMode, setCompareMode] = useState(false);
   const restored = useRef(false);
 
-  const hasGrowth = getSimulation(algorithm.slug) !== undefined;
-  const panelTabs = availableTabs(about !== undefined, hasGrowth);
+  const hasGrowth = generator !== undefined;
+  const panelTabs = availableTabs(about !== undefined);
   const [panelTab, setPanelTab] = useState(() => initialTab(panelTabs));
   const [transport, setTransport] = useState<PublishedTransport | null>(null);
   const bridge = useMemo<PlaybackBridge>(
@@ -593,18 +596,27 @@ export default function Workspace({
     </motion.div>
   ));
 
+  const showGrowth = () => {
+    // Reveal the hidden panel before measuring its scroll target.
+    flushSync(() => setPanelTab("about"));
+    document.getElementById(GROWTH_SECTION_ID)?.scrollIntoView({
+      block: "start",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+  };
+
   const sortStats =
     step && (activeStats.length > 0 || (step.vars && step.vars.length > 0)) ? (
       <>
         {activeStats.length > 0 && (
           <button
             type="button"
-            onClick={() => setPanelTab("growth")}
+            onClick={showGrowth}
             title={t("stat.totalHint", {
               o: algorithm.time,
               n: values.length,
             })}
-            className="inline-flex items-center gap-1.5 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 text-[10px] font-medium text-claude-700 transition-colors hover:bg-claude-500/20 dark:text-claude-300"
+            className="inline-flex items-center gap-1.5 rounded-md border border-claude-500/30 bg-claude-500/10 px-2 py-1 text-[10px] font-medium text-claude-700 transition-colors hover:bg-claude-500/20 focus-visible:outline-2 focus-visible:outline-claude-500 dark:text-claude-300"
           >
             {t("stat.total")}
             <span className="font-mono tabular-nums font-semibold">
@@ -678,35 +690,33 @@ export default function Workspace({
         hasDock ? "pb-[calc(--spacing(24)+env(safe-area-inset-bottom))] lg:pb-6" : ""
       }`}
     >
-      {/* ── Top bar ─────────────────────────────────────────────── */}
-      {/* One line: the summary lives in the About tab, the input in the card. */}
-      <header className="flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900/60">
-        <h1 className="text-lg font-semibold tracking-tight">
-          {algoName(algorithm.slug, algorithm.name, lang)}
-        </h1>
-        <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
-          {catName(category.slug, category.name, lang)}
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-claude-500/10 px-2.5 py-0.5 text-[11px] font-medium text-claude-600 dark:text-claude-400">
-          <Clock className="size-3" /> {algorithm.time}
-        </span>
-        <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400">
-          <Database className="size-3" /> {algorithm.space}
-        </span>
-      </header>
-
       {/* ── Panels ──────────────────────────────────────────────── */}
       {/* lg+: the splitter column is the gutter and the ratio splits what is left, with a px floor
           so the playback card fits; 65 mirrors SPLIT_DEFAULT for a page whose boot script could not run. */}
       <div
         ref={panelsRef}
         style={{ "--split-floor": `${SPLIT_MIN_CANVAS_PX}px` } as CSSProperties}
-        className="grid flex-1 grid-cols-1 gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,max(var(--split-floor),calc((100%_-_--spacing(4))*var(--split,65)/100)))_--spacing(4)_minmax(0,1fr)] lg:gap-x-0"
+        className="grid flex-1 grid-cols-1 gap-4 lg:min-h-0 lg:grid-cols-[minmax(0,max(var(--split-floor),calc((100%_-_--spacing(4))*var(--split,65)/100)))_--spacing(4)_minmax(0,1fr)] lg:grid-rows-[auto_minmax(0,1fr)] lg:gap-x-0 lg:[&>[role=separator]]:col-start-2 lg:[&>[role=separator]]:row-span-2 lg:[&>[role=separator]]:row-start-1 lg:[&>section:last-child]:col-start-3 lg:[&>section:last-child]:row-start-2"
       >
+        <header className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-2xl border border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 lg:col-start-3 lg:row-start-1 dark:bg-zinc-900/60">
+          <h1 className="min-w-0 wrap-break-word text-lg font-semibold tracking-tight">
+            {algoName(algorithm.slug, algorithm.name, lang)}
+          </h1>
+          <span className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400">
+            {catName(category.slug, category.name, lang)}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-claude-500/10 px-2.5 py-0.5 text-[11px] font-medium text-claude-600 dark:text-claude-400">
+            <Clock className="size-3" /> {algorithm.time}
+          </span>
+          <span className="inline-flex items-center gap-1 rounded-full bg-sky-500/10 px-2.5 py-0.5 text-[11px] font-medium text-sky-600 dark:text-sky-400">
+            <Database className="size-3" /> {algorithm.space}
+          </span>
+        </header>
+
         {/* Visualization canvas */}
         <section
           aria-label="Visualization area"
-          className="relative flex min-h-95 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900/60"
+          className="relative flex min-h-95 items-center justify-center overflow-hidden rounded-2xl border border-zinc-200 bg-white lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:min-h-0 dark:border-zinc-800 dark:bg-zinc-900/60"
         >
           {/* Dotted grid backdrop */}
           <div

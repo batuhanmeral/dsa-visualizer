@@ -21,13 +21,13 @@ export default function AlgoExplainer({ lang, slug, name, summary }: AlgoExplain
   ] as const;
 
   return (
-    <div>
-      <p className="text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
-        {summary}
-      </p>
-      <h2 className="mt-5 text-base font-semibold text-zinc-900 dark:text-zinc-100">
+    <>
+      <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">
         {translate(lang, "explainer.title", { name })}
       </h2>
+      <p className="mt-2 text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
+        {summary}
+      </p>
       <p className="mt-2 text-sm leading-relaxed text-zinc-600 dark:text-zinc-300">
         {info.how}
       </p>
@@ -46,6 +46,6 @@ export default function AlgoExplainer({ lang, slug, name, summary }: AlgoExplain
             )
         )}
       </div>
-    </div>
+    </>
   );
 }

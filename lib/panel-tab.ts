@@ -1,15 +1,8 @@
-export type PanelTab = "about" | "code" | "growth";
-
-const TAB_ORDER: readonly PanelTab[] = ["about", "code", "growth"];
+export type PanelTab = "about" | "code";
 
 /** The code panel's tabs, in display order; Code is always there. */
-export function availableTabs(hasAbout: boolean, hasGrowth: boolean): PanelTab[] {
-  return TAB_ORDER.filter(
-    (tab) =>
-      tab === "code" ||
-      (tab === "about" && hasAbout) ||
-      (tab === "growth" && hasGrowth)
-  );
+export function availableTabs(hasAbout: boolean): PanelTab[] {
+  return hasAbout ? ["about", "code"] : ["code"];
 }
 
 // About is the default so the server-rendered explainer is what loads first.
