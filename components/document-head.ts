@@ -29,11 +29,11 @@ export const htmlClassName = `${inter.variable} ${jetbrainsMono.variable} ${spac
 export const rootMetadata: Metadata = {
   metadataBase: siteUrl,
   title: {
-    default: "Algoritmalar — DSA Visualizer",
+    default: "Algoritmalar · DSA Visualizer",
     template: "%s · Algoritmalar",
   },
   description:
-    "An interactive platform for visualizing data structures and algorithms — sorting, graphs, dynamic programming, and backtracking.",
+    "An interactive platform for visualizing data structures and algorithms: sorting, graphs, dynamic programming, and backtracking.",
 };
 
 // Runs before first paint: applies the saved theme (or OS preference) and panel

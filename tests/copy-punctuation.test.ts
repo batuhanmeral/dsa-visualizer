@@ -1,4 +1,6 @@
 import { test } from "node:test";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import assert from "node:assert/strict";
 import { algoCode } from "../lib/algo-code";
 import { getAlgoInfo } from "../lib/algo-info";
@@ -61,4 +63,30 @@ test("the scan reaches every source", () => {
   for (const [name, strings] of stringsBySource) {
     assert.ok(strings.length > 0, `${name} yielded no strings`);
   }
+});
+
+// Strings written straight into components (labels, tooltips, metadata) are copy too.
+// Comments are stripped first: they are for developers and may use any punctuation.
+function stripComments(source: string): string {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/(^|[^:"'`])\/\/.*$/gm, "$1");
+}
+
+function sourceFiles(dir: string): string[] {
+  return readdirSync(dir, { recursive: true, encoding: "utf8" })
+    .filter((f) => /\.(tsx?)$/.test(f))
+    .map((f) => join(dir, f));
+}
+
+test("component and page source has no em or en dashes outside comments", () => {
+  const files = [...sourceFiles("components"), ...sourceFiles("app"), "lib/seo.ts"];
+  const bad = files.flatMap((file) =>
+    stripComments(readFileSync(file, "utf8"))
+      .split("\n")
+      .map((line, i) => [`${file}:${i + 1}`, line] as const)
+      .filter(([, line]) => /[–—]/.test(line))
+      .map(([where, line]) => `${where}: ${line.trim().slice(0, 70)}`),
+  );
+  assert.deepEqual(bad, []);
 });
