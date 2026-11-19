@@ -868,9 +868,10 @@ export default function Workspace({
                   extra={inputRow}
                 >
                   {/* Top padding keeps the held-value tag of a full-height bar
-                      inside the panel's scroll box; only engines that lift a value pay it. */}
+                      inside the panel's scroll box; only engines that lift a value pay it.
+                      Below lg the canvas has no definite height, so the % bar heights need a fixed one. */}
                   <div
-                    className={`flex h-full w-full items-end justify-center gap-1.5 sm:gap-2 ${
+                    className={`flex h-56 w-full items-end justify-center gap-1.5 sm:gap-2 lg:h-full ${
                       holdsValue(algorithm.slug) ? "pt-6" : ""
                     }`}
                   >
