@@ -274,8 +274,7 @@ export default function GrowthChart({
             {/* Wider invisible hover target with a native tooltip */}
             <path d={path(s)} fill="none" stroke="transparent" strokeWidth={10}>
               <title>
-                {label(s.slug)} —{" "}
-                {s.points.map((p) => `n=${p.n}: ${value(p)}`).join(", ")}
+                {label(s.slug)} ({s.points.map((p) => `n=${p.n}: ${value(p)}`).join(", ")})
               </title>
             </path>
           </g>
@@ -299,7 +298,7 @@ export default function GrowthChart({
             className="fill-claude-600 stroke-white dark:fill-claude-500 dark:stroke-zinc-900"
             strokeWidth={1.5}
           >
-            <title>{`${label(current.slug)} — n=${p.n}: ${value(p)}`}</title>
+            <title>{`${label(current.slug)}, n=${p.n}: ${value(p)}`}</title>
           </circle>
         ))}
         <text

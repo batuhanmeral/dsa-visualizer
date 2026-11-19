@@ -119,7 +119,7 @@ function ActivityViz({
                   width: `${((a.end - a.start) / maxEnd) * 100}%`,
                 }}
               >
-                {a.start}–{a.end}
+                {a.start}-{a.end}
               </div>
             </div>
           ))}
@@ -215,7 +215,7 @@ function FracKnapViz({
                       ? tk.fraction === 1
                         ? "100%"
                         : `${Math.round(tk.fraction * 100)}%`
-                      : "—"}
+                      : "-"}
                   </span>
                 </div>
               );

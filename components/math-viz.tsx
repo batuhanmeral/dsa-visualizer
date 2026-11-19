@@ -281,7 +281,7 @@ function ExtGcdViz({
                         : "text-zinc-500 dark:text-zinc-400"
                   }
                 >
-                  <td className="text-right text-zinc-400">{row.q ?? "—"}</td>
+                  <td className="text-right text-zinc-400">{row.q ?? "-"}</td>
                   <td
                     className={`rounded-md border px-2 py-0.5 text-right tabular-nums ${
                       isGcdRow

@@ -316,7 +316,7 @@ export default function GraphViz({
               {editing && config.weighted && pickedEdge && (
                 <div className="inline-flex items-center gap-1 rounded-lg border border-amber-500/40 bg-amber-500/10 px-1.5 py-1">
                   <span className="px-1 font-mono text-[11px] text-amber-700 dark:text-amber-300">
-                    {pickedEdge[0]}–{pickedEdge[1]}
+                    {pickedEdge[0]}-{pickedEdge[1]}
                   </span>
                   <button
                     type="button"
@@ -327,7 +327,7 @@ export default function GraphViz({
                     <Minus className="size-3.5" />
                   </button>
                   <span className="min-w-6 text-center font-mono text-[11px] font-semibold tabular-nums text-amber-800 dark:text-amber-200">
-                    {edgeWeight(pickedEdge[0], pickedEdge[1]) ?? "–"}
+                    {edgeWeight(pickedEdge[0], pickedEdge[1]) ?? "-"}
                   </span>
                   <button
                     type="button"
