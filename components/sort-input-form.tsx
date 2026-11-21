@@ -41,6 +41,10 @@ const NEUTRAL =
   "border-zinc-200 bg-zinc-50 text-zinc-600 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:text-zinc-100";
 const ACTIVE =
   "border-claude-500/40 bg-claude-500/10 text-claude-600 dark:text-claude-400";
+// While the input shares its row with the buttons (card 448-768px), the secondary
+// buttons go icon-only so the array stays readable; the label stays for screen readers.
+// Searching adds a target field, so there the input takes its own row up to @3xl instead.
+const ROW_LABEL = "@md:@max-3xl:sr-only";
 const FIELD =
   "flex min-h-10 items-center gap-2 rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 focus-within:border-claude-500/60 has-focus-visible:outline-2 has-focus-visible:outline-offset-1 has-focus-visible:outline-claude-500 lg:min-h-0 dark:border-zinc-800 dark:bg-zinc-950";
 
@@ -75,11 +79,15 @@ export default function SortInputForm({
   const hintId = useId();
   const shapesId = useId();
 
+  const hasTarget = targetText !== undefined && onTargetText !== undefined;
+  const rowLabel = hasTarget ? undefined : ROW_LABEL;
   return (
     <form onSubmit={onApply} className="flex w-full flex-wrap items-center gap-2">
       {/* Full width on a narrow card so the numbers stay readable; the
           buttons wrap below it instead of squeezing it. */}
-      <label className={`${FIELD} min-w-30 basis-full @md:flex-1 @md:basis-40`}>
+      <label
+        className={`${FIELD} min-w-30 basis-full ${hasTarget ? "@3xl:flex-1 @3xl:basis-40" : "@md:flex-1 @md:basis-40"}`}
+      >
         <Hash className="size-4 shrink-0 text-zinc-400" />
         <input
           type="text"
@@ -92,7 +100,7 @@ export default function SortInputForm({
           className="w-full min-w-0 bg-transparent font-mono text-xs outline-none placeholder:text-zinc-400"
         />
       </label>
-      {targetText !== undefined && onTargetText && (
+      {hasTarget && (
         <label className={FIELD}>
           <Crosshair className="size-4 shrink-0 text-zinc-400" />
           <input
@@ -119,7 +127,7 @@ export default function SortInputForm({
         className={`${CONTROL} ${shapesOpen ? ACTIVE : NEUTRAL} ${FOCUS_RING}`}
       >
         <Dices className="size-4" />
-        {t("ws.shape")}
+        <span className={rowLabel}>{t("ws.shape")}</span>
       </button>
       <button
         type="button"
@@ -128,7 +136,7 @@ export default function SortInputForm({
         className={`${CONTROL} ${copied ? ACTIVE : NEUTRAL} ${FOCUS_RING}`}
       >
         {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}
-        {copied ? t("ws.copied") : t("ws.share")}
+        <span className={rowLabel}>{copied ? t("ws.copied") : t("ws.share")}</span>
       </button>
       {compare && (
         <button
@@ -139,7 +147,7 @@ export default function SortInputForm({
           className={`${CONTROL} ${compare.active ? ACTIVE : NEUTRAL} ${FOCUS_RING}`}
         >
           <GitCompareArrows className="size-4" />
-          {t("ws.compare")}
+          <span className={rowLabel}>{t("ws.compare")}</span>
         </button>
       )}
       {/* In the flow, not a popup: the canvas clips overflow, and a popup
