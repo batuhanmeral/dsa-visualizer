@@ -20,12 +20,12 @@ Next.js 16 (App Router, static generation, Turbopack), React 19, TypeScript stri
 
 - Dev: `npm run dev`
 - All checks: `npm run check` (`tsc --noEmit && eslint && npm test`)
-- Tests: `npm test` · one file: `node --import ./tests/register.mjs --test tests/<name>.test.ts`
-- Lint: `npm run lint` · Types: `npx tsc --noEmit`
+- Tests: `npm test` · with coverage thresholds (as CI): `npm run test:coverage` · one file: `node --import ./tests/register.mjs --test tests/<name>.test.ts`
+- Lint: `npm run lint` · Types: `npm run typecheck`
 - Build: `npm run build`, then `npm run verify:html` (checks the prerendered HTML; needs the build output)
 - Env: copy `.env.example` to `.env.local`; `SITE_URL` is required.
 
-CI (`.github/workflows/ci.yml`) runs typecheck, lint, test, build and `verify:html` in that order; run the same before reporting work as done.
+CI (`.github/workflows/ci.yml`, job `check`) runs typecheck, lint, `test:coverage`, build and `verify:html` in that order; run the same before reporting work as done. `.github/workflows/security.yml` runs Semgrep, zizmor, gitleaks and Trivy from digest-pinned images; `SECURITY.md` is the disclosure policy.
 
 ## Structure
 
