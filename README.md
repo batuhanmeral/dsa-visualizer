@@ -74,7 +74,16 @@ cp .env.example .env.local   # SITE_URL is required
 npm run dev    # http://localhost:3000
 npm run build  # static production build
 npm run lint
+npm run typecheck
+npm run test:coverage  # tests with coverage thresholds
 ```
+
+## CI and security
+
+Every pull request runs type checks, lint, tests with coverage thresholds, a build and
+a check of the prerendered HTML (`CI`), plus secret scanning, SAST, workflow and
+dependency checks (`Security`). Security scans also run weekly, and OpenSSF Scorecard
+runs on `main`. To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
 ## Screenshots
 

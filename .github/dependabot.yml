@@ -1,25 +1,36 @@
 version: 2
+
+# Weekly grouped PRs. cooldown skips releases younger than a week, giving a
+# compromised release time to be pulled. Security updates are not delayed.
 updates:
   - package-ecosystem: npm
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     commit-message:
       prefix: chore
+      include: scope # "chore(deps): ...", "chore(deps-dev): ..."
     groups:
       minor-and-patch:
         update-types: [minor, patch]
     ignore:
-      # eslint-config-next's react, import and jsx-a11y plugins don't support ESLint 10 yet.
-      - dependency-name: eslint
-        update-types: [version-update:semver-major]
-      # Types track the Node major CI runs on (24), not the latest.
-      - dependency-name: "@types/node"
+      # Majors need code changes; take them by hand. Security updates still open PRs.
+      # This also covers eslint (eslint-config-next's react, import and jsx-a11y plugins
+      # don't support ESLint 10 yet) and @types/node (tracks the Node major in .nvmrc).
+      - dependency-name: "*"
         update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7
     commit-message:
-      prefix: chore
+      prefix: ci
+      include: scope # "ci(deps): ..."
+    groups:
+      actions:
+        patterns: ["*"]
