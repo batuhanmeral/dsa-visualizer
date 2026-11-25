@@ -15,8 +15,10 @@ import type { TKey } from "@/lib/dictionaries";
 import {
   ChoiceButton,
   PlaybackPanel,
+  useCounters,
   useStepPlayer,
 } from "./step-player";
+import { GRAPH_COUNTERS } from "@/lib/op-counters";
 
 const LEGEND_KEYS: { key: TKey; dot: string }[] = [
   { key: "graph.legend.current", dot: "bg-claude-500" },
@@ -127,6 +129,7 @@ export default function GraphViz({
     [config, graph, start, goal]
   );
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, GRAPH_COUNTERS);
   const step = steps[player.index];
   const legend = LEGEND_KEYS.map((l) => ({ label: t(l.key), dot: l.dot }));
 
@@ -274,6 +277,7 @@ export default function GraphViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}

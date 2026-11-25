@@ -135,6 +135,13 @@ export const en = {
   "stat.swaps": "swaps",
   "stat.moves": "moves",
   "stat.probes": "probes",
+  "stat.edgesExamined": "edges examined",
+  "stat.relaxations": "relaxations",
+  "stat.rejectedEdges": "edges rejected",
+  "stat.cellsWritten": "cells written",
+  "stat.choices": "choices",
+  "stat.backtracks": "backtracks",
+  "stat.deadEnds": "dead ends",
 
   // Graphs
   "graph.legend.current": "current",
@@ -415,6 +422,13 @@ export const tr: Partial<Record<TKey, string>> = {
   "stat.swaps": "takas",
   "stat.moves": "hareket",
   "stat.probes": "sondaj",
+  "stat.edgesExamined": "incelenen kenar",
+  "stat.relaxations": "gevşetme",
+  "stat.rejectedEdges": "reddedilen kenar",
+  "stat.cellsWritten": "yazılan hücre",
+  "stat.choices": "seçim",
+  "stat.backtracks": "geri dönüş",
+  "stat.deadEnds": "çıkmaz",
 
   // Graphs
   "graph.legend.current": "mevcut",

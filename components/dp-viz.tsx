@@ -16,7 +16,8 @@ import {
 } from "@/lib/simulations/dp";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
-import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
+import { ChoiceButton, PlaybackPanel, useCounters, useStepPlayer } from "./step-player";
+import { DP_COUNTERS } from "@/lib/op-counters";
 import { FitStage } from "./fit-stage";
 
 /** Upper limit for the canvas scale, so a small table does not fill the screen. */
@@ -145,6 +146,7 @@ function StringPairViz({
   const [b, setB] = useState(defaultB);
   const { a: ca, b: cb, steps } = useMemo(() => generate(a, b), [generate, a, b]);
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, DP_COUNTERS);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -154,6 +156,7 @@ function StringPairViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}
@@ -210,6 +213,7 @@ function KnapsackViz({
     []
   );
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, DP_COUNTERS);
   const step = steps[player.index];
   const activeItem = step.active ? step.active[0] : 0;
 
@@ -220,6 +224,7 @@ function KnapsackViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}
@@ -276,6 +281,7 @@ function CoinChangeViz({
     []
   );
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, DP_COUNTERS);
   const step = steps[player.index];
   const activeCoin = step.active ? step.active[0] : 0;
 
@@ -286,6 +292,7 @@ function CoinChangeViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}
@@ -336,6 +343,7 @@ function FloydViz({
   const legend = useDpLegend();
   const { size, steps } = useMemo(() => floydWarshallSteps(), []);
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, DP_COUNTERS);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -347,6 +355,7 @@ function FloydViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}
@@ -393,6 +402,7 @@ function FibonacciViz({
   const [n, setN] = useState(8);
   const { steps } = useMemo(() => fibonacciSteps(n), [n]);
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, DP_COUNTERS);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -402,6 +412,7 @@ function FibonacciViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}
@@ -459,6 +470,7 @@ function LISViz({
     [values]
   );
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, DP_COUNTERS);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -468,6 +480,7 @@ function LISViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}
@@ -526,6 +539,7 @@ function KadaneViz({
     [values]
   );
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, DP_COUNTERS);
   const step = steps[player.index];
 
   useEffect(() => {
@@ -535,6 +549,7 @@ function KadaneViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       legend={legend}

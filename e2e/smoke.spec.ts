@@ -2,6 +2,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { categories } from "../lib/data";
 import { en, tr } from "../lib/dictionaries";
 import { stepNotesEn, stepNotesTr } from "../lib/step-notes";
+import { hasBacktrackViz, hasDpViz, hasGraphViz } from "../lib/viz-families";
 
 /**
  * Every page loads without a console error, an uncaught exception, a CSP
@@ -22,6 +23,14 @@ const DS_OP = {
   "linked-list": "ds.pushFront",
   "hash-table": "ds.insert",
 } as const;
+
+/** The counter every run of a family shows, by its label key. */
+function familyCounter(slug: string) {
+  if (hasGraphViz(slug)) return "stat.edgesExamined" as const;
+  if (hasDpViz(slug)) return "stat.cellsWritten" as const;
+  if (hasBacktrackViz(slug)) return "stat.choices" as const;
+  return undefined;
+}
 
 /** Collects everything that should fail the page; read it at the end. */
 function watchErrors(page: Page, baseURL: string | undefined): string[] {
@@ -85,6 +94,12 @@ for (const { prefix, t, pickOp } of LANGS) {
           await expect(timeline).toHaveValue(String(max), { timeout: 10_000 });
           // At the end the player stops on its own.
           await expect(page.getByRole("button", { name: t.play, exact: true }).first()).toBeVisible();
+
+          const counter = familyCounter(algorithm.slug);
+          if (counter) {
+            const stats = page.locator("[data-playback-stats]").first();
+            await expect(stats).toContainText(t[counter]);
+          }
         }
 
         expect(errors).toEqual([]);
