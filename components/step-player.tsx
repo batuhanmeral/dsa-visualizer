@@ -326,6 +326,10 @@ export function PlaybackPanel({
             <span className="shrink-0 font-mono text-[11px] text-zinc-400">
               {player.index + 1}/{count}
             </span>
+            {/* A narrow card has no room left beside the buttons and the speed
+                select: the toggles end the timeline line instead of taking a
+                row of their own. Same switch point as the speed selector. */}
+            {tools && <div className="flex shrink-0 @sm:hidden">{tools}</div>}
           </div>
           <TransportControls
             playing={player.playing}
@@ -334,7 +338,7 @@ export function PlaybackPanel({
             onStep={player.stepBy}
           />
           <SpeedSelect />
-          {tools}
+          {tools && <div className="hidden shrink-0 self-stretch @sm:flex">{tools}</div>}
         </div>
 
         <StepNoteLine dotClass={dotClass}>{noteText}</StepNoteLine>
