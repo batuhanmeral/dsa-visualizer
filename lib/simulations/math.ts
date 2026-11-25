@@ -38,7 +38,8 @@ export function sieveSteps(n: number): SieveResult {
 
   snap(2, msg("n.sieve.assume", { n }), null, null);
   status[0] = "crossed";
-  status[1] = "crossed";
+  // n = 0 has no cell 1; writing it would grow the array past n + 1.
+  if (n >= 1) status[1] = "crossed";
   snap(3, msg("n.sieve.zeroOne"), null, null);
 
   for (let p = 2; p * p <= n; p++) {
