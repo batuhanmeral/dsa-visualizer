@@ -89,9 +89,15 @@ function sequence(freqs: number[], voice: Voice, intervalMs: number): Tone[] {
   }));
 }
 
+/** What a step needs to be heard: an array-canvas step, or a large-n trace step. */
+export type SoundStep = Pick<SimulationStep, "kind" | "held"> & {
+  highlights: ArrayLike<number>;
+  array: ArrayLike<number>;
+};
+
 /** The tones for one step of the array canvas, given the run's value range. */
 export function tonesForStep(
-  step: SimulationStep,
+  step: SoundStep,
   bounds: { min: number; max: number },
   intervalMs: number
 ): Tone[] {
@@ -109,7 +115,7 @@ export function tonesForStep(
 
   // The values the step touches. A slot holding a lifted value shows a stale
   // copy; the value being moved is the held one.
-  const values = step.highlights
+  const values = Array.from(step.highlights)
     .filter((i) => i >= 0 && i < step.array.length)
     .map((i) => (step.held?.hole === i ? step.held.value : step.array[i]));
   const freqs = values.map(pitch);

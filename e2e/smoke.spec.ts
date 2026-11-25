@@ -110,16 +110,7 @@ for (const { prefix, t, pickOp } of LANGS) {
 
 for (const { prefix, t } of LANGS) {
   test(`sound effects ${prefix}/sorting/bubble-sort`, async ({ page, baseURL }) => {
-    // Count the oscillators the page starts, to prove the steps are heard.
-    await page.addInitScript(() => {
-      const w = window as unknown as { __oscillators: number };
-      w.__oscillators = 0;
-      const create = AudioContext.prototype.createOscillator;
-      AudioContext.prototype.createOscillator = function (this: AudioContext) {
-        w.__oscillators++;
-        return create.call(this);
-      };
-    });
+    const oscillators = await countOscillators(page);
     const errors = watchErrors(page, baseURL);
     await page.goto(`${prefix}/sorting/bubble-sort`);
     const toggle = page.getByRole("button", { name: t["ws.sound"], exact: true });
@@ -130,9 +121,7 @@ for (const { prefix, t } of LANGS) {
     const forward = page.getByRole("button", { name: t.stepForward, exact: true }).first();
     await forward.click();
     await forward.click();
-    await expect
-      .poll(() => page.evaluate(() => (window as unknown as { __oscillators: number }).__oscillators))
-      .toBeGreaterThan(0);
+    await expect.poll(oscillators).toBeGreaterThan(0);
 
     // The choice survives a reload; turning it off is remembered too.
     await page.reload();
@@ -140,6 +129,109 @@ for (const { prefix, t } of LANGS) {
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-pressed", "false");
     expect(await page.evaluate(() => localStorage.getItem("sound"))).toBe("off");
+    expect(errors).toEqual([]);
+  });
+}
+
+/** Counts the oscillators the page starts, to prove the steps are heard. */
+async function countOscillators(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __oscillators: number };
+    w.__oscillators = 0;
+    const create = AudioContext.prototype.createOscillator;
+    AudioContext.prototype.createOscillator = function (this: AudioContext) {
+      w.__oscillators++;
+      return create.call(this);
+    };
+  });
+  return () => page.evaluate(() => (window as unknown as { __oscillators: number }).__oscillators);
+}
+
+for (const { prefix, t } of LANGS) {
+  test(`large n ${prefix}/sorting/merge-sort`, async ({ page, baseURL }) => {
+    const oscillators = await countOscillators(page);
+    const errors = watchErrors(page, baseURL);
+    await page.goto(`${prefix}/sorting/merge-sort`);
+    await page.getByRole("button", { name: t["bign.enter"], exact: true }).click();
+
+    const canvas = page.locator("[data-big-n-canvas]");
+    await expect(canvas).toBeVisible();
+    await page.getByRole("button", { name: "2000", exact: true }).click();
+    await expect(canvas).toHaveAttribute("aria-label", t["bign.canvas"].replace("{n}", "2000"));
+    const timeline = page.getByRole("slider", { name: t["ws.timeline"] }).first();
+    const max = Number(await timeline.getAttribute("max"));
+    expect(max, "2000 values take thousands of steps").toBeGreaterThan(10_000);
+
+    // Something is drawn: the canvas is not blank.
+    const painted = () =>
+      canvas.evaluate((c: HTMLCanvasElement) => {
+        const data = c.getContext("2d")!.getImageData(0, 0, c.width, c.height).data;
+        let alpha = 0;
+        for (let i = 3; i < data.length; i += 4) alpha += data[i];
+        return alpha;
+      });
+    expect(await painted()).toBeGreaterThan(0);
+
+    // Play the last stretch of the run with sound on; it stops at the end.
+    await page.getByRole("button", { name: t["ws.sound"], exact: true }).click();
+    await timeline.focus();
+    await page.keyboard.press("End");
+    for (let i = 0; i < 200; i++) await page.keyboard.press("ArrowLeft");
+    await page.getByRole("button", { name: t.play, exact: true }).first().click();
+    await expect(timeline).toHaveValue(String(max), { timeout: 10_000 });
+    await expect(page.getByRole("button", { name: t.play, exact: true }).first()).toBeVisible();
+    await expect.poll(oscillators).toBeGreaterThan(0);
+    await expect(page.locator("[data-playback-stats]").first()).toContainText(t["stat.comparisons"]);
+
+    // Back to the small input and its bars.
+    await page.getByRole("button", { name: t["bign.exit"], exact: true }).click();
+    await expect(canvas).toHaveCount(0);
+    expect(Number(await timeline.getAttribute("max"))).toBeLessThan(1000);
+    expect(errors).toEqual([]);
+  });
+
+  test(`large n stops at 1000 for quadratic sorts ${prefix}/sorting/bubble-sort`, async ({ page }) => {
+    await page.goto(`${prefix}/sorting/bubble-sort`);
+    await page.getByRole("button", { name: t["bign.enter"], exact: true }).click();
+    await expect(page.getByRole("button", { name: "1000", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "2000", exact: true })).toHaveCount(0);
+  });
+
+  test(`large n ${prefix}/searching/binary-search`, async ({ page, baseURL }) => {
+    // The trace is built in a worker, off the page's main thread.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __workers: number };
+      w.__workers = 0;
+      const Native = window.Worker;
+      window.Worker = class extends Native {
+        constructor(...args: ConstructorParameters<typeof Worker>) {
+          super(...args);
+          w.__workers++;
+        }
+      };
+    });
+    const errors = watchErrors(page, baseURL);
+    await page.goto(`${prefix}/searching/binary-search`);
+    await page.getByRole("button", { name: t["bign.enter"], exact: true }).click();
+    await page.getByRole("button", { name: "2000", exact: true }).click();
+    const canvas = page.locator("[data-big-n-canvas]");
+    await expect(canvas).toHaveAttribute("aria-label", t["bign.canvas"].replace("{n}", "2000"));
+    expect(await page.evaluate(() => (window as unknown as { __workers: number }).__workers)).toBeGreaterThan(0);
+    const note = t["bign.note.search"].split("{target}")[0].replace("{n}", "2000");
+    await expect(page.locator("[data-playback-note]").first()).toContainText(note);
+
+    // A short run: the last two steps play at the small canvas's pace.
+    const timeline = page.getByRole("slider", { name: t["ws.timeline"] }).first();
+    const max = Number(await timeline.getAttribute("max"));
+    expect(max).toBeGreaterThan(5);
+    expect(max).toBeLessThan(100);
+    await timeline.focus();
+    await page.keyboard.press("End");
+    await page.keyboard.press("ArrowLeft");
+    await page.keyboard.press("ArrowLeft");
+    await page.getByRole("button", { name: t.play, exact: true }).first().click();
+    await expect(timeline).toHaveValue(String(max), { timeout: 10_000 });
+    await expect(page.locator("[data-playback-stats]").first()).toContainText(t["stat.probes"]);
     expect(errors).toEqual([]);
   });
 }

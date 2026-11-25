@@ -27,6 +27,7 @@ import type { CodeLang } from "@/lib/highlight";
 import { availableTabs, initialTab, tabAfterUserAdvance } from "@/lib/panel-tab";
 import SortInputForm, { type InputShape } from "./sort-input-form";
 import AuxBuffers from "./aux-buffers";
+import { KIND_STYLES } from "./kind-styles";
 import { SoundToggle, useSoundPreference, useStepSound } from "./step-sound";
 import { tonesForStep, valueBounds } from "@/lib/sound";
 import {
@@ -61,6 +62,7 @@ const TreeViz = dynamic(() => import("./tree-viz"));
 const StringViz = dynamic(() => import("./string-viz"));
 const GreedyViz = dynamic(() => import("./greedy-viz"));
 const MathViz = dynamic(() => import("./math-viz"));
+const BigNView = dynamic(() => import("./big-n-view"));
 
 type CustomViz =
   | "ds"
@@ -87,27 +89,6 @@ function pickCustomViz(slug: string, isDsCategory: boolean): CustomViz | null {
 const MAX_VALUES = 16;
 const DEFAULT_INPUT = "23, 7, 41, 15, 3, 34, 9, 28";
 const DEFAULT_TARGET = "15";
-
-/**
- * Step-kind colours.
- *
- * `found`/`done` sit a step darker than the accent (600, not 500) because
- * `compare`/`probe` are amber: with the accent now orange, the two would
- * otherwise be neighbours on the wheel, and "being compared" versus "settled
- * in place" is the distinction the canvas exists to make. 600 against amber-400
- * is a ~26-point lightness gap, which survives being read at a glance and in
- * greyscale.
- */
-const KIND_STYLES: Record<StepKind, { bar: string; dot: string }> = {
-  compare: { bar: "bg-amber-400", dot: "bg-amber-400" },
-  swap: { bar: "bg-rose-500", dot: "bg-rose-500" },
-  shift: { bar: "bg-violet-500", dot: "bg-violet-500" },
-  select: { bar: "bg-sky-500", dot: "bg-sky-500" },
-  probe: { bar: "bg-amber-400", dot: "bg-amber-400" },
-  found: { bar: "bg-claude-600", dot: "bg-claude-600" },
-  info: { bar: "bg-zinc-400", dot: "bg-zinc-400" },
-  done: { bar: "bg-claude-600", dot: "bg-claude-600" },
-};
 
 const SORT_LEGEND: { key: TKey; dot: string }[] = [
   { key: "legend.compare", dot: "bg-amber-400" },
@@ -228,6 +209,7 @@ export default function Workspace({
   const shownCode = codeFor(code, codeLang);
   const codeLines = useMemo(() => shownCode.split("\n"), [shownCode]);
   const [compareMode, setCompareMode] = useState(false);
+  const [bigN, setBigN] = useState(false);
   const restored = useRef(false);
 
   const hasGrowth = generator !== undefined;
@@ -378,13 +360,18 @@ export default function Workspace({
   // Compare mode: race this algorithm against a sibling on the same input.
   const compareAvailable =
     !useCustomViz && generator !== undefined && siblings.length > 0;
-  const comparing = compareMode && compareAvailable;
-  // Compare mode races two runs on one timeline; it stays silent.
-  useStepSound(step, soundOn && !comparing, (s) =>
+  // Large n: the sorting and searching pages can swap the bars for a canvas of 500-2000 values.
+  const isSearch = category.slug === "searching";
+  const bigNAvailable =
+    (category.slug === "sorting" || isSearch) && !useCustomViz && generator !== undefined;
+  const showBigN = bigN && bigNAvailable;
+  const comparing = compareMode && compareAvailable && !showBigN;
+  // Compare mode races two runs on one timeline; it stays silent. Large n plays its own.
+  useStepSound(step, soundOn && !comparing && !showBigN, (s) =>
     tonesForStep(s, soundBounds, 900 / speed)
   );
   const activeLine =
-    useCustomViz || comparing ? dsLine : step ? step.codeLine : demoLine;
+    useCustomViz || comparing || showBigN ? dsLine : step ? step.codeLine : demoLine;
   // Pages with a step player (not the DS family) can show the mobile dock.
   const hasDock =
     customViz !== null ? customViz !== "ds" : hasInput && !asBoxes && steps !== undefined;
@@ -552,7 +539,7 @@ export default function Workspace({
   // Skipped while a custom canvas or compare mode owns playback, and while the
   // user is typing or choosing in a field. The player is read through a ref so
   // the listener always sees fresh state (atEnd, steps) without re-subscribing.
-  const shortcutsActive = !useCustomViz && !comparing && steps !== undefined;
+  const shortcutsActive = !useCustomViz && !comparing && !showBigN && steps !== undefined;
   const transportRef = useRef(sortPlayer);
   const panelsRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -690,6 +677,8 @@ export default function Workspace({
       </>
     ) : undefined;
 
+  const soundToggle = <SoundToggle on={soundOn} onToggle={toggleSound} />;
+
   // One element, so the row follows the reader into compare mode and back.
   const inputRow =
     hasInput && !useCustomViz ? (
@@ -708,6 +697,15 @@ export default function Workspace({
         compare={
           compareAvailable
             ? { active: comparing, onToggle: () => setCompareMode((c) => !c) }
+            : undefined
+        }
+        onBigN={
+          bigNAvailable
+            ? () => {
+                setCompareMode(false);
+                setIsPlaying(false);
+                setBigN(true);
+              }
             : undefined
         }
       />
@@ -756,7 +754,7 @@ export default function Workspace({
           />
 
           {/* Status chip */}
-          {!useCustomViz && !comparing && (
+          {!useCustomViz && !comparing && !showBigN && (
             <span
               className={`absolute right-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-medium ${
                 playing || (steps && atEnd)
@@ -887,7 +885,22 @@ export default function Workspace({
               </div>
             ) : (
               /* Sorting / searching: animated bars */
-              steps && step && sortPlayer ? (
+              showBigN ? (
+                <BigNView
+                  key={algorithm.slug}
+                  slug={algorithm.slug}
+                  search={isSearch}
+                  speed={speed}
+                  onLine={setDsLine}
+                  soundOn={soundOn}
+                  tools={soundToggle}
+                  legend={(isSearch ? SEARCH_LEGEND : SORT_LEGEND).map((item) => ({
+                    label: t(item.key),
+                    dot: item.dot,
+                  }))}
+                  onExit={() => setBigN(false)}
+                />
+              ) : steps && step && sortPlayer ? (
                 <PlaybackPanel
                   player={sortPlayer}
                   count={steps.length}
@@ -900,7 +913,7 @@ export default function Workspace({
                   }))}
                   stats={sortStats}
                   extra={inputRow}
-                  tools={<SoundToggle on={soundOn} onToggle={toggleSound} />}
+                  tools={soundToggle}
                 >
                   {/* Top padding keeps the held-value tag of a full-height bar
                       inside the panel's scroll box; only engines that lift a value pay it.

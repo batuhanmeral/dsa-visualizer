@@ -1,5 +1,5 @@
 import { msg } from "./note";
-import { makeRecorder } from "./sorting";
+import { makeRecorder, type RecorderFactory } from "./sorting";
 import type { SimulationStep } from "./types";
 
 /**
@@ -8,11 +8,11 @@ import type { SimulationStep } from "./types";
  */
 export function linearSearchSteps(
   input: number[],
-  target = Number.NaN
+  target = Number.NaN,
+  make: RecorderFactory = makeRecorder
 ): SimulationStep[] {
-  const arr = [...input];
+  const { arr, steps, sorted, record, setWatch } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { i: 0 };
   setWatch(w);
 
@@ -39,11 +39,11 @@ export function linearSearchSteps(
  */
 export function binarySearchSteps(
   input: number[],
-  target = Number.NaN
+  target = Number.NaN,
+  make: RecorderFactory = makeRecorder
 ): SimulationStep[] {
-  const arr = [...input].sort((a, b) => a - b);
+  const { arr, steps, sorted, record, setWatch } = make([...input].sort((a, b) => a - b));
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { lo: 0, hi: n - 1, mid: 0 };
   setWatch(w);
 
@@ -96,11 +96,11 @@ export function binarySearchSteps(
  */
 export function jumpSearchSteps(
   input: number[],
-  target = Number.NaN
+  target = Number.NaN,
+  make: RecorderFactory = makeRecorder
 ): SimulationStep[] {
-  const arr = [...input].sort((a, b) => a - b);
+  const { arr, steps, sorted, record, setWatch } = make([...input].sort((a, b) => a - b));
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { step: 0, prev: 0 };
   setWatch(w);
 
@@ -176,11 +176,11 @@ export function jumpSearchSteps(
  */
 export function interpolationSearchSteps(
   input: number[],
-  target = Number.NaN
+  target = Number.NaN,
+  make: RecorderFactory = makeRecorder
 ): SimulationStep[] {
-  const arr = [...input].sort((a, b) => a - b);
+  const { arr, steps, sorted, record, setWatch } = make([...input].sort((a, b) => a - b));
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { lo: 0, hi: n - 1, pos: 0 };
   setWatch(w);
 

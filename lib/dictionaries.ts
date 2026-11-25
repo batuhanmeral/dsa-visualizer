@@ -62,6 +62,16 @@ export const en = {
   "ws.timeline": "Simulation timeline",
   "ws.speed": "Playback speed",
   "ws.sound": "Sound effects",
+  "bign.enter": "Large n",
+  "bign.enter.title": "Run 500 to 2000 values on a canvas",
+  "bign.exit": "Small input",
+  "bign.size": "Values",
+  "bign.canvas": "Bars for {n} values",
+  "bign.note":
+    "{n} values. Step notes are hidden at this size; the code line and the counters still follow the run.",
+  "bign.note.search":
+    "{n} values, target {target}. Step notes are hidden at this size; the code line and the counters still follow the run.",
+  "bign.loading": "Preparing {n} values",
   "ws.dock.label": "Playback controls",
   "ws.split.label": "Resize panels",
   "ws.status.running": "Running",
@@ -349,6 +359,16 @@ export const tr: Partial<Record<TKey, string>> = {
   "ws.timeline": "Simülasyon zaman çizelgesi",
   "ws.speed": "Oynatma hızı",
   "ws.sound": "Ses efektleri",
+  "bign.enter": "Büyük n",
+  "bign.enter.title": "500 ile 2000 arası değerle tuvalde çalıştır",
+  "bign.exit": "Küçük girdi",
+  "bign.size": "Değer",
+  "bign.canvas": "{n} değerin çubukları",
+  "bign.note":
+    "{n} değer. Bu boyutta adım notları gizli; kod satırı ve sayaçlar koşuyu izlemeye devam ediyor.",
+  "bign.note.search":
+    "{n} değer, hedef {target}. Bu boyutta adım notları gizli; kod satırı ve sayaçlar koşuyu izlemeye devam ediyor.",
+  "bign.loading": "{n} değer hazırlanıyor",
   "ws.dock.label": "Oynatma denetimleri",
   "ws.split.label": "Panel genişliği",
   "ws.status.running": "Çalışıyor",

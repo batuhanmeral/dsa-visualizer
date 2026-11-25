@@ -345,15 +345,11 @@ export function PlaybackPanel({
             className="mt-2.5 flex flex-wrap items-center gap-1.5"
           >
             {counters?.map((c) => (
-              <span
+              <CounterBadge
                 key={c.key}
-                className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
-              >
-                {t(c.key)}
-                <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
-                  {c.totals[Math.min(player.index, c.totals.length - 1)] ?? 0}
-                </span>
-              </span>
+                label={t(c.key)}
+                value={c.totals[Math.min(player.index, c.totals.length - 1)] ?? 0}
+              />
             ))}
             {stats}
           </div>
@@ -373,6 +369,17 @@ export function PlaybackPanel({
         )}
       </PlaybackCard>
     </div>
+  );
+}
+
+/** One running counter: a label and its total so far. */
+export function CounterBadge({ label, value, dot }: { label: string; value: number; dot?: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
+      {dot && <span className={`size-1.5 rounded-full ${dot}`} />}
+      {label}
+      <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">{value}</span>
+    </span>
   );
 }
 

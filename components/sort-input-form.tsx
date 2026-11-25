@@ -2,6 +2,7 @@
 
 import { useId, useState, type FormEvent } from "react";
 import {
+  ChartColumnIncreasing,
   Check,
   Crosshair,
   Dices,
@@ -60,6 +61,7 @@ export default function SortInputForm({
   copied,
   maxNumbersHint,
   compare,
+  onBigN,
 }: {
   inputText: string;
   onInputText: (text: string) => void;
@@ -73,6 +75,8 @@ export default function SortInputForm({
   maxNumbersHint: string;
   /** Present only when a sibling algorithm can be raced against this one. */
   compare?: { active: boolean; onToggle: () => void };
+  /** Present only on sorting and searching pages: switches to the large-n canvas. */
+  onBigN?: () => void;
 }) {
   const { t } = useLang();
   const [shapesOpen, setShapesOpen] = useState(false);
@@ -148,6 +152,17 @@ export default function SortInputForm({
         >
           <GitCompareArrows className="size-4" />
           <span className={rowLabel}>{t("ws.compare")}</span>
+        </button>
+      )}
+      {onBigN && (
+        <button
+          type="button"
+          onClick={onBigN}
+          title={t("bign.enter.title")}
+          className={`${CONTROL} ${NEUTRAL} ${FOCUS_RING}`}
+        >
+          <ChartColumnIncreasing className="size-4" />
+          {t("bign.enter")}
         </button>
       )}
       {/* In the flow, not a popup: the canvas clips overflow, and a popup
