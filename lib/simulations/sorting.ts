@@ -2,8 +2,9 @@ import { msg, type Note } from "./note";
 import type { AuxRow, SimulationStep, StepKind } from "./types";
 
 /**
- * Shared recorder: mutate `arr` freely, call `record` after each meaningful
- * moment — it snapshots the array and the sorted set into an immutable step.
+ * Shared recorder: mutate the returned `arr` (the array passed in) freely, call
+ * `record` after each meaningful moment: it snapshots the array and the
+ * sorted set into an immutable step.
  * Code line numbers are 0-based and MUST match the C code in lib/data.ts.
  */
 export function makeRecorder(arr: number[]) {
@@ -71,13 +72,26 @@ export function makeRecorder(arr: number[]) {
   const setAux = (rows: AuxRow[]) => {
     aux = rows;
   };
-  return { steps, sorted, record, setWatch, hold, moveHole, release, setAux, holes };
+  return { arr, steps, sorted, record, setWatch, hold, moveHole, release, setAux, holes };
 }
 
-export function bubbleSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export type Recorder = ReturnType<typeof makeRecorder>;
+
+/**
+ * Builds the recorder a sort runs against. The default snapshots every step;
+ * `traceRecorder` (trace.ts) logs the same run compactly for large inputs.
+ * The sort mutates the recorder's `arr`, not its own copy, so a recorder can
+ * observe the writes.
+ */
+export type RecorderFactory = (arr: number[]) => Recorder;
+
+export function bubbleSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { i: 0, j: 0 };
   setWatch(w);
 
@@ -124,10 +138,13 @@ export function bubbleSortSteps(input: number[]): SimulationStep[] {
   return steps;
 }
 
-export function selectionSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function selectionSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { i: 0, j: 0, min: 0 };
   setWatch(w);
 
@@ -165,11 +182,13 @@ export function selectionSortSteps(input: number[]): SimulationStep[] {
   return steps;
 }
 
-export function insertionSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function insertionSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch, hold, moveHole, release } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch, hold, moveHole, release } =
-    makeRecorder(arr);
   const w = { i: 0, j: 0, key: 0 };
   setWatch(w);
 
@@ -206,11 +225,13 @@ export function insertionSortSteps(input: number[]): SimulationStep[] {
   return steps;
 }
 
-export function shellSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function shellSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch, hold, moveHole, release } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch, hold, moveHole, release } =
-    makeRecorder(arr);
   const w = { gap: 0, i: 0, j: 0, key: 0 };
   setWatch(w);
 
@@ -252,10 +273,13 @@ export function shellSortSteps(input: number[]): SimulationStep[] {
   return steps;
 }
 
-export function mergeSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function mergeSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch, setAux, holes } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { lo: 0, mid: 0, hi: 0 };
   setWatch(w);
 
@@ -356,10 +380,13 @@ export function mergeSortSteps(input: number[]): SimulationStep[] {
   return steps;
 }
 
-export function quickSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function quickSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { lo: 0, hi: 0, pivot: 0, i: 0, j: 0 };
   setWatch(w);
 
@@ -417,10 +444,13 @@ export function quickSortSteps(input: number[]): SimulationStep[] {
   return steps;
 }
 
-export function heapSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function heapSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
   const w = { size: n, i: 0, largest: 0 };
   setWatch(w);
 
@@ -479,10 +509,13 @@ export function heapSortSteps(input: number[]): SimulationStep[] {
   return steps;
 }
 
-export function countingSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function countingSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch, setAux, holes } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { max: 0, i: 0 };
   setWatch(w);
 
@@ -551,10 +584,13 @@ export function countingSortSteps(input: number[]): SimulationStep[] {
 
 const BUCKET_COUNT = 5;
 
-export function bucketSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function bucketSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch, setAux, holes } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { max: 0, size: 0, b: 0, i: 0 };
   setWatch(w);
 
@@ -655,10 +691,13 @@ const placeKey = (d: number): { place: string; placeExp?: number } =>
         ? { place: "@n.radix.place.hundreds" }
         : { place: "@n.radix.place.power", placeExp: d - 1 };
 
-export function radixSortSteps(input: number[]): SimulationStep[] {
-  const arr = [...input];
+export function radixSortSteps(
+  input: number[],
+  _target?: number,
+  make: RecorderFactory = makeRecorder
+): SimulationStep[] {
+  const { arr, steps, sorted, record, setWatch, setAux, holes } = make([...input]);
   const n = arr.length;
-  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { exp: 1, i: 0 };
   setWatch(w);
 
