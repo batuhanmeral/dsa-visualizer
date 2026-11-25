@@ -16,6 +16,8 @@ is wrong, not that its output changed:
 | `trees.test.ts` | BST ordering after delete; AVL balance factors and height labels; heap property and pop order; segment-tree sums; union-find component count |
 | `dp.test.ts` | each table against a reference DP |
 | `greedy.test.ts` | activity selection vs. DP, job sequencing vs. brute force, Huffman prefix-free and optimally short |
+| `math.test.ts` | sieve vs. trial division; GCD rows and result; extended Euclid's Bezout identity on every row; fast power vs. BigInt repeated multiplication |
+| `structures.test.ts` | stack, queue, linked list and hash table operations vs. a plain-array model over seeded operation scripts, including the full-capacity branches |
 | `strings.test.ts` | match positions vs. a naive scan; Z-array and Manacher vs. brute force |
 | `backtracking.test.ts` | solutions are legal, and unsolvable inputs are reported as such |
 | `coverage.test.ts` | every `codeLine` exists in the algorithm's C snippet; every note key exists, is translated, and is given exactly the values its template needs |

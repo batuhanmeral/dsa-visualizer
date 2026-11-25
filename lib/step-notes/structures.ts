@@ -10,6 +10,7 @@ export const en = {
   // Stack
   "n.stack.pushCall": "push({v}): call.",
   "n.stack.room": "top == MAX - 1? No: room to spare.",
+  "n.stack.overflow": "top == MAX - 1 → stack full, push({v}) is ignored.",
   "n.stack.store": "Store {v} at the new top.",
   "n.stack.popCall": "pop(): call.",
   "n.stack.popEmpty": "top == -1 → stack empty, return -1.",
@@ -20,6 +21,7 @@ export const en = {
   // Queue
   "n.queue.enqueueCall": "enqueue({v}): call.",
   "n.queue.room": "size == MAX? No: room left.",
+  "n.queue.full": "size == MAX → queue full, enqueue({v}) is ignored.",
   "n.queue.advanceRear": "Advance rear (circular index).",
   "n.queue.write": "Write {v} at the rear.",
   "n.queue.sizeUp": "size++.",
@@ -70,6 +72,7 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
 
   "n.stack.pushCall": "push({v}): çağrı.",
   "n.stack.room": "top == MAX - 1? Hayır: yer var.",
+  "n.stack.overflow": "top == MAX - 1 → yığın dolu, push({v}) yok sayılıyor.",
   "n.stack.store": "{v}, yeni tepeye yazılıyor.",
   "n.stack.popCall": "pop(): çağrı.",
   "n.stack.popEmpty": "top == -1 → yığın boş, -1 döndürülüyor.",
@@ -79,6 +82,7 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
 
   "n.queue.enqueueCall": "enqueue({v}): çağrı.",
   "n.queue.room": "size == MAX? Hayır: yer var.",
+  "n.queue.full": "size == MAX → kuyruk dolu, enqueue({v}) yok sayılıyor.",
   "n.queue.advanceRear": "rear ilerletiliyor (dairesel indeks).",
   "n.queue.write": "{v}, kuyruğun sonuna yazılıyor.",
   "n.queue.sizeUp": "size++.",
