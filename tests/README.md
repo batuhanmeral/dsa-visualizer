@@ -10,7 +10,7 @@ is wrong, not that its output changed:
 
 | File | Checks |
 | --- | --- |
-| `sorting.test.ts` | result is sorted; in-place sorts keep a permutation at every step; a locked index really holds its final value |
+| `sorting.test.ts` | result is sorted; every step shows each input value exactly once (array, held key and auxiliary buffers together); a locked index really holds its final value |
 | `searching.test.ts` | hit/miss against `Array.includes`, every value and several misses per input |
 | `graphs.test.ts` | Dijkstra/Bellman-Ford vs. a reference relaxation; Prim/Kruskal vs. a reference MST; BFS layering; A\* vs. the true shortest cost; negative-cycle and cycle detection |
 | `trees.test.ts` | BST ordering after delete; AVL balance factors and height labels; heap property and pop order; segment-tree sums; union-find component count |

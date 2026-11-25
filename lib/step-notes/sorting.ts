@@ -33,6 +33,8 @@ export const en = {
   // Merge sort
   "n.merge.start": "Starting Merge Sort on {n} elements.",
   "n.merge.split": "Split [{lo}..{hi}] at index {mid}.",
+  "n.merge.copyLeft": "Copy the left half arr[{lo}..{mid}] into L.",
+  "n.merge.copyRight": "Copy the right half arr[{rlo}..{hi}] into R.",
   "n.merge.merging": "Merging sorted halves [{lo}..{mid}] and [{rlo}..{hi}].",
   "n.merge.compare": "Compare {a} and {b}: smaller goes first.",
   "n.merge.write": "Write {value} to index {index}.",
@@ -120,6 +122,8 @@ export const tr: Partial<Record<keyof typeof en, string>> = {
 
   "n.merge.start": "{n} eleman üzerinde Merge Sort başlıyor.",
   "n.merge.split": "[{lo}..{hi}] aralığı {mid}. indeksten bölünüyor.",
+  "n.merge.copyLeft": "Sol yarı arr[{lo}..{mid}], L dizisine kopyalanıyor.",
+  "n.merge.copyRight": "Sağ yarı arr[{rlo}..{hi}], R dizisine kopyalanıyor.",
   "n.merge.merging": "Sıralı yarılar birleştiriliyor: [{lo}..{mid}] ve [{rlo}..{hi}].",
   "n.merge.compare": "{a} ile {b} karşılaştırılıyor: küçük olan öne geçer.",
   "n.merge.write": "{value}, {index}. indekse yazılıyor.",
