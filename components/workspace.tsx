@@ -27,6 +27,8 @@ import type { CodeLang } from "@/lib/highlight";
 import { availableTabs, initialTab, tabAfterUserAdvance } from "@/lib/panel-tab";
 import SortInputForm, { type InputShape } from "./sort-input-form";
 import AuxBuffers from "./aux-buffers";
+import { SoundToggle, useSoundPreference, useStepSound } from "./step-sound";
+import { tonesForStep, valueBounds } from "@/lib/sound";
 import {
   SPEEDS,
   InvariantContext,
@@ -258,6 +260,9 @@ export default function Workspace({
     [generator, values, target]
   );
   const step = steps ? steps[Math.min(stepIndex, steps.length - 1)] : undefined;
+  // Pitch is relative to the run's own range, so a value keeps its note.
+  const soundBounds = useMemo(() => valueBounds(steps?.[0]?.array ?? []), [steps]);
+  const [soundOn, toggleSound] = useSoundPreference();
   const atEnd = steps !== undefined && stepIndex >= steps.length - 1;
   // Derived: playback halts by itself once the simulation reaches its last step.
   const playing = isPlaying && !atEnd;
@@ -374,6 +379,10 @@ export default function Workspace({
   const compareAvailable =
     !useCustomViz && generator !== undefined && siblings.length > 0;
   const comparing = compareMode && compareAvailable;
+  // Compare mode races two runs on one timeline; it stays silent.
+  useStepSound(step, soundOn && !comparing, (s) =>
+    tonesForStep(s, soundBounds, 900 / speed)
+  );
   const activeLine =
     useCustomViz || comparing ? dsLine : step ? step.codeLine : demoLine;
   // Pages with a step player (not the DS family) can show the mobile dock.
@@ -891,6 +900,7 @@ export default function Workspace({
                   }))}
                   stats={sortStats}
                   extra={inputRow}
+                  tools={<SoundToggle on={soundOn} onToggle={toggleSound} />}
                 >
                   {/* Top padding keeps the held-value tag of a full-height bar
                       inside the panel's scroll box; only engines that lift a value pay it.

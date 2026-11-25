@@ -93,6 +93,42 @@ for (const { prefix, t, pickOp } of LANGS) {
   }
 }
 
+for (const { prefix, t } of LANGS) {
+  test(`sound effects ${prefix}/sorting/bubble-sort`, async ({ page, baseURL }) => {
+    // Count the oscillators the page starts, to prove the steps are heard.
+    await page.addInitScript(() => {
+      const w = window as unknown as { __oscillators: number };
+      w.__oscillators = 0;
+      const create = AudioContext.prototype.createOscillator;
+      AudioContext.prototype.createOscillator = function (this: AudioContext) {
+        w.__oscillators++;
+        return create.call(this);
+      };
+    });
+    const errors = watchErrors(page, baseURL);
+    await page.goto(`${prefix}/sorting/bubble-sort`);
+    const toggle = page.getByRole("button", { name: t["ws.sound"], exact: true });
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    const forward = page.getByRole("button", { name: t.stepForward, exact: true }).first();
+    await forward.click();
+    await forward.click();
+    await expect
+      .poll(() => page.evaluate(() => (window as unknown as { __oscillators: number }).__oscillators))
+      .toBeGreaterThan(0);
+
+    // The choice survives a reload; turning it off is remembered too.
+    await page.reload();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    expect(await page.evaluate(() => localStorage.getItem("sound"))).toBe("off");
+    expect(errors).toEqual([]);
+  });
+}
+
 test("an unknown page is a 404 without client errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
