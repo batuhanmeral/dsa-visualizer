@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -19,6 +20,7 @@ import {
 import { useLang } from "@/lib/i18n";
 import { useStepNote } from "@/lib/use-step-note";
 import type { Note } from "@/lib/simulations/note";
+import { runningCounters, type CounterDef, type CounterTrack } from "@/lib/op-counters";
 import { usePublishTransport, useUserAdvanced } from "./playback-bridge";
 
 /**
@@ -102,6 +104,11 @@ export function useStepPlayer(
 }
 
 export type StepPlayer = ReturnType<typeof useStepPlayer>;
+
+/** Running operation counters for a step list, computed once per run. */
+export function useCounters<S>(steps: readonly S[], defs: readonly CounterDef<S>[]): CounterTrack[] {
+  return useMemo(() => runningCounters(steps, defs), [steps, defs]);
+}
 
 // ── Speed control ───────────────────────────────────────────────────────
 // The speed state lives in `Workspace`, but the selector renders inside the
@@ -248,6 +255,7 @@ export function PlaybackPanel({
   legend,
   extra,
   stats,
+  counters,
   tools,
   children,
 }: {
@@ -267,6 +275,8 @@ export function PlaybackPanel({
   extra?: ReactNode;
   /** Running counters and variable badges, shown under the invariant. */
   stats?: ReactNode;
+  /** Operation counters, shown at the player's step before `stats`. */
+  counters?: CounterTrack[];
   /** Toggles at the end of the transport row (sound effects). */
   tools?: ReactNode;
   children: ReactNode;
@@ -329,11 +339,22 @@ export function PlaybackPanel({
 
         <StepNoteLine dotClass={dotClass}>{noteText}</StepNoteLine>
         {shownInvariant && <InvariantLine note={shownInvariant} />}
-        {stats && (
+        {(stats || (counters && counters.length > 0)) && (
           <div
             data-playback-stats
             className="mt-2.5 flex flex-wrap items-center gap-1.5"
           >
+            {counters?.map((c) => (
+              <span
+                key={c.key}
+                className="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-2 py-1 text-[10px] font-medium text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400"
+              >
+                {t(c.key)}
+                <span className="font-mono tabular-nums text-zinc-900 dark:text-zinc-100">
+                  {c.totals[Math.min(player.index, c.totals.length - 1)] ?? 0}
+                </span>
+              </span>
+            ))}
             {stats}
           </div>
         )}

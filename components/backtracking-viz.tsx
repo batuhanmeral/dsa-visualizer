@@ -22,7 +22,8 @@ import {
 } from "@/lib/simulations/backtracking";
 import { useLang } from "@/lib/i18n";
 import type { TKey } from "@/lib/dictionaries";
-import { ChoiceButton, PlaybackPanel, useStepPlayer } from "./step-player";
+import { ChoiceButton, PlaybackPanel, useCounters, useStepPlayer } from "./step-player";
+import { BACKTRACK_COUNTERS } from "@/lib/op-counters";
 
 /** Translate a `{key, dot}[]` legend for the active language. */
 function useLegend(keys: { key: TKey; dot: string }[]) {
@@ -81,6 +82,7 @@ function QueensViz({
   const [n, setN] = useState(6);
   const steps = useMemo(() => nQueensSteps(n), [n]);
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, BACKTRACK_COUNTERS);
   const step: QueensStep = steps[player.index];
 
   useEffect(() => {
@@ -92,6 +94,7 @@ function QueensViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       dotClass={QUEEN_DOT[step.status]}
@@ -193,6 +196,7 @@ function SudokuViz({
   const { grid, fixed } = useMemo(() => makeSudokuGrid(), []);
   const steps = useMemo(() => sudokuSteps(grid), [grid]);
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, BACKTRACK_COUNTERS);
   const step: SudokuStep = steps[player.index];
 
   useEffect(() => {
@@ -202,6 +206,7 @@ function SudokuViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       dotClass={SUDOKU_DOT[step.status]}
@@ -275,6 +280,7 @@ function MazeViz({
   const legend = useLegend(MAZE_LEGEND);
   const steps = useMemo(() => mazeSteps(SAMPLE_MAZE), []);
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, BACKTRACK_COUNTERS);
   const step: MazeStep = steps[player.index];
   const N = step.maze.length;
 
@@ -285,6 +291,7 @@ function MazeViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       dotClass={MAZE_DOT[step.status]}
@@ -370,6 +377,7 @@ function ChoiceViz({
   const legend = useLegend(CHOICE_LEGEND);
   const steps = useMemo(() => generate(input), [generate, input]);
   const player = useStepPlayer(steps.length, speed, steps);
+  const counters = useCounters(steps, BACKTRACK_COUNTERS);
   const step: ChoiceStep = steps[player.index];
 
   useEffect(() => {
@@ -383,6 +391,7 @@ function ChoiceViz({
   return (
     <PlaybackPanel
       player={player}
+      counters={counters}
       count={steps.length}
       note={step.note}
       dotClass={CHOICE_DOT[step.status]}
