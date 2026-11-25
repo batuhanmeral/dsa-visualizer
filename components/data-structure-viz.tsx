@@ -24,6 +24,25 @@ import { useLang } from "@/lib/i18n";
 import { useStepNote } from "@/lib/use-step-note";
 import { msg, type Note } from "@/lib/simulations/note";
 import {
+  dequeue,
+  emptyTable,
+  enqueue,
+  hashClear,
+  hashContains,
+  hashInsert,
+  listClear,
+  listPushFront,
+  listRemove,
+  queueClear,
+  stackClear,
+  stackPop,
+  stackPush,
+  type Cell,
+  type HashState,
+  type ListState,
+  type OpFrame,
+} from "@/lib/simulations/structures";
+import {
   InvariantContext,
   InvariantLine,
   PlaybackCard,
@@ -36,29 +55,18 @@ import { FitStage, useFitScale } from "./fit-stage";
 /**
  * Interactive data-structure playground. Unlike the sorting/searching engines
  * (which replay a precomputed step list), data structures are driven by the
- * user clicking operations. Each operation emits a list of `OpFrame`s that the
- * shared runner walks through at the selected speed: every frame highlights a
- * C-code line, updates the status note, and optionally mutates the live state
- * via `apply` — so the box animation and the highlighted line stay in sync.
+ * user clicking operations. Each operation (`lib/simulations/structures.ts`)
+ * returns frames that the shared runner walks through at the selected speed:
+ * every frame highlights a C-code line, updates the status note, and may carry
+ * the state after that line, applied when the frame fires, so the box
+ * animation and the highlighted line stay in sync.
  */
-
-interface OpFrame {
-  /** 0-based line of the algorithm's C code (must match lib/data.ts). */
-  line: number;
-  note: Note;
-  /** State mutation applied exactly when this frame fires. */
-  apply?: () => void;
-}
-
-interface Item {
-  id: number;
-  value: number;
-}
 
 let _id = 0;
 const nextId = () => ++_id;
-const toItems = (vals: number[]): Item[] =>
+const toItems = (vals: number[]): Cell[] =>
   vals.map((v) => ({ id: nextId(), value: v }));
+const newCell = (value: number): Cell => ({ id: nextId(), value });
 
 function clampInt(text: string): number | null {
   const n = Number.parseInt(text, 10);
@@ -89,7 +97,7 @@ function useRunner(onLine: (line: number) => void, speed: number) {
   useEffect(() => clear, [clear]);
 
   const run = useCallback(
-    (frames: OpFrame[]) => {
+    <S,>(frames: OpFrame<S>[], apply: (state: S) => void) => {
       clear();
       if (!frames.length) return;
       // Only user operations call run, and each one walks code lines.
@@ -101,7 +109,7 @@ function useRunner(onLine: (line: number) => void, speed: number) {
           window.setTimeout(() => {
             onLine(f.line);
             setNote(f.note);
-            f.apply?.();
+            if (f.state !== undefined) apply(f.state);
             if (i === frames.length - 1) {
               timers.current.push(
                 window.setTimeout(() => setBusy(false), step)
@@ -249,43 +257,16 @@ function StackViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [clears, setClears] = useState(0);
-  const [items, setItems] = useState<Item[]>(() => toItems([12, 5, 27]));
+  const [items, setItems] = useState<Cell[]>(() => toItems([12, 5, 27]));
   const [val, setVal] = useState("42");
 
   const push = () => {
     const v = clampInt(val);
     if (v === null) return;
-    const item = { id: nextId(), value: v };
-    run([
-      { line: 7, note: msg("n.stack.pushCall", { v }) },
-      { line: 8, note: msg("n.stack.room") },
-      {
-        line: 9,
-        note: msg("n.stack.store", { v }),
-        apply: () => setItems((s) => [...s, item]),
-      },
-    ]);
+    run(stackPush(items, newCell(v)).frames, setItems);
   };
 
-  const pop = () => {
-    if (!items.length) {
-      run([
-        { line: 12, note: msg("n.stack.popCall") },
-        { line: 13, note: msg("n.stack.popEmpty") },
-      ]);
-      return;
-    }
-    const top = items[items.length - 1];
-    run([
-      { line: 12, note: msg("n.stack.popCall") },
-      { line: 13, note: msg("n.stack.notEmpty") },
-      {
-        line: 14,
-        note: msg("n.stack.popReturn", { v: top.value }),
-        apply: () => setItems((s) => s.slice(0, -1)),
-      },
-    ]);
-  };
+  const pop = () => run(stackPop(items).frames, setItems);
 
   return (
     <VizShell
@@ -311,8 +292,7 @@ function StackViz({ speed, onLine }: VizProps) {
             icon={Eraser}
             onClick={() => {
               setClears((c) => c + 1);
-              setItems([]);
-              run([{ line: 4, note: msg("n.stack.cleared") }]);
+              run(stackClear().frames, setItems);
             }}
             disabled={busy}
           >
@@ -360,48 +340,16 @@ function QueueViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [clears, setClears] = useState(0);
-  const [items, setItems] = useState<Item[]>(() => toItems([12, 5, 27]));
+  const [items, setItems] = useState<Cell[]>(() => toItems([12, 5, 27]));
   const [val, setVal] = useState("42");
 
-  const enqueue = () => {
+  const add = () => {
     const v = clampInt(val);
     if (v === null) return;
-    const item = { id: nextId(), value: v };
-    run([
-      { line: 7, note: msg("n.queue.enqueueCall", { v }) },
-      { line: 8, note: msg("n.queue.room") },
-      { line: 9, note: msg("n.queue.advanceRear") },
-      {
-        line: 10,
-        note: msg("n.queue.write", { v }),
-        apply: () => setItems((s) => [...s, item]),
-      },
-      { line: 11, note: msg("n.queue.sizeUp") },
-    ]);
+    run(enqueue(items, newCell(v)).frames, setItems);
   };
 
-  const dequeue = () => {
-    if (!items.length) {
-      run([
-        { line: 14, note: msg("n.queue.dequeueCall") },
-        { line: 15, note: msg("n.queue.dequeueEmpty") },
-      ]);
-      return;
-    }
-    const front = items[0];
-    run([
-      { line: 14, note: msg("n.queue.dequeueCall") },
-      { line: 15, note: msg("n.queue.notEmpty") },
-      { line: 16, note: msg("n.queue.readFront", { v: front.value }) },
-      { line: 17, note: msg("n.queue.advanceFront") },
-      { line: 18, note: msg("n.queue.sizeDown") },
-      {
-        line: 19,
-        note: msg("n.queue.return", { v: front.value }),
-        apply: () => setItems((s) => s.slice(1)),
-      },
-    ]);
-  };
+  const take = () => run(dequeue(items).frames, setItems);
 
   return (
     <VizShell
@@ -413,13 +361,13 @@ function QueueViz({ speed, onLine }: VizProps) {
           <ValueInput
             value={val}
             onChange={setVal}
-            onSubmit={enqueue}
+            onSubmit={add}
             disabled={busy}
           />
-          <OpBtn icon={Plus} onClick={enqueue} disabled={busy}>
+          <OpBtn icon={Plus} onClick={add} disabled={busy}>
             {t("ds.enqueue")}
           </OpBtn>
-          <OpBtn tone="neutral" icon={Minus} onClick={dequeue} disabled={busy}>
+          <OpBtn tone="neutral" icon={Minus} onClick={take} disabled={busy}>
             {t("ds.dequeue")}
           </OpBtn>
           <OpBtn
@@ -427,8 +375,7 @@ function QueueViz({ speed, onLine }: VizProps) {
             icon={Eraser}
             onClick={() => {
               setClears((c) => c + 1);
-              setItems([]);
-              run([{ line: 4, note: msg("n.queue.cleared") }]);
+              run(queueClear().frames, setItems);
             }}
             disabled={busy}
           >
@@ -477,66 +424,23 @@ function LinkedListViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [clears, setClears] = useState(0);
-  const [items, setItems] = useState<Item[]>(() => toItems([27, 5, 12]));
-  const [cursor, setCursor] = useState<number | null>(null);
+  const [list, setList] = useState<ListState>(() => ({
+    items: toItems([27, 5, 12]),
+    cursor: null,
+  }));
+  const { items, cursor } = list;
   const [val, setVal] = useState("9");
 
   const pushFront = () => {
     const v = clampInt(val);
     if (v === null) return;
-    const item = { id: nextId(), value: v };
-    run([
-      { line: 5, note: msg("n.list.pushCall", { v }) },
-      { line: 6, note: msg("n.list.allocate") },
-      { line: 7, note: msg("n.list.setData", { v }) },
-      { line: 8, note: msg("n.list.setNext") },
-      {
-        line: 9,
-        note: msg("n.list.returnHead"),
-        apply: () => {
-          setCursor(null);
-          setItems((s) => [item, ...s]);
-        },
-      },
-    ]);
+    run(listPushFront(list, newCell(v)).frames, setList);
   };
 
   const remove = () => {
     const v = clampInt(val);
     if (v === null) return;
-    const frames: OpFrame[] = [{ line: 12, note: msg("n.list.removeCall", { v }) }];
-    let matched = false;
-    for (let i = 0; i < items.length; i++) {
-      const node = items[i];
-      frames.push({
-        line: 13,
-        note: msg(i === 0 ? "n.list.headNotNull" : "n.list.subNotNull"),
-        apply: () => setCursor(node.id),
-      });
-      frames.push({ line: 14, note: msg("n.list.compare", { value: node.value, v }) });
-      if (node.value === v) {
-        frames.push({ line: 15, note: msg("n.list.match") });
-        frames.push({
-          line: 16,
-          note: msg("n.list.free", { v }),
-          apply: () => {
-            setItems((s) => s.filter((x) => x.id !== node.id));
-            setCursor(null);
-          },
-        });
-        matched = true;
-        break;
-      }
-      frames.push({ line: 19, note: msg("n.list.recurse") });
-    }
-    if (!matched) {
-      frames.push({
-        line: 13,
-        note: msg("n.list.absent", { v }),
-        apply: () => setCursor(null),
-      });
-    }
-    run(frames);
+    run(listRemove(list, v).frames, setList);
   };
 
   return (
@@ -563,9 +467,7 @@ function LinkedListViz({ speed, onLine }: VizProps) {
             icon={Eraser}
             onClick={() => {
               setClears((c) => c + 1);
-              setItems([]);
-              setCursor(null);
-              run([{ line: 13, note: msg("n.list.cleared") }]);
+              run(listClear().frames, setList);
             }}
             disabled={busy}
           >
@@ -609,102 +511,27 @@ function LinkedListViz({ speed, onLine }: VizProps) {
 }
 
 // ── Hash Table (chaining) ───────────────────────────────────────────────
-const BUCKETS = 8;
-
 function HashTableViz({ speed, onLine }: VizProps) {
   const { t } = useLang();
   const { run, note, busy } = useRunner(onLine, speed);
   const [clears, setClears] = useState(0);
-  const [buckets, setBuckets] = useState<Item[][]>(() => {
-    const b: Item[][] = Array.from({ length: BUCKETS }, () => []);
-    [12, 5, 27, 20].forEach((k) => b[k % BUCKETS].unshift({ id: nextId(), value: k }));
-    return b;
-  });
-  const [activeBucket, setActiveBucket] = useState<number | null>(null);
-  const [cursor, setCursor] = useState<number | null>(null);
-  const [flash, setFlash] = useState<"found" | "missing" | null>(null);
+  const [table, setTable] = useState<HashState>(() => ({
+    ...[12, 5, 27, 20].reduce((t, k) => hashInsert(t, newCell(k)).final, emptyTable()),
+    active: null,
+  }));
+  const { buckets, active: activeBucket, cursor, flash } = table;
   const [val, setVal] = useState("36");
 
   const insert = () => {
     const k = clampInt(val);
     if (k === null) return;
-    const b = k % BUCKETS;
-    const collided = buckets[b].length > 0;
-    const item = { id: nextId(), value: k };
-    run([
-      { line: 13, note: msg("n.hash.insertCall", { k }) },
-      {
-        line: 14,
-        note: msg("n.hash.hash", { k, buckets: BUCKETS, b }),
-        apply: () => {
-          setFlash(null);
-          setCursor(null);
-          setActiveBucket(b);
-        },
-      },
-      { line: 15, note: msg("n.hash.allocate") },
-      { line: 16, note: msg("n.hash.setKey", { k }) },
-      {
-        line: 17,
-        note: msg(collided ? "n.hash.collision" : "n.hash.noCollision"),
-      },
-      {
-        line: 18,
-        note: msg("n.hash.store", { b }),
-        apply: () =>
-          setBuckets((bs) =>
-            bs.map((chain, i) => (i === b ? [item, ...chain] : chain))
-          ),
-      },
-    ]);
+    run(hashInsert(table, newCell(k)).frames, setTable);
   };
 
   const contains = () => {
     const k = clampInt(val);
     if (k === null) return;
-    const b = k % BUCKETS;
-    const chain = buckets[b];
-    const frames: OpFrame[] = [
-      { line: 21, note: msg("n.hash.containsCall", { k }) },
-      {
-        line: 22,
-        note: msg("n.hash.walk", { k, b }),
-        apply: () => {
-          setFlash(null);
-          setCursor(null);
-          setActiveBucket(b);
-        },
-      },
-    ];
-    let matched = false;
-    for (const entry of chain) {
-      frames.push({
-        line: 22,
-        note: msg("n.hash.visit", { value: entry.value }),
-        apply: () => setCursor(entry.id),
-      });
-      frames.push({ line: 23, note: msg("n.hash.compare", { value: entry.value, k }) });
-      if (entry.value === k) {
-        frames.push({
-          line: 23,
-          note: msg("n.hash.found", { k }),
-          apply: () => setFlash("found"),
-        });
-        matched = true;
-        break;
-      }
-    }
-    if (!matched) {
-      frames.push({
-        line: 24,
-        note: msg("n.hash.missing", { k, b }),
-        apply: () => {
-          setCursor(null);
-          setFlash("missing");
-        },
-      });
-    }
-    run(frames);
+    run(hashContains(table, k).frames, setTable);
   };
 
   return (
@@ -731,11 +558,7 @@ function HashTableViz({ speed, onLine }: VizProps) {
             icon={Eraser}
             onClick={() => {
               setClears((c) => c + 1);
-              setBuckets(Array.from({ length: BUCKETS }, () => []));
-              setActiveBucket(null);
-              setCursor(null);
-              setFlash(null);
-              run([{ line: 7, note: msg("n.hash.cleared") }]);
+              run(hashClear().frames, setTable);
             }}
             disabled={busy}
           >

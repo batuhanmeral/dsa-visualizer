@@ -16,11 +16,19 @@ import * as greedy from "../lib/simulations/greedy";
 import * as math from "../lib/simulations/math";
 import * as strings from "../lib/simulations/strings";
 import * as backtracking from "../lib/simulations/backtracking";
+import * as ds from "../lib/simulations/structures";
 
 interface Step {
   codeLine: number;
   note: Note;
 }
+
+/** Data-structure operations publish frames; the cross-cutting checks need steps. */
+const asSteps = (...ops: ds.Op<unknown>[]): Step[] =>
+  ops.flatMap((o) => o.frames.map((f) => ({ codeLine: f.line, note: f.note })));
+
+const cells = (...vals: number[]): ds.Cell[] => vals.map((value, id) => ({ id, value }));
+const full = cells(...Array.from({ length: ds.CAPACITY }, (_, i) => i));
 
 const A = [23, 7, 41, 15, 3, 34, 9, 28];
 const sources = [0, 1, 2, 3, 4, 5];
@@ -234,6 +242,40 @@ export const fixtures: Record<string, () => Step[]> = {
     ...greedy.huffmanSteps([{ ch: "A", freq: 1 }]).steps,
     ...greedy.huffmanSteps([]).steps,
   ],
+
+  stack: () =>
+    asSteps(
+      ds.stackPush(cells(1), { id: 9, value: 2 }),
+      ds.stackPush(full, { id: 999, value: 2 }),
+      ds.stackPop(cells(1, 2)),
+      ds.stackPop([]),
+      ds.stackClear()
+    ),
+  queue: () =>
+    asSteps(
+      ds.enqueue(cells(1), { id: 9, value: 2 }),
+      ds.enqueue(full, { id: 999, value: 2 }),
+      ds.dequeue(cells(1, 2)),
+      ds.dequeue([]),
+      ds.queueClear()
+    ),
+  "linked-list": () =>
+    asSteps(
+      ds.listPushFront({ items: cells(1), cursor: null }, { id: 9, value: 2 }),
+      ds.listRemove({ items: cells(1, 2, 3), cursor: null }, 2),
+      ds.listRemove({ items: cells(1, 2), cursor: null }, 7),
+      ds.listClear()
+    ),
+  "hash-table": () => {
+    const t = ds.hashInsert(ds.emptyTable(), { id: 1, value: 12 }).final;
+    return asSteps(
+      ds.hashInsert(t, { id: 2, value: 20 }),
+      ds.hashInsert(t, { id: 3, value: 5 }),
+      ds.hashContains(t, 12),
+      ds.hashContains(t, 20),
+      ds.hashClear()
+    );
+  },
 
   "sieve-of-eratosthenes": () => [
     ...math.sieveSteps(60).steps,
