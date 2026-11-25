@@ -61,6 +61,17 @@ executes.
   a single timeline, with live operation counters
 - **Stat counters & variable watch** — comparisons/swaps/moves/probes and live
   loop variables (`i`, `j`, `pivot`, `lo/hi`, …) per step
+- **Operation counters beyond arrays**: graphs count edges examined,
+  relaxations and rejected edges, DP tables count cells written, backtracking
+  counts choices, backtracks and dead ends. Scrubbing back winds them back
+- **Sound effects**: an optional toggle on the sorting and searching pages
+  plays every step. The value sets the pitch and the kind of step (compare,
+  swap, shift, probe, found, done) sets the timbre. Off by default and
+  remembered across visits
+- **Large n**: the sorting and searching pages can switch to a canvas of 500
+  to 2000 values, run by the same engines in a background worker, with the
+  code line, counters and sound following along. A search dims everything
+  outside its current window
 - **Shareable URLs** — input, target and step number encoded in the link
 - **Dark mode** — manual toggle, persisted, no flash on load
 
