@@ -248,6 +248,7 @@ export function PlaybackPanel({
   legend,
   extra,
   stats,
+  tools,
   children,
 }: {
   player: StepPlayer;
@@ -266,6 +267,8 @@ export function PlaybackPanel({
   extra?: ReactNode;
   /** Running counters and variable badges, shown under the invariant. */
   stats?: ReactNode;
+  /** Toggles at the end of the transport row (sound effects). */
+  tools?: ReactNode;
   children: ReactNode;
 }) {
   const { t } = useLang();
@@ -321,6 +324,7 @@ export function PlaybackPanel({
             onStep={player.stepBy}
           />
           <SpeedSelect />
+          {tools}
         </div>
 
         <StepNoteLine dotClass={dotClass}>{noteText}</StepNoteLine>
