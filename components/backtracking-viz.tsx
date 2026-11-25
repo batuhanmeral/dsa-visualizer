@@ -464,6 +464,12 @@ function ChoiceViz({
   );
 }
 
+/**
+ * Module-level so its identity is stable: ChoiceViz memoizes its steps on it,
+ * and a fresh array per render rewound the player on every code-line change.
+ */
+const CHOICE_INPUT = [1, 2, 3];
+
 function factorial(n: number): number {
   let f = 1;
   for (let i = 2; i <= n; i++) f *= i;
@@ -489,7 +495,7 @@ export default function BacktrackViz({
         speed={speed}
         onLine={onLine}
         generate={subsetsSteps}
-        input={[1, 2, 3]}
+        input={CHOICE_INPUT}
         kind="subset"
       />
     );
@@ -499,7 +505,7 @@ export default function BacktrackViz({
         speed={speed}
         onLine={onLine}
         generate={permutationsSteps}
-        input={[1, 2, 3]}
+        input={CHOICE_INPUT}
         kind="permutation"
       />
     );
