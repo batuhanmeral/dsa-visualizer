@@ -12,6 +12,7 @@
     "test:coverage": "node --import ./tests/register.mjs --test --experimental-test-coverage --test-coverage-exclude=tests/** --test-coverage-lines=99 --test-coverage-branches=94 --test-coverage-functions=91 tests/**/*.test.ts",
     "typecheck": "tsc --noEmit",
     "verify:html": "node --import ./tests/register.mjs scripts/verify-html.ts",
+    "test:e2e": "playwright test",
     "check": "tsc --noEmit && eslint && npm test"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "react-dom": "19.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24",
     "@types/react": "^19",

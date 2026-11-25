@@ -14,7 +14,7 @@ Interactive DSA visualizer, live at https://algoritmalar.com. Architecture, ADRs
 
 ## Stack
 
-Next.js 16 (App Router, static generation, Turbopack), React 19, TypeScript strict, Tailwind CSS v4 (CSS-first `@theme`), Framer Motion, Lucide. npm, Node 24. No i18n, charting or test library: i18n is a small client context, tests use `node --test` with Node's built-in TypeScript type stripping.
+Next.js 16 (App Router, static generation, Turbopack), React 19, TypeScript strict, Tailwind CSS v4 (CSS-first `@theme`), Framer Motion, Lucide. npm, Node 24. No i18n or charting library: i18n is a small client context. Unit tests use `node --test` with Node's built-in TypeScript type stripping; `@playwright/test` is used only for the browser smoke test.
 
 ## Commands
 
@@ -23,13 +23,14 @@ Next.js 16 (App Router, static generation, Turbopack), React 19, TypeScript stri
 - Tests: `npm test` · with coverage thresholds (as CI): `npm run test:coverage` · one file: `node --import ./tests/register.mjs --test tests/<name>.test.ts`
 - Lint: `npm run lint` · Types: `npm run typecheck`
 - Build: `npm run build`, then `npm run verify:html` (checks the prerendered HTML; needs the build output)
+- Browser smoke: `npm run test:e2e` (Playwright, `e2e/`; starts `next start` on port 3100, needs the build output and `npx playwright install chromium` once)
 - Env: copy `.env.example` to `.env.local`; `SITE_URL` is required.
 
-CI (`.github/workflows/ci.yml`, job `check`) runs typecheck, lint, `test:coverage`, build and `verify:html` in that order; run the same before reporting work as done. `.github/workflows/security.yml` runs Semgrep, zizmor, gitleaks and Trivy from digest-pinned images; `SECURITY.md` is the disclosure policy.
+CI (`.github/workflows/ci.yml`, job `check`) runs typecheck, lint, `test:coverage`, build, `verify:html` and `test:e2e` in that order; run the same before reporting work as done. `.github/workflows/security.yml` runs Semgrep, zizmor, gitleaks and Trivy from digest-pinned images; `SECURITY.md` is the disclosure policy.
 
 ## Structure
 
-`app/(tr)` and `app/(en)` are separate root layouts: the language comes from the route, not from client state. `components/` holds UI (one `*-viz.tsx` per algorithm family, `step-player.tsx`, `workspace.tsx`); `lib/data.ts` is the algorithm catalogue; `lib/simulations/` holds the step generators; `lib/step-notes/` the note dictionaries; `tests/` the node tests; `scripts/verify-html.ts` the post-build check. `docs/` is tracked and holds only README screenshots.
+`app/(tr)` and `app/(en)` are separate root layouts: the language comes from the route, not from client state. `components/` holds UI (one `*-viz.tsx` per algorithm family, `step-player.tsx`, `workspace.tsx`); `lib/data.ts` is the algorithm catalogue; `lib/simulations/` holds the step generators; `lib/step-notes/` the note dictionaries; `tests/` the node tests; `e2e/` the Playwright browser smoke test; `scripts/verify-html.ts` the post-build check. `docs/` is tracked and holds only README screenshots.
 
 ## Invariants
 

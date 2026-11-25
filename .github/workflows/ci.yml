@@ -42,3 +42,8 @@ jobs:
         run: npm run build
       - name: Verify prerendered HTML
         run: npm run verify:html
+      # Uses the pinned @playwright/test from the lock file; only the browser is fetched here.
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Browser smoke test
+        run: npm run test:e2e

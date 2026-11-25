@@ -34,6 +34,9 @@ executes.
   because the pseudocode is aligned line for line with the C, a single step
   highlights the right line in both. Your choice is remembered; copy button
   included
+- **Auxiliary buffers**: merge, counting, radix and bucket sort draw the arrays
+  they copy into (`L`/`R`, `out`, the buckets) under the bars. A value that
+  moved out leaves an empty slot, so no value is ever shown twice
 - **"Why this step?"** — under every step note, the loop invariant that holds
   right now. The note says what happened; the invariant says why it was allowed
 - **About tab** — per-algorithm intuition, best/worst case behaviour and
@@ -76,12 +79,15 @@ npm run build  # static production build
 npm run lint
 npm run typecheck
 npm run test:coverage  # tests with coverage thresholds
+npx playwright install chromium  # once, for the browser smoke test
+npm run test:e2e  # opens every page in Chromium (run npm run build first)
 ```
 
 ## CI and security
 
-Every pull request runs type checks, lint, tests with coverage thresholds, a build and
-a check of the prerendered HTML (`CI`), plus secret scanning, SAST, workflow and
+Every pull request runs type checks, lint, tests with coverage thresholds, a build,
+a check of the prerendered HTML and a browser smoke test that opens every page and
+plays it to the end (`CI`), plus secret scanning, SAST, workflow and
 dependency checks (`Security`). Security scans also run weekly, and OpenSSF Scorecard
 runs on `main`. To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
