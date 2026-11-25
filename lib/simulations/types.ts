@@ -10,6 +10,19 @@ export type StepKind =
   | "info"
   | "done";
 
+/**
+ * A buffer an out-of-place sort copies values into (`L`/`R` in merge sort,
+ * `out` in counting and radix sort, the buckets of bucket sort).
+ */
+export interface AuxRow {
+  /** The buffer's name in the C snippet, e.g. `L` or `bucket[2]`. */
+  label: string;
+  /** Its cells; `null` is a slot not yet filled or already copied back. */
+  cells: (number | null)[];
+  /** Cells this step reads or writes. */
+  active?: number[];
+}
+
 export interface SimulationStep {
   /** Snapshot of the array after this step. */
   array: number[];
@@ -41,6 +54,14 @@ export interface SimulationStep {
    * watch bag — the key set stays stable across a run.
    */
   vars?: { label: string; value: number | string }[];
+  /**
+   * Main-array slots whose value has been moved into an `aux` buffer. The
+   * array still holds the stale copy there (as C memory would); the canvas
+   * draws the slot as empty so no value appears twice.
+   */
+  holes?: number[];
+  /** Buffers an out-of-place sort is using at this step. */
+  aux?: AuxRow[];
 }
 
 /**

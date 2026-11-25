@@ -100,15 +100,24 @@ function Racer({
       </div>
 
       <div className="mt-3 flex h-32 items-end justify-center gap-1 sm:gap-1.5">
-        {step.array.map((value, i) => (
-          <motion.div
-            key={i}
-            initial={false}
-            animate={{ height: `${Math.max((value / maxValue) * 100, 6)}%` }}
-            transition={{ type: "tween", duration: 0.25 }}
-            className={`w-full max-w-8 rounded-t-sm transition-colors duration-200 ${barClass(step, i)}`}
-          />
-        ))}
+        {step.array.map((value, i) => {
+          // A slot whose value sits in a merge/counting buffer is drawn empty,
+          // or the race would show that value twice.
+          const moved = step.holes?.includes(i) ?? false;
+          return (
+            <motion.div
+              key={i}
+              initial={false}
+              animate={{ height: moved ? "6%" : `${Math.max((value / maxValue) * 100, 6)}%` }}
+              transition={{ type: "tween", duration: 0.25 }}
+              className={`w-full max-w-8 rounded-t-sm transition-colors duration-200 ${
+                moved
+                  ? "border border-dashed border-zinc-300 bg-transparent dark:border-zinc-600"
+                  : barClass(step, i)
+              }`}
+            />
+          );
+        })}
       </div>
 
       <p className="mt-2.5 truncate text-[11px] text-zinc-500 dark:text-zinc-400">

@@ -1,5 +1,5 @@
 import { msg, type Note } from "./note";
-import type { SimulationStep, StepKind } from "./types";
+import type { AuxRow, SimulationStep, StepKind } from "./types";
 
 /**
  * Shared recorder: mutate `arr` freely, call `record` after each meaningful
@@ -16,6 +16,11 @@ export function makeRecorder(arr: number[]) {
   // it is held the array has a duplicate at the hole, so the canvas needs to
   // know which slot is a hole rather than a real element.
   let held: { value: number; hole: number } | undefined;
+  // Out-of-place sorts: buffers they copy into, and the main-array slots whose
+  // value currently lives in one of them. `active` is per step: cleared after
+  // every record.
+  let aux: AuxRow[] = [];
+  const holes = new Set<number>();
   const record = (
     kind: StepKind,
     highlights: number[],
@@ -35,7 +40,16 @@ export function makeRecorder(arr: number[]) {
       vars: watch
         ? Object.entries(watch).map(([label, value]) => ({ label, value }))
         : undefined,
+      holes: holes.size ? [...holes].sort((a, b) => a - b) : undefined,
+      aux: aux.length
+        ? aux.map((r) => ({
+            label: r.label,
+            cells: [...r.cells],
+            active: r.active?.length ? [...r.active] : undefined,
+          }))
+        : undefined,
     });
+    for (const r of aux) r.active = undefined;
   };
   /** Register the mutable object whose fields are snapshotted into each step. */
   const setWatch = (bag: Record<string, number | string>) => {
@@ -53,7 +67,11 @@ export function makeRecorder(arr: number[]) {
   const release = () => {
     held = undefined;
   };
-  return { steps, sorted, record, setWatch, hold, moveHole, release };
+  /** Show these buffers from the next step on; the rows are live, mutate them. */
+  const setAux = (rows: AuxRow[]) => {
+    aux = rows;
+  };
+  return { steps, sorted, record, setWatch, hold, moveHole, release, setAux, holes };
 }
 
 export function bubbleSortSteps(input: number[]): SimulationStep[] {
@@ -237,7 +255,7 @@ export function shellSortSteps(input: number[]): SimulationStep[] {
 export function mergeSortSteps(input: number[]): SimulationStep[] {
   const arr = [...input];
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
+  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { lo: 0, mid: 0, hi: 0 };
   setWatch(w);
 
@@ -249,6 +267,16 @@ export function mergeSortSteps(input: number[]): SimulationStep[] {
     w.hi = hi;
     const left = arr.slice(lo, mid + 1);
     const right = arr.slice(mid + 1, hi + 1);
+    // The halves move into L and R (lines 3-4) and come back one by one, so
+    // the merge window is empty until each slot is rewritten.
+    const L: AuxRow = { label: "L", cells: [...left] };
+    const R: AuxRow = { label: "R", cells: [...right] };
+    for (let k = lo; k <= mid; k++) holes.add(k);
+    setAux([L]);
+    record("info", [], 3, msg("n.merge.copyLeft", { lo, mid }), [lo, hi]);
+    for (let k = mid + 1; k <= hi; k++) holes.add(k);
+    setAux([L, R]);
+    record("info", [], 4, msg("n.merge.copyRight", { rlo: mid + 1, hi }), [lo, hi]);
     record(
       "info",
       [],
@@ -259,7 +287,16 @@ export function mergeSortSteps(input: number[]): SimulationStep[] {
     let i = 0;
     let j = 0;
     let k = lo;
+    /** Move the next value from `row[at]` into arr[k]. */
+    const take = (row: AuxRow, at: number) => {
+      arr[k] = row.cells[at]!;
+      row.cells[at] = null;
+      row.active = [at];
+      holes.delete(k);
+    };
     while (i < left.length && j < right.length) {
+      L.active = [i];
+      R.active = [j];
       record(
         "compare",
         [k],
@@ -267,7 +304,8 @@ export function mergeSortSteps(input: number[]): SimulationStep[] {
         msg("n.merge.compare", { a: left[i], b: right[j] }),
         [lo, hi]
       );
-      arr[k] = left[i] <= right[j] ? left[i++] : right[j++];
+      if (left[i] <= right[j]) take(L, i++);
+      else take(R, j++);
       record("shift", [k], 8, msg("n.merge.write", { value: arr[k], index: k }), [
         lo,
         hi,
@@ -275,7 +313,7 @@ export function mergeSortSteps(input: number[]): SimulationStep[] {
       k++;
     }
     while (i < left.length) {
-      arr[k] = left[i++];
+      take(L, i++);
       record(
         "shift",
         [k],
@@ -286,7 +324,7 @@ export function mergeSortSteps(input: number[]): SimulationStep[] {
       k++;
     }
     while (j < right.length) {
-      arr[k] = right[j++];
+      take(R, j++);
       record(
         "shift",
         [k],
@@ -296,6 +334,7 @@ export function mergeSortSteps(input: number[]): SimulationStep[] {
       );
       k++;
     }
+    setAux([]);
   };
 
   const mergeSort = (lo: number, hi: number) => {
@@ -443,7 +482,7 @@ export function heapSortSteps(input: number[]): SimulationStep[] {
 export function countingSortSteps(input: number[]): SimulationStep[] {
   const arr = [...input];
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
+  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { max: 0, i: 0 };
   setWatch(w);
 
@@ -484,21 +523,28 @@ export function countingSortSteps(input: number[]): SimulationStep[] {
 
   // The backward walk is what makes counting sort stable, so animate it rather
   // than filling `out` silently: line 16 is the whole point of the algorithm.
-  const out = new Array<number>(n);
+  const out: AuxRow = { label: "out", cells: new Array<number | null>(n).fill(null) };
+  setAux([out]);
   for (let i = n - 1; i >= 0; i--) {
     w.i = i;
     const slot = --count[arr[i]];
-    out[slot] = arr[i];
+    out.cells[slot] = arr[i];
+    out.active = [slot];
+    holes.add(i);
     record("probe", [i], 16, msg("n.counting.stable", { value: arr[i], slot }));
   }
 
   for (let i = 0; i < n; i++) {
     w.i = i;
-    arr[i] = out[i];
+    arr[i] = out.cells[i]!;
+    out.cells[i] = null;
+    out.active = [i];
+    holes.delete(i);
     sorted.add(i);
     record("shift", [i], 19, msg("n.counting.copyBack", { value: arr[i], index: i }));
   }
 
+  setAux([]);
   record("done", [], 20, msg("n.sort.done"));
   return steps;
 }
@@ -508,7 +554,7 @@ const BUCKET_COUNT = 5;
 export function bucketSortSteps(input: number[]): SimulationStep[] {
   const arr = [...input];
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
+  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { max: 0, size: 0, b: 0, i: 0 };
   setWatch(w);
 
@@ -536,11 +582,16 @@ export function bucketSortSteps(input: number[]): SimulationStep[] {
   record("info", [], 8, msg("n.bucket.width", { size }));
 
   const buckets: number[][] = Array.from({ length: BUCKET_COUNT }, () => []);
+  const rows: AuxRow[] = buckets.map((_, b) => ({ label: `bucket[${b}]`, cells: [] }));
+  setAux(rows);
   for (let i = 0; i < n; i++) {
     const b = Math.min(Math.floor(arr[i] / size), BUCKET_COUNT - 1);
     w.i = i;
     w.b = b;
     buckets[b].push(arr[i]);
+    rows[b].cells.push(arr[i]);
+    rows[b].active = [rows[b].cells.length - 1];
+    holes.add(i);
     record(
       "probe",
       [i],
@@ -558,6 +609,8 @@ export function bucketSortSteps(input: number[]): SimulationStep[] {
     if (buckets[b].length > 1) {
       w.b = b;
       buckets[b].sort((x, y) => x - y);
+      rows[b].cells = [...buckets[b]];
+      rows[b].active = buckets[b].map((_, j) => j);
       record(
         "info",
         [],
@@ -570,9 +623,12 @@ export function bucketSortSteps(input: number[]): SimulationStep[] {
   let idx = 0;
   for (let b = 0; b < BUCKET_COUNT; b++) {
     w.b = b;
-    for (const v of buckets[b]) {
+    for (const [j, v] of buckets[b].entries()) {
       w.i = idx;
       arr[idx] = v;
+      rows[b].cells[j] = null;
+      rows[b].active = [j];
+      holes.delete(idx);
       sorted.add(idx);
       record(
         "shift",
@@ -584,6 +640,7 @@ export function bucketSortSteps(input: number[]): SimulationStep[] {
     }
   }
 
+  setAux([]);
   record("done", [], 22, msg("n.sort.done"));
   return steps;
 }
@@ -601,7 +658,7 @@ const placeKey = (d: number): { place: string; placeExp?: number } =>
 export function radixSortSteps(input: number[]): SimulationStep[] {
   const arr = [...input];
   const n = arr.length;
-  const { steps, sorted, record, setWatch } = makeRecorder(arr);
+  const { steps, sorted, record, setWatch, setAux, holes } = makeRecorder(arr);
   const w = { exp: 1, i: 0 };
   setWatch(w);
 
@@ -626,15 +683,20 @@ export function radixSortSteps(input: number[]): SimulationStep[] {
 
     // Same as counting sort: the backward pass is where stability comes from,
     // and stability is the only reason radix sort works at all.
-    const out = new Array<number>(n);
+    const out: AuxRow = { label: "out", cells: new Array<number | null>(n).fill(null) };
+    setAux([out]);
     for (let i = n - 1; i >= 0; i--) {
       const d = Math.floor(arr[i] / exp) % 10;
       const slot = --count[d];
-      out[slot] = arr[i];
+      out.cells[slot] = arr[i];
+      out.active = [slot];
+      holes.add(i);
       w.i = i;
       record("probe", [i], 14, msg("n.radix.stable", { value: arr[i], slot, ...place }));
     }
-    for (let i = 0; i < n; i++) arr[i] = out[i];
+    for (let i = 0; i < n; i++) arr[i] = out.cells[i]!;
+    holes.clear();
+    setAux([]);
     record("shift", [], 16, msg("n.radix.reorder", { ...place }));
   }
 

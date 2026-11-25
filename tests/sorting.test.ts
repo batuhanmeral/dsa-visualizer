@@ -30,34 +30,29 @@ const engines = {
 };
 
 /**
- * Sorts that rearrange the array in place. Their every snapshot is a genuine
- * permutation of the input (once a held key is accounted for).
- *
- * The others copy through auxiliary storage — a merge buffer, a counting
- * output array, buckets — and the canvas only draws the main array, so while
- * a copy-back is half finished the display legitimately shows a value twice.
- * Those are checked on their result and their locked indices instead.
+ * Sorts that copy through auxiliary storage: a merge buffer, a counting
+ * output array, buckets. Their steps carry that storage as `aux` rows.
  */
-const inPlace = new Set([
-  "bubble-sort",
-  "selection-sort",
-  "insertion-sort",
-  "shell-sort",
-  "quick-sort",
-  "heap-sort",
-]);
+const outOfPlace = new Set(["merge-sort", "counting-sort", "radix-sort", "bucket-sort"]);
 
 /**
- * The array a step *displays*. Insertion and shell sort lift a value into a
- * local `key`, so mid-shift the array legitimately holds a stale duplicate at
- * `held.hole`; substituting the held value back makes every snapshot a true
- * permutation of the input.
+ * Every value a step *displays*, wherever it is drawn.
+ *
+ * Insertion and shell sort lift a value into a local `key`, so mid-shift the
+ * array holds a stale duplicate at `held.hole`; the held value stands in for
+ * it. Out-of-place sorts move values into `aux` buffers and leave `holes`
+ * behind in the main array; a hole is a stale copy, the buffer holds the real
+ * value. With both accounted for, every snapshot is a permutation of the input.
  */
 function displayed(step: SimulationStep): number[] {
-  if (!step.held) return step.array;
   const a = [...step.array];
-  a[step.held.hole] = step.held.value;
-  return a;
+  if (step.held) a[step.held.hole] = step.held.value;
+  const holes = new Set(step.holes ?? []);
+  const main = a.filter((_, i) => !holes.has(i));
+  const buffered = (step.aux ?? []).flatMap((row) =>
+    row.cells.filter((c): c is number => c !== null)
+  );
+  return [...main, ...buffered];
 }
 
 for (const [name, run] of Object.entries(engines)) {
@@ -75,7 +70,7 @@ for (const [name, run] of Object.entries(engines)) {
     }
   });
 
-  test(`${name} never invents or loses a value`, { skip: !inPlace.has(name) }, () => {
+  test(`${name} never invents or loses a value`, () => {
     for (const input of arrayCases()) {
       if (input.length === 0) continue;
       const want = bag(input);
@@ -122,7 +117,7 @@ test("every locked index of an out-of-place sort holds its final value", () => {
   // The weaker guarantee these sorts do make: whatever they mark as settled is
   // settled, even while the rest of the array is mid-copy.
   for (const [name, run] of Object.entries(engines)) {
-    if (inPlace.has(name)) continue;
+    if (!outOfPlace.has(name)) continue;
     for (const input of arrayCases()) {
       if (input.length === 0) continue;
       const final = ascending(input);
@@ -131,6 +126,44 @@ test("every locked index of an out-of-place sort holds its final value", () => {
           assert.equal(step.array[idx], final[idx], `${name} on [${input}]`);
     }
   }
+});
+
+test("out-of-place sorts draw their buffer, and in-place sorts have none", () => {
+  for (const [name, run] of Object.entries(engines)) {
+    const steps = run([23, 7, 41, 15, 3, 34, 9, 28]);
+    const buffered = steps.some((s) => (s.aux ?? []).length > 0);
+    assert.equal(buffered, outOfPlace.has(name), `${name} aux rows`);
+    for (const [i, s] of steps.entries()) {
+      for (const h of s.holes ?? []) {
+        assert.ok(!s.sorted.includes(h), `${name} step ${i}: hole ${h} is marked sorted`);
+        assert.ok(h >= 0 && h < s.array.length, `${name} step ${i}: hole ${h} out of range`);
+      }
+      for (const row of s.aux ?? [])
+        for (const c of row.active ?? [])
+          assert.ok(c >= 0 && c < row.cells.length, `${name} step ${i}: ${row.label}[${c}]`);
+    }
+    assert.deepEqual(steps.at(-1)!.holes ?? [], [], `${name} ends with holes`);
+    assert.deepEqual(steps.at(-1)!.aux ?? [], [], `${name} ends with a buffer`);
+  }
+});
+
+test("merge sort copies each half into L and R before merging", () => {
+  const steps = mergeSortSteps([4, 3, 2, 1]);
+  const first = steps.find((s) => (s.aux ?? []).length > 0)!;
+  assert.deepEqual(first.aux!.map((r) => r.label), ["L"]);
+  assert.equal(first.codeLine, 3);
+  const both = steps.find((s) => (s.aux ?? []).length === 2)!;
+  assert.deepEqual(both.aux!.map((r) => r.label), ["L", "R"]);
+  assert.equal(both.codeLine, 4);
+});
+
+test("bucket sort shows one row per bucket", () => {
+  const steps = bucketSortSteps([23, 7, 41, 15, 3, 34, 9, 28]);
+  const rows = steps.find((s) => (s.aux ?? []).length > 0)!.aux!;
+  assert.deepEqual(
+    rows.map((r) => r.label),
+    ["bucket[0]", "bucket[1]", "bucket[2]", "bucket[3]", "bucket[4]"]
+  );
 });
 
 test("counting and radix sort animate the stable placement pass", () => {

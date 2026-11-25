@@ -26,6 +26,7 @@ import { SPLIT_MIN_CANVAS_PX } from "@/lib/split-ratio";
 import type { CodeLang } from "@/lib/highlight";
 import { availableTabs, initialTab, tabAfterUserAdvance } from "@/lib/panel-tab";
 import SortInputForm, { type InputShape } from "./sort-input-form";
+import AuxBuffers from "./aux-buffers";
 import {
   SPEEDS,
   InvariantContext,
@@ -113,6 +114,12 @@ const SORT_LEGEND: { key: TKey; dot: string }[] = [
   { key: "legend.select", dot: "bg-sky-500" },
   { key: "legend.sorted", dot: "bg-claude-600" },
 ];
+
+/** Out-of-place sorts only: a slot whose value sits in a buffer below. */
+const MOVED_LEGEND: { key: TKey; dot: string } = {
+  key: "legend.moved",
+  dot: "border border-dashed border-zinc-400 bg-transparent dark:border-zinc-500",
+};
 
 const SEARCH_LEGEND: { key: TKey; dot: string }[] = [
   { key: "legend.checking", dot: "bg-amber-400" },
@@ -387,7 +394,19 @@ export default function Workspace({
     return "bg-zinc-300 dark:bg-zinc-700";
   };
 
-  const legend = category.slug === "searching" ? SEARCH_LEGEND : SORT_LEGEND;
+  // Out-of-place sorts: the most buffer rows any step uses. The buffer area is
+  // reserved at that height for the whole run so the bars never jump.
+  const auxRowCount = useMemo(
+    () => (steps ? Math.max(0, ...steps.map((s) => s.aux?.length ?? 0)) : 0),
+    [steps]
+  );
+
+  const legend =
+    category.slug === "searching"
+      ? SEARCH_LEGEND
+      : auxRowCount > 0
+        ? [...SORT_LEGEND, MOVED_LEGEND]
+        : SORT_LEGEND;
 
   // The statement that is true at this point in the run. Phase-aware for the
   // array canvas; the other families get one statement via InvariantContext,
@@ -560,41 +579,47 @@ export default function Workspace({
       step.highlights.includes(i) ||
       step.sorted.includes(i));
 
-  const bars = renderValues.map((value, i) => (
-    <motion.div
-      key={i}
-      initial={false}
-      animate={{
-        height: `${Math.max((value / maxValue) * 100, 6)}%`,
-      }}
-      transition={{ type: "tween", duration: 0.25 }}
-      className={`relative flex w-full max-w-12 flex-col justify-end rounded-t-md transition-colors duration-200 ${
-        step?.held?.hole === i
-          ? "border-2 border-dashed border-violet-400 bg-transparent dark:border-violet-500"
-          : barColor(i)
-      }`}
-    >
-      {/* Insertion and shell sort lift a value into a local
-          `key` and shift others into its slot. Without this the
-          canvas shows that stale copy as a real element — two
-          bars with the same value and one apparently lost. */}
-      {step?.held?.hole === i && (
-        <span className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-violet-500 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white shadow-sm">
-          {step.held.value}
-        </span>
-      )}
-      <span
-        className={`pb-1 text-center font-mono text-[10px] ${
-          barIsColored(i) ||
-          (!step && hasTarget && value === target)
-            ? "font-semibold text-white"
-            : "text-zinc-600 dark:text-zinc-300"
+  const bars = renderValues.map((value, i) => {
+    // Out-of-place sorts: the value moved into a buffer below, the slot is empty.
+    const moved = step?.holes?.includes(i) ?? false;
+    return (
+      <motion.div
+        key={i}
+        initial={false}
+        animate={{
+          height: moved ? "6%" : `${Math.max((value / maxValue) * 100, 6)}%`,
+        }}
+        transition={{ type: "tween", duration: 0.25 }}
+        className={`relative flex w-full max-w-12 flex-col justify-end rounded-t-md transition-colors duration-200 ${
+          step?.held?.hole === i
+            ? "border-2 border-dashed border-violet-400 bg-transparent dark:border-violet-500"
+            : moved
+              ? "border-2 border-dashed border-zinc-300 bg-transparent dark:border-zinc-600"
+              : barColor(i)
         }`}
       >
-        {step?.held?.hole === i ? "" : value}
-      </span>
-    </motion.div>
-  ));
+        {/* Insertion and shell sort lift a value into a local
+            `key` and shift others into its slot. Without this the
+            canvas shows that stale copy as a real element — two
+            bars with the same value and one apparently lost. */}
+        {step?.held?.hole === i && (
+          <span className="pointer-events-none absolute -top-6 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-violet-500 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white shadow-sm">
+            {step.held.value}
+          </span>
+        )}
+        <span
+          className={`pb-1 text-center font-mono text-[10px] ${
+            barIsColored(i) ||
+            (!step && hasTarget && value === target)
+              ? "font-semibold text-white"
+              : "text-zinc-600 dark:text-zinc-300"
+          }`}
+        >
+          {step?.held?.hole === i || moved ? "" : value}
+        </span>
+      </motion.div>
+    );
+  });
 
   const showGrowth = () => {
     // Reveal the hidden panel before measuring its scroll target.
@@ -870,13 +895,22 @@ export default function Workspace({
                   {/* Top padding keeps the held-value tag of a full-height bar
                       inside the panel's scroll box; only engines that lift a value pay it.
                       Below lg the canvas has no definite height, so the % bar heights need a fixed one. */}
-                  <div
-                    className={`flex h-56 w-full items-end justify-center gap-1.5 sm:gap-2 lg:h-full ${
-                      holdsValue(algorithm.slug) ? "pt-6" : ""
-                    }`}
-                  >
-                    {bars}
-                  </div>
+                  {auxRowCount > 0 ? (
+                    <div className="flex w-full flex-col gap-3 lg:h-full">
+                      <div className="flex h-56 w-full items-end justify-center gap-1.5 sm:gap-2 lg:h-auto lg:min-h-0 lg:flex-1">
+                        {bars}
+                      </div>
+                      <AuxBuffers rows={step.aux ?? []} reserve={auxRowCount} />
+                    </div>
+                  ) : (
+                    <div
+                      className={`flex h-56 w-full items-end justify-center gap-1.5 sm:gap-2 lg:h-full ${
+                        holdsValue(algorithm.slug) ? "pt-6" : ""
+                      }`}
+                    >
+                      {bars}
+                    </div>
+                  )}
                 </PlaybackPanel>
               ) : (
                 <div className="relative flex h-full w-full flex-col px-6 pb-4 pt-14 sm:px-8">
