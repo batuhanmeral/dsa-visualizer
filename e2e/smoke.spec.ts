@@ -3,6 +3,7 @@ import { categories } from "../lib/data";
 import { en, tr } from "../lib/dictionaries";
 import { stepNotesEn, stepNotesTr } from "../lib/step-notes";
 import { hasBacktrackViz, hasDpViz, hasGraphViz } from "../lib/viz-families";
+import { pitchFor } from "../lib/sound";
 
 /**
  * Every page loads without a console error, an uncaught exception, a CSP
@@ -110,7 +111,7 @@ for (const { prefix, t, pickOp } of LANGS) {
 
 for (const { prefix, t } of LANGS) {
   test(`sound effects ${prefix}/sorting/bubble-sort`, async ({ page, baseURL }) => {
-    const oscillators = await countOscillators(page);
+    const output = await measureOutput(page);
     const errors = watchErrors(page, baseURL);
     await page.goto(`${prefix}/sorting/bubble-sort`);
     const toggle = page.getByRole("button", { name: t["ws.sound"], exact: true });
@@ -118,10 +119,13 @@ for (const { prefix, t } of LANGS) {
 
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-pressed", "true");
-    const forward = page.getByRole("button", { name: t.stepForward, exact: true }).first();
-    await forward.click();
-    await forward.click();
-    await expect.poll(oscillators).toBeGreaterThan(0);
+    // Step 1 of the default input (23, 7, 41, 15, 3, 34, 9, 28) compares 23
+    // with 7; the run's values span 3 to 41. Both notes must come out.
+    await page.getByRole("button", { name: t.stepForward, exact: true }).first().click();
+    await expect.poll(output.peak).toBeGreaterThan(0.01);
+    await expect.poll(() => output.heard(pitchFor(23, 3, 41))).toBe(true);
+    await expect.poll(() => output.heard(pitchFor(7, 3, 41))).toBe(true);
+    expect(await output.heard(pitchFor(41, 3, 41)), "a value not in the step").toBe(false);
 
     // The choice survives a reload; turning it off is remembered too.
     await page.reload();
@@ -133,23 +137,82 @@ for (const { prefix, t } of LANGS) {
   });
 }
 
-/** Counts the oscillators the page starts, to prove the steps are heard. */
-async function countOscillators(page: Page) {
-  await page.addInitScript(() => {
-    const w = window as unknown as { __oscillators: number };
-    w.__oscillators = 0;
-    const create = AudioContext.prototype.createOscillator;
-    AudioContext.prototype.createOscillator = function (this: AudioContext) {
-      w.__oscillators++;
-      return create.call(this);
+for (const width of [320, 360, 390, 414, 1024, 1440]) {
+  test(`the sound toggle shares a row with the transport at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/sorting/bubble-sort");
+    const centre = async (name: string) => {
+      const box = (await page.getByRole("button", { name, exact: true }).first().boundingBox())!;
+      return box.y + box.height / 2;
     };
+    const slider = (await page.getByRole("slider", { name: tr["ws.timeline"] }).boundingBox())!;
+    const sound = await centre(tr["ws.sound"]!);
+    const play = await centre(tr.play!);
+    // Beside the timeline on a narrow card, beside the speed selector otherwise:
+    // never on a row of its own.
+    const rows = [slider.y + slider.height / 2, play];
+    expect(
+      rows.some((y) => Math.abs(y - sound) < 8),
+      `sound at y=${sound}, timeline at ${rows[0]}, transport at ${play}`
+    ).toBe(true);
   });
-  return () => page.evaluate(() => (window as unknown as { __oscillators: number }).__oscillators);
+}
+
+/**
+ * Taps everything the page sends to the speakers. Keeps the loudest sample
+ * seen, to prove the steps are actually heard (an oscillator that never
+ * reaches the output would not count), and the dominant pitch of every loud
+ * moment, to prove they are the right notes.
+ */
+async function measureOutput(page: Page) {
+  await page.addInitScript(() => {
+    const w = window as unknown as { __peak: number; __pitches: number[] };
+    w.__peak = 0;
+    w.__pitches = [];
+    const analysers: AnalyserNode[] = [];
+    const connect = AudioNode.prototype.connect as (this: AudioNode, ...args: unknown[]) => unknown;
+    AudioNode.prototype.connect = function (this: AudioNode, ...args: unknown[]) {
+      if (args[0] instanceof AudioDestinationNode) {
+        const tap = this.context.createAnalyser();
+        tap.fftSize = 8192;
+        tap.smoothingTimeConstant = 0;
+        connect.call(this, tap);
+        analysers.push(tap);
+      }
+      return connect.apply(this, args);
+    } as typeof AudioNode.prototype.connect;
+    const wave = new Float32Array(8192);
+    const spectrum = new Float32Array(4096);
+    setInterval(() => {
+      for (const a of analysers) {
+        a.getFloatTimeDomainData(wave);
+        let peak = 0;
+        for (const v of wave) peak = Math.max(peak, Math.abs(v));
+        w.__peak = Math.max(w.__peak, peak);
+        if (peak < 0.02) continue;
+        // The strongest bin between 100 Hz and 2 kHz: the note's fundamental.
+        a.getFloatFrequencyData(spectrum);
+        const hz = a.context.sampleRate / a.fftSize;
+        let best = Math.ceil(100 / hz);
+        for (let b = best; b < 2000 / hz; b++) if (spectrum[b] > spectrum[best]) best = b;
+        w.__pitches.push(best * hz);
+      }
+    }, 10);
+  });
+  return {
+    peak: () => page.evaluate(() => (window as unknown as { __peak: number }).__peak),
+    /** Whether a note within 3% of `freq` has been heard. */
+    heard: (freq: number) =>
+      page.evaluate(
+        (f) => (window as unknown as { __pitches: number[] }).__pitches.some((p) => Math.abs(p / f - 1) < 0.03),
+        freq
+      ),
+  };
 }
 
 for (const { prefix, t } of LANGS) {
   test(`large n ${prefix}/sorting/merge-sort`, async ({ page, baseURL }) => {
-    const oscillators = await countOscillators(page);
+    const output = await measureOutput(page);
     const errors = watchErrors(page, baseURL);
     await page.goto(`${prefix}/sorting/merge-sort`);
     await page.getByRole("button", { name: t["bign.enter"], exact: true }).click();
@@ -180,7 +243,7 @@ for (const { prefix, t } of LANGS) {
     await page.getByRole("button", { name: t.play, exact: true }).first().click();
     await expect(timeline).toHaveValue(String(max), { timeout: 10_000 });
     await expect(page.getByRole("button", { name: t.play, exact: true }).first()).toBeVisible();
-    await expect.poll(oscillators).toBeGreaterThan(0);
+    await expect.poll(output.peak).toBeGreaterThan(0.01);
     await expect(page.locator("[data-playback-stats]").first()).toContainText(t["stat.comparisons"]);
 
     // Back to the small input and its bars.
@@ -190,11 +253,35 @@ for (const { prefix, t } of LANGS) {
     expect(errors).toEqual([]);
   });
 
-  test(`large n stops at 1000 for quadratic sorts ${prefix}/sorting/bubble-sort`, async ({ page }) => {
+  test(`large n runs 2000 values through bubble sort ${prefix}/sorting/bubble-sort`, async ({ page, baseURL }) => {
+    test.setTimeout(60_000);
+    const errors = watchErrors(page, baseURL);
     await page.goto(`${prefix}/sorting/bubble-sort`);
     await page.getByRole("button", { name: t["bign.enter"], exact: true }).click();
-    await expect(page.getByRole("button", { name: "1000", exact: true })).toBeVisible();
-    await expect(page.getByRole("button", { name: "2000", exact: true })).toHaveCount(0);
+    await expect(page.locator("[data-big-n-canvas]")).toBeVisible();
+    await page.getByRole("button", { name: "2000", exact: true }).click();
+
+    // ~3 million steps take a couple of seconds to trace. The worker does it,
+    // so the page keeps drawing frames while it waits.
+    await expect(page.getByRole("status")).toContainText("2000");
+    const frames = await page.evaluate(
+      () =>
+        new Promise<number>((done) => {
+          let n = 0;
+          const end = performance.now() + 500;
+          const tick = (now: number) => (now < end ? (n++, requestAnimationFrame(tick)) : done(n));
+          requestAnimationFrame(tick);
+        })
+    );
+    expect(frames, "frames drawn in 500 ms while tracing").toBeGreaterThan(10);
+
+    const canvas = page.locator("[data-big-n-canvas]");
+    await expect(canvas).toHaveAttribute("aria-label", t["bign.canvas"].replace("{n}", "2000"), {
+      timeout: 30_000,
+    });
+    const timeline = page.getByRole("slider", { name: t["ws.timeline"] }).first();
+    expect(Number(await timeline.getAttribute("max"))).toBeGreaterThan(1_000_000);
+    expect(errors).toEqual([]);
   });
 
   test(`large n ${prefix}/searching/binary-search`, async ({ page, baseURL }) => {
