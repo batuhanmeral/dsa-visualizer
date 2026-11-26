@@ -55,7 +55,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           className="flex min-h-10 shrink-0 items-center gap-2 rounded-lg focus-visible:outline-2 focus-visible:outline-claude-500"
         >
           <BrandMark />
-          <span className="font-brand text-[17px] leading-none font-bold tracking-[0.02em] text-zinc-900 uppercase dark:text-zinc-100">
+          <span className="font-brand text-[17px] leading-none font-bold text-zinc-900 dark:text-zinc-100">
             Algoritmalar
           </span>
         </Link>

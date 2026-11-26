@@ -323,6 +323,21 @@ for (const { prefix, t } of LANGS) {
   });
 }
 
+for (const width of [1440, 360]) {
+  test(`the brand reads "Algoritmalar" beside a 24px mark at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    // The sidebar on desktop, the top bar on mobile: whichever is on screen.
+    const brand = page.getByRole("link").filter({ hasText: /^algoritmalar$/i }).locator("visible=true").first();
+    await expect(brand).toBeVisible();
+    // innerText applies CSS text-transform, so this is what the reader sees.
+    expect(await brand.evaluate((el) => (el as HTMLElement).innerText.trim())).toBe("Algoritmalar");
+    const mark = (await brand.locator("span[aria-hidden]").first().boundingBox())!;
+    expect(mark.width).toBe(24);
+    expect(mark.height).toBe(24);
+  });
+}
+
 test("an unknown page is a 404 without client errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
