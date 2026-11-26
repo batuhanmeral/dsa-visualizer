@@ -3,12 +3,12 @@ export default function BrandMark({ className }: { className?: string }) {
   return (
     <span
       aria-hidden
-      className={`flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-claude-600 text-white${className ? ` ${className}` : ""}`}
+      className={`flex size-6 shrink-0 items-center justify-center rounded-[6px] bg-claude-600 text-white${className ? ` ${className}` : ""}`}
     >
       <svg
         viewBox="4.6 2.6 14.8 18.8"
-        width="17"
-        height="22"
+        width="15"
+        height="19"
         fill="none"
         stroke="currentColor"
         strokeWidth="2.4"
