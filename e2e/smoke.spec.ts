@@ -115,10 +115,9 @@ for (const { prefix, t } of LANGS) {
     const errors = watchErrors(page, baseURL);
     await page.goto(`${prefix}/sorting/bubble-sort`);
     const toggle = page.getByRole("button", { name: t["ws.sound"], exact: true });
-    await expect(toggle).toHaveAttribute("aria-pressed", "false");
-
-    await toggle.click();
+    // On by default: the first click on the page starts the audio.
     await expect(toggle).toHaveAttribute("aria-pressed", "true");
+
     // Step 1 of the default input (23, 7, 41, 15, 3, 34, 9, 28) compares 23
     // with 7; the run's values span 3 to 41. Both notes must come out.
     await page.getByRole("button", { name: t.stepForward, exact: true }).first().click();
@@ -127,13 +126,35 @@ for (const { prefix, t } of LANGS) {
     await expect.poll(() => output.heard(pitchFor(7, 3, 41))).toBe(true);
     expect(await output.heard(pitchFor(41, 3, 41)), "a value not in the step").toBe(false);
 
-    // The choice survives a reload; turning it off is remembered too.
-    await page.reload();
-    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    // Turning it off survives a reload; turning it back on is remembered too.
     await toggle.click();
     await expect(toggle).toHaveAttribute("aria-pressed", "false");
     expect(await page.evaluate(() => localStorage.getItem("sound"))).toBe("off");
+    await page.reload();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(await page.evaluate(() => localStorage.getItem("sound"))).toBe("on");
     expect(errors).toEqual([]);
+  });
+}
+
+for (const { width, open } of [
+  { width: 1440, open: false },
+  { width: 390, open: true },
+]) {
+  test(`the brand lines up with the category icons at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto("/");
+    if (open) await page.getByRole("button", { name: tr["nav.open"], exact: true }).click();
+    const sidebar = page.locator("aside:visible");
+    // The drawer slides in: measure once it has arrived.
+    await expect.poll(async () => (await sidebar.boundingBox())?.x).toBe(0);
+    const left = async (selector: string) =>
+      (await sidebar.locator(selector).first().boundingBox())!.x;
+    const brand = await left("a[href='/'] > span[aria-hidden]");
+    const icon = await left("nav li > div > svg");
+    expect(Math.abs(brand - icon), `brand at x=${brand}, category icon at x=${icon}`).toBeLessThan(1);
   });
 }
 
@@ -235,8 +256,11 @@ for (const { prefix, t } of LANGS) {
       });
     expect(await painted()).toBeGreaterThan(0);
 
-    // Play the last stretch of the run with sound on; it stops at the end.
-    await page.getByRole("button", { name: t["ws.sound"], exact: true }).click();
+    // Play the last stretch of the run with sound on (the default); it stops at the end.
+    await expect(page.getByRole("button", { name: t["ws.sound"], exact: true })).toHaveAttribute(
+      "aria-pressed",
+      "true"
+    );
     await timeline.focus();
     await page.keyboard.press("End");
     for (let i = 0; i < 200; i++) await page.keyboard.press("ArrowLeft");

@@ -12,6 +12,18 @@ test("tr dictionary covers every en key", () => {
     assert.ok(key in tr, `missing tr key: ${key}`);
 });
 
+test("sorting and searching categories are named as algorithm families", () => {
+  const name = (slug: string, lang: "tr" | "en") => {
+    const category = categories.find((c) => c.slug === slug);
+    assert.ok(category, slug);
+    return catName(category.slug, category.name, lang);
+  };
+  assert.equal(name("sorting", "tr"), "Sıralama Algoritmaları");
+  assert.equal(name("searching", "tr"), "Arama Algoritmaları");
+  assert.equal(name("sorting", "en"), "Sorting Algorithms");
+  assert.equal(name("searching", "en"), "Searching Algorithms");
+});
+
 test("content-i18n covers every category and algorithm", () => {
   for (const c of categories) {
     assert.notEqual(catName(c.slug, MISSING, "tr"), MISSING, c.slug);

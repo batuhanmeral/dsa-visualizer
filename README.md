@@ -12,8 +12,8 @@ executes.
 
 | Category | Algorithms |
 | --- | --- |
-| Sorting | Bubble, Selection, Insertion, Shell, Merge, Quick, Heap, Radix, Counting, Bucket |
-| Searching | Linear, Binary, Jump, Interpolation |
+| Sorting Algorithms | Bubble, Selection, Insertion, Shell, Merge, Quick, Heap, Radix, Counting, Bucket |
+| Searching Algorithms | Linear, Binary, Jump, Interpolation |
 | Data Structures | Linked List, Stack, Queue, Hash Table, Union-Find |
 | Graphs | BFS, DFS, Dijkstra, Bellman-Ford, Floyd-Warshall, Topological Sort, Prim, Kruskal, A* |
 | Dynamic Programming | LCS, 0/1 Knapsack, Edit Distance, Coin Change, Fibonacci, Kadane, LIS |
@@ -64,10 +64,10 @@ executes.
 - **Operation counters beyond arrays**: graphs count edges examined,
   relaxations and rejected edges, DP tables count cells written, backtracking
   counts choices, backtracks and dead ends. Scrubbing back winds them back
-- **Sound effects**: an optional toggle on the sorting and searching pages
+- **Sound effects**: a toggle on the sorting and searching pages
   plays every step. The value sets the pitch and the kind of step (compare,
-  swap, shift, probe, found, done) sets the timbre. Off by default and
-  remembered across visits
+  swap, shift, probe, found, done) sets the timbre. On by default (browsers
+  start it after the first click or key press) and remembered across visits
 - **Large n**: the sorting and searching pages can switch to a canvas of 500
   to 2000 values, run by the same engines in a background worker, with the
   code line, counters and sound following along. A search dims everything

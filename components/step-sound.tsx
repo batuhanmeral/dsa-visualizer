@@ -52,23 +52,23 @@ export function playTones(tones: readonly Tone[]): void {
 }
 
 /**
- * The remembered on/off preference, off by default. Read after mount like the
+ * The remembered on/off preference, on by default. Read after mount like the
  * other stored preferences: the server render has no localStorage.
  */
 export function useSoundPreference(): [boolean, () => void] {
-  const [on, setOn] = useState(false);
+  const [on, setOn] = useState(true);
 
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     try {
       setOn(parseSoundPref(localStorage.getItem(SOUND_STORAGE_KEY)));
     } catch {
-      /* localStorage unavailable: keep sound off */
+      /* localStorage unavailable: keep the default */
     }
   }, []);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  // Turned on during an earlier visit: wait for the first interaction.
+  // On (the default or a saved choice): wait for the first interaction.
   useEffect(() => {
     if (!on || context?.state === "running") return;
     const opts = { capture: true } as const;

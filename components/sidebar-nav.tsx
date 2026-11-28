@@ -26,7 +26,7 @@ export default function SidebarNav({ onNavigate, onCollapse }: SidebarNavProps) 
     <div className="flex h-full flex-col">
       {/* Top bar: wordmark on the left, controls on the right */}
       <div className={`flex items-center gap-1 border-b border-zinc-200 py-2.5 dark:border-zinc-800 ${
-        onCollapse ? "justify-between px-2" : "flex-wrap gap-y-2 pr-13 pl-3"
+        onCollapse ? "justify-between pr-2 pl-6" : "flex-wrap gap-y-2 pr-13 pl-6"
       }`}>
         <Link
           href={homeHref}

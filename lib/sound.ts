@@ -126,7 +126,7 @@ export function tonesForStep(
   return sequence(freqs, voice, intervalMs);
 }
 
-/** Sound is opt-in: only an explicit stored "on" turns it on. */
+/** Sound is on by default: only an explicit stored "off" turns it off. */
 export function parseSoundPref(raw: string | null): boolean {
-  return raw === "on";
+  return raw !== "off";
 }

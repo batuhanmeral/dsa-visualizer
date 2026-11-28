@@ -24,7 +24,7 @@ export function categoryMetadata(lang: Lang, categorySlug: string): Metadata {
     lang,
     `/${categorySlug}`,
     name,
-    lang === "tr" ? `${name}: ${names}.` : `${name} algorithms: ${names}.`
+    `${name}: ${names}.`
   );
 }
 

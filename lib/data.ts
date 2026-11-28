@@ -35,7 +35,7 @@ export interface Category {
 export const categories: Category[] = [
   {
     slug: "sorting",
-    name: "Sorting",
+    name: "Sorting Algorithms",
     tagline: "Ordering data step by step",
     icon: BarChart3,
     algorithms: [
@@ -133,7 +133,7 @@ export const categories: Category[] = [
   },
   {
     slug: "searching",
-    name: "Searching",
+    name: "Searching Algorithms",
     tagline: "Finding values fast",
     icon: Search,
     algorithms: [

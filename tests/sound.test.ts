@@ -124,10 +124,10 @@ test("every tone of a step ends before the next step starts, at every speed", ()
   }
 });
 
-test("the sound preference is on only when stored as on", () => {
+test("the sound preference is on unless stored as off", () => {
   assert.equal(SOUND_STORAGE_KEY, "sound");
   assert.equal(parseSoundPref("on"), true);
   assert.equal(parseSoundPref("off"), false);
-  assert.equal(parseSoundPref(null), false);
-  assert.equal(parseSoundPref("true"), false);
+  assert.equal(parseSoundPref(null), true);
+  assert.equal(parseSoundPref("true"), true);
 });

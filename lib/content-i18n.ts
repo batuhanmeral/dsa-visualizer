@@ -6,8 +6,8 @@
 import type { Lang } from "./i18n";
 
 const categoryTr: Record<string, { name: string; tagline: string }> = {
-  sorting: { name: "Sıralama", tagline: "Veriyi adım adım düzenleme" },
-  searching: { name: "Arama", tagline: "Değerleri hızlıca bulma" },
+  sorting: { name: "Sıralama Algoritmaları", tagline: "Veriyi adım adım düzenleme" },
+  searching: { name: "Arama Algoritmaları", tagline: "Değerleri hızlıca bulma" },
   "data-structures": {
     name: "Veri Yapıları",
     tagline: "Verinin nasıl düzenlendiği",
